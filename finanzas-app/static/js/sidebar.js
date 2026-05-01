@@ -9,7 +9,6 @@
     { id: "debts",        icon: "🤝", label: "Deudas" },
     { id: "cards",        icon: "💳", label: "Tarjetas" },
     { id: "reports",      icon: "📈", label: "Reportes" },
-    { id: "profile",      icon: "👤", label: "Mi Perfil" },
   ];
 
   const links = nav.map(({ id, icon, label }) => {
@@ -33,6 +32,9 @@
       <button id="theme-toggle" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition">
         🌙 Cambiar tema
       </button>
+      <a href="/profile.html" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition ${page === 'profile' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium' : ''}">
+        👤 Mi Perfil
+      </a>
       <button onclick="logout()" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm transition">
         🚪 Salir
       </button>
