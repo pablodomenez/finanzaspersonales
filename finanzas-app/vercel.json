@@ -13,6 +13,6 @@
     }
   ],
   "env": {
-    "DATABASE_URL": "sqlite:////tmp/finanzas.db"
+    "VERCEL": "1"
   }
 }
