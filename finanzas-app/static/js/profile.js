@@ -26,7 +26,7 @@ function showAlert(msg, ok = true) {
   const el = document.getElementById("alert");
   el.textContent = msg;
   el.className = ok
-    ? "mb-6 px-4 py-3 rounded-lg text-sm font-medium bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
+    ? "mb-6 px-4 py-3 rounded-lg text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
     : "mb-6 px-4 py-3 rounded-lg text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-700";
   el.classList.remove("hidden");
   setTimeout(() => el.classList.add("hidden"), 4000);
