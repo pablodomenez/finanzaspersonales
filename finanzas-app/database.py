@@ -6,7 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./finanzas.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    if os.getenv("VERCEL"):
+        DATABASE_URL = "sqlite:////tmp/finanzas.db"
+    else:
+        DATABASE_URL = "sqlite:///./finanzas.db"
 
 # Railway/Render usan postgres://, SQLAlchemy necesita postgresql://
 if DATABASE_URL.startswith("postgres://"):

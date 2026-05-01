@@ -72,7 +72,8 @@ def seed_categories():
 seed_categories()
 
 # Servir frontend estático
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+_static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")
 
 
 @app.exception_handler(404)
