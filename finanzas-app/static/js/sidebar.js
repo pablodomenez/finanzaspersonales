@@ -2,13 +2,13 @@
 (function () {
   const page = window.location.pathname.split("/").pop().replace(".html", "");
   const nav = [
-    { id: "dashboard",    icon: "📊", label: "Dashboard" },
-    { id: "transactions", icon: "💸", label: "Transacciones" },
-    { id: "budgets",      icon: "📋", label: "Presupuestos" },
-    { id: "goals",        icon: "🎯", label: "Metas" },
-    { id: "debts",        icon: "🤝", label: "Deudas" },
-    { id: "cards",        icon: "💳", label: "Tarjetas" },
-    { id: "reports",      icon: "📈", label: "Reportes" },
+    { id: "dashboard",    icon: "layout-dashboard",  label: "Dashboard" },
+    { id: "transactions", icon: "arrow-left-right",   label: "Transacciones" },
+    { id: "budgets",      icon: "wallet",             label: "Presupuestos" },
+    { id: "goals",        icon: "target",             label: "Metas" },
+    { id: "debts",        icon: "users",              label: "Deudas" },
+    { id: "cards",        icon: "credit-card",        label: "Tarjetas" },
+    { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
   ];
 
   const links = nav.map(({ id, icon, label }) => {
@@ -16,7 +16,7 @@
     const cls = active
       ? "flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
       : "flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
-    return `<a href="/${id}.html" class="${cls}"><span class="text-base leading-none">${icon}</span>${label}</a>`;
+    return `<a href="/${id}.html" class="${cls}"><i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>${label}</a>`;
   }).join("");
 
   const profileActive = page === "profile";
@@ -37,13 +37,15 @@
     <nav class="flex-1 px-3 py-4 space-y-0.5">${links}</nav>
     <div class="px-3 py-4 border-t border-slate-700 space-y-0.5">
       <button id="theme-toggle" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 text-sm font-medium transition-colors">
-        <span class="text-base leading-none">🌙</span>Cambiar tema
+        <i data-lucide="moon" class="w-4 h-4 shrink-0"></i>Cambiar tema
       </button>
       <a href="/profile.html" class="${profileCls}">
-        <span class="text-base leading-none">👤</span>Mi Perfil
+        <i data-lucide="user" class="w-4 h-4 shrink-0"></i>Mi Perfil
       </a>
       <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-red-400 hover:bg-red-900/30 hover:text-red-300 text-sm font-medium transition-colors">
-        <span class="text-base leading-none">🚪</span>Cerrar sesión
+        <i data-lucide="log-out" class="w-4 h-4 shrink-0"></i>Cerrar sesión
       </button>
     </div>`;
+
+  if (window.lucide) lucide.createIcons();
 })();

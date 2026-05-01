@@ -80,19 +80,19 @@ async function loadDashboard() {
     // Últimas transacciones
     const list = document.getElementById("recent-list");
     if (data.recent_transactions.length === 0) {
-      list.innerHTML = '<p class="text-gray-400 text-sm">Sin transacciones recientes</p>';
+      list.innerHTML = '<p class="px-6 py-4 text-slate-400 text-sm">Sin transacciones recientes</p>';
     } else {
       list.innerHTML = data.recent_transactions.map(t => `
-        <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+        <div class="flex items-center justify-between px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
           <div class="flex items-center gap-3">
-            <span class="text-xl">${t.category.icon}</span>
+            <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base flex-shrink-0">${t.category.icon}</div>
             <div>
-              <p class="text-sm font-medium text-gray-800 dark:text-gray-200">${t.description || t.category.name}</p>
-              <p class="text-xs text-gray-400">${formatDate(t.date)}</p>
+              <p class="text-sm font-medium text-slate-800 dark:text-slate-200">${t.description || t.category.name}</p>
+              <p class="text-xs text-slate-400">${t.category.name} · ${formatDate(t.date)}</p>
             </div>
           </div>
-          <span class="font-semibold text-sm ${t.type === "income" ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}">
-            ${t.type === "income" ? "+" : "-"}${formatCurrency(t.amount)}
+          <span class="font-semibold text-sm ${t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}">
+            ${t.type === "income" ? "+" : "−"}${formatCurrency(t.amount)}
           </span>
         </div>
       `).join("");
