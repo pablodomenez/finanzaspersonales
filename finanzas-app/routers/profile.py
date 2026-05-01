@@ -1,0 +1,70 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from typing import Optional
+from database import get_db
+import models
+import auth as auth_utils
+
+router = APIRouter(prefix="/api/profile", tags=["profile"])
+
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    birth_date: Optional[str] = None
+    country: Optional[str] = None
+    currency: Optional[str] = None
+    occupation: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_emoji: Optional[str] = None
+
+
+def _profile_dict(user: models.User, profile: models.UserProfile) -> dict:
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "phone": profile.phone if profile else "",
+        "birth_date": profile.birth_date if profile else "",
+        "country": profile.country if profile else "",
+        "currency": profile.currency if profile else "ARS",
+        "occupation": profile.occupation if profile else "",
+        "bio": profile.bio if profile else "",
+        "avatar_emoji": profile.avatar_emoji if profile else "👤",
+    }
+
+
+@router.get("")
+def get_profile(
+    current_user: models.User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db),
+):
+    profile = db.query(models.UserProfile).filter(models.UserProfile.user_id == current_user.id).first()
+    return _profile_dict(current_user, profile)
+
+
+@router.put("")
+def update_profile(
+    data: ProfileUpdate,
+    current_user: models.User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db),
+):
+    if data.name is not None:
+        current_user.name = data.name.strip()
+
+    profile = db.query(models.UserProfile).filter(models.UserProfile.user_id == current_user.id).first()
+    if not profile:
+        profile = models.UserProfile(user_id=current_user.id)
+        db.add(profile)
+
+    for field in ("phone", "birth_date", "country", "currency", "occupation", "bio", "avatar_emoji"):
+        value = getattr(data, field)
+        if value is not None:
+            setattr(profile, field, value)
+
+    db.commit()
+    db.refresh(current_user)
+    db.refresh(profile)
+    return _profile_dict(current_user, profile)

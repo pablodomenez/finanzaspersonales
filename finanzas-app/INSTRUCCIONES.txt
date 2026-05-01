@@ -1,0 +1,72 @@
+====================================
+  FINANZASAPP — Instrucciones
+====================================
+
+--- CORRER LOCALMENTE ---
+
+1. Instalar Python 3.11+ desde https://python.org
+
+2. Abrir terminal en la carpeta finanzas-app/ y ejecutar:
+     pip install -r requirements.txt
+
+3. Copiar .env.example a .env y cambiar SECRET_KEY:
+     cp .env.example .env
+
+4. Levantar el servidor:
+     uvicorn main:app --reload
+
+5. Abrir en el navegador:
+     http://localhost:8000
+
+--- DEPLOY EN RAILWAY (gratis) ---
+
+1. Crear cuenta en https://railway.app
+
+2. Crear nuevo proyecto > "Deploy from GitHub repo"
+   (o usar Railway CLI: railway init)
+
+3. Agregar variables de entorno en Railway:
+     SECRET_KEY = [clave larga aleatoria]
+     DATABASE_URL = [se llena automático si agregás PostgreSQL]
+
+4. Agregar plugin PostgreSQL en Railway:
+   Dashboard > New > Database > PostgreSQL
+   Railway auto-setea DATABASE_URL.
+
+5. Deploy automático al hacer push a main.
+
+--- DEPLOY EN RENDER (gratis) ---
+
+1. Crear cuenta en https://render.com
+
+2. New > Web Service > Connect GitHub repo
+
+3. Build Command: pip install -r requirements.txt
+   Start Command:  uvicorn main:app --host 0.0.0.0 --port $PORT
+
+4. Agregar variables de entorno:
+     SECRET_KEY = [clave larga aleatoria]
+     DATABASE_URL = [PostgreSQL de Render]
+
+5. New > PostgreSQL para la base de datos.
+
+--- ESTRUCTURA ---
+
+finanzas-app/
+├── main.py          ← Entry point
+├── database.py      ← Conexión BD
+├── models.py        ← Tablas SQLAlchemy
+├── auth.py          ← JWT + bcrypt
+├── routers/         ← API endpoints
+│   ├── auth.py
+│   ├── transactions.py
+│   ├── budgets.py
+│   └── dashboard.py
+├── static/          ← Frontend HTML/JS
+│   ├── login.html
+│   ├── register.html
+│   ├── dashboard.html
+│   ├── transactions.html
+│   ├── budgets.html
+│   └── js/
+└── requirements.txt

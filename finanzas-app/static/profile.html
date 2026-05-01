@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanzasApp — Mi Perfil</title>
+  <script src="/js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-60 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-10"></aside>
+
+  <main class="ml-60 p-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Mi Perfil</h1>
+      <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Completá tus datos personales para personalizar tu experiencia</p>
+    </div>
+
+    <!-- Alerta de éxito / error -->
+    <div id="alert" class="hidden mb-6 px-4 py-3 rounded-lg text-sm font-medium"></div>
+
+    <div class="max-w-2xl space-y-6">
+
+      <!-- Avatar + resumen -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex items-center gap-5">
+        <div id="avatar-display" class="text-5xl w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center select-none cursor-pointer border-2 border-blue-200 dark:border-blue-700 hover:scale-105 transition" title="Elegí un avatar" onclick="toggleAvatarPicker()">👤</div>
+        <div>
+          <p id="display-name" class="text-lg font-bold text-gray-900 dark:text-white">—</p>
+          <p id="display-email" class="text-sm text-gray-500 dark:text-gray-400"></p>
+          <p id="display-occupation" class="text-xs text-gray-400 dark:text-gray-500 mt-0.5"></p>
+        </div>
+      </div>
+
+      <!-- Selector de avatar -->
+      <div id="avatar-picker" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Elegí tu avatar</p>
+        <div id="avatar-grid" class="flex flex-wrap gap-3"></div>
+      </div>
+
+      <!-- Formulario de datos -->
+      <form id="profile-form" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+        <h2 class="text-base font-semibold text-gray-800 dark:text-white mb-1">Datos personales</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre completo *</label>
+            <input type="text" id="p-name" required placeholder="Tu nombre"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
+            <input type="tel" id="p-phone" placeholder="+54 11 1234-5678"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de nacimiento</label>
+            <input type="date" id="p-birth"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">País</label>
+            <input type="text" id="p-country" placeholder="Argentina"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Moneda principal</label>
+            <select id="p-currency"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="ARS">🇦🇷 ARS — Peso argentino</option>
+              <option value="USD">🇺🇸 USD — Dólar estadounidense</option>
+              <option value="EUR">🇪🇺 EUR — Euro</option>
+              <option value="BRL">🇧🇷 BRL — Real brasileño</option>
+              <option value="CLP">🇨🇱 CLP — Peso chileno</option>
+              <option value="COP">🇨🇴 COP — Peso colombiano</option>
+              <option value="MXN">🇲🇽 MXN — Peso mexicano</option>
+              <option value="UYU">🇺🇾 UYU — Peso uruguayo</option>
+              <option value="PEN">🇵🇪 PEN — Sol peruano</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ocupación</label>
+            <input type="text" id="p-occupation" placeholder="Ej: Desarrollador, Médico, Estudiante..."
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bio (opcional)</label>
+          <textarea id="p-bio" rows="3" placeholder="Contá algo sobre vos o tus objetivos financieros..."
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+        </div>
+
+        <!-- Email (solo lectura) -->
+        <div class="pt-1 border-t border-gray-100 dark:border-gray-700">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+          <input type="email" id="p-email" disabled
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-sm cursor-not-allowed" />
+          <p class="text-xs text-gray-400 mt-1">El email no se puede modificar.</p>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button type="submit" id="save-btn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition disabled:opacity-60">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+
+      <!-- Info de cuenta -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <h2 class="text-base font-semibold text-gray-800 dark:text-white mb-3">Información de cuenta</h2>
+        <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+          <div class="flex justify-between">
+            <span>Miembro desde</span>
+            <span id="info-created" class="font-medium text-gray-800 dark:text-gray-200">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>

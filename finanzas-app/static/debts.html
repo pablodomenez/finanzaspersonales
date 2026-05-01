@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanzasApp — Deudas</title>
+  <script src="/js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-60 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-10"></aside>
+
+  <main class="ml-60 p-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Deudas y créditos</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Lo que debés y lo que te deben</p>
+      </div>
+      <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        + Nueva deuda
+      </button>
+    </div>
+
+    <!-- Resumen KPIs -->
+    <div class="grid grid-cols-2 gap-4 mb-8">
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl p-5">
+        <p class="text-sm text-red-600 dark:text-red-400 font-medium">😬 Lo que debo</p>
+        <p id="kpi-owe" class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">—</p>
+        <p id="kpi-owe-count" class="text-xs text-red-400 mt-0.5"></p>
+      </div>
+      <div class="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-2xl p-5">
+        <p class="text-sm text-green-600 dark:text-green-400 font-medium">🤑 Lo que me deben</p>
+        <p id="kpi-owed" class="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">—</p>
+        <p id="kpi-owed-count" class="text-xs text-green-400 mt-0.5"></p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-6">
+      <button id="tab-all" onclick="setTab('all')" class="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white transition">Todas</button>
+      <button id="tab-owe" onclick="setTab('owe')" class="px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 transition">Debo</button>
+      <button id="tab-owed" onclick="setTab('owed')" class="px-4 py-2 rounded-lg text-sm font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 transition">Me deben</button>
+    </div>
+
+    <div id="debts-list" class="space-y-3">
+      <p class="text-gray-400 text-sm">Cargando...</p>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Nueva deuda</h2>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl">✕</button>
+      </div>
+      <div id="modal-error" class="hidden bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
+      <form id="debt-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center gap-2 p-3 rounded-lg border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 cursor-pointer has-[:checked]:border-red-500">
+              <input type="radio" name="d-type" value="owe" checked class="accent-red-500" />
+              <span class="text-sm font-medium text-red-700 dark:text-red-300">😬 Yo debo</span>
+            </label>
+            <label class="flex items-center gap-2 p-3 rounded-lg border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 cursor-pointer has-[:checked]:border-green-500">
+              <input type="radio" name="d-type" value="owed" class="accent-green-500" />
+              <span class="text-sm font-medium text-green-700 dark:text-green-300">🤑 Me deben</span>
+            </label>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Persona</label>
+          <input type="text" id="d-person" required placeholder="Nombre o empresa"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción (opcional)</label>
+          <input type="text" id="d-description" placeholder="Ej: Préstamo para el auto"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monto</label>
+          <input type="number" id="d-amount" min="0.01" step="0.01" required
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha límite (opcional)</label>
+          <input type="date" id="d-due-date"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition">Cancelar</button>
+          <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/debts.js"></script>
+</body>
+</html>
