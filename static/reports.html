@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanzasApp — Reportes</title>
+  <script src="/js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-60 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-10"></aside>
+
+  <main class="ml-60 p-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Reportes anuales</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Análisis completo de tu año financiero</p>
+      </div>
+      <div class="flex gap-3 items-center">
+        <select id="year-select" class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+        <button onclick="exportCSV()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          ⬇️ Exportar CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- KPIs anuales -->
+    <div class="grid grid-cols-3 gap-6 mb-8">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Balance anual</p>
+        <p id="kpi-balance" class="text-3xl font-bold mt-1">—</p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <p class="text-sm text-gray-500 dark:text-gray-400">💚 Ingresos totales</p>
+        <p id="kpi-income" class="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">—</p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <p class="text-sm text-gray-500 dark:text-gray-400">🔴 Gastos totales</p>
+        <p id="kpi-expense" class="text-3xl font-bold mt-1 text-red-500 dark:text-red-400">—</p>
+      </div>
+    </div>
+
+    <!-- Gráfico de línea anual -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+      <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Evolución mensual del año</h3>
+      <div class="h-64">
+        <canvas id="line-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Tabla mensual + dona categorías -->
+    <div class="grid grid-cols-2 gap-6">
+      <!-- Tabla por mes -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Detalle por mes</h3>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-gray-400 text-xs border-b border-gray-100 dark:border-gray-700">
+              <th class="text-left pb-2">Mes</th>
+              <th class="text-right pb-2 text-green-500">Ingresos</th>
+              <th class="text-right pb-2 text-red-500">Gastos</th>
+              <th class="text-right pb-2">Balance</th>
+            </tr>
+          </thead>
+          <tbody id="monthly-table"></tbody>
+        </table>
+      </div>
+
+      <!-- Dona top categorías -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <h3 class="font-semibold text-gray-700 dark:text-gray-300 mb-4 text-sm">Top categorías de gasto</h3>
+        <div class="h-48 mb-4">
+          <canvas id="donut-chart"></canvas>
+        </div>
+        <div id="category-legend" class="space-y-2"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/reports.js"></script>
+</body>
+</html>
