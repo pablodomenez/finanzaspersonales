@@ -7,7 +7,10 @@ from database import engine, Base
 from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"DB init error: {e}")
 
 app = FastAPI(title="FinanzasApp", version="1.0.0")
 
@@ -69,7 +72,10 @@ def seed_categories():
     finally:
         db.close()
 
-seed_categories()
+try:
+    seed_categories()
+except Exception as e:
+    print(f"Seed error: {e}")
 
 # Servir frontend estático
 _static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
