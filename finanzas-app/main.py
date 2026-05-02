@@ -1,10 +1,12 @@
+import asyncio
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
 try:
@@ -12,7 +14,43 @@ try:
 except Exception as e:
     print(f"DB init error: {e}")
 
-app = FastAPI(title="FinanzasApp", version="1.0.0")
+
+def _migrate_db():
+    """Agrega columnas nuevas a tablas existentes sin perder datos."""
+    from sqlalchemy import text
+    new_columns = [
+        "ALTER TABLE servicios ADD COLUMN numero_cuenta TEXT DEFAULT ''",
+        "ALTER TABLE servicios ADD COLUMN link_pago TEXT DEFAULT ''",
+        "ALTER TABLE servicios ADD COLUMN monto_variable INTEGER DEFAULT 0",
+        "ALTER TABLE inversiones ADD COLUMN notas_tesis TEXT DEFAULT ''",
+    ]
+    with engine.connect() as conn:
+        for sql in new_columns:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception:
+                pass  # columna ya existe
+
+
+try:
+    _migrate_db()
+except Exception as e:
+    print(f"Migration error: {e}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(servicios.check_vencimientos_loop())
+    yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+
+app = FastAPI(title="FinanzasApp", version="1.0.0", lifespan=lifespan)
 
 _allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000").split(",")
 app.add_middleware(
@@ -32,6 +70,8 @@ app.include_router(debts.router)
 app.include_router(reports.router)
 app.include_router(cards.router)
 app.include_router(profile.router)
+app.include_router(servicios.router)
+app.include_router(inversiones.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter

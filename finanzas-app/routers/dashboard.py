@@ -92,12 +92,24 @@ def summary(
         .all()
     )
 
+    # Estimado mensual de servicios activos
+    _freq_factor = {"mensual": 1.0, "bimestral": 0.5, "trimestral": 1/3, "semestral": 1/6, "anual": 1/12}
+    servicios_activos = db.query(models.Servicio).filter(
+        models.Servicio.user_id == current_user.id,
+        models.Servicio.activo == True,
+    ).all()
+    servicios_mensual = round(
+        sum(s.monto * _freq_factor.get(s.frecuencia, 1) for s in servicios_activos), 2
+    )
+
     return {
         "month": month,
         "year": year,
         "total_income": total_income,
         "total_expense": total_expense,
         "balance": round(total_income - total_expense, 2),
+        "servicios_mensual": servicios_mensual,
+        "servicios_count": len(servicios_activos),
         "by_category": list(by_category.values()),
         "monthly_trend": list(trend_map.values()),
         "recent_transactions": [

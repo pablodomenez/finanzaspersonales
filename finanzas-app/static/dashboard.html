@@ -36,7 +36,7 @@
 
     <div class="p-8 flex-1">
       <!-- KPI cards -->
-      <div class="grid grid-cols-3 gap-5 mb-6">
+      <div class="grid grid-cols-4 gap-5 mb-6">
         <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
           <div class="w-1 self-stretch rounded-full bg-slate-400"></div>
           <div>
@@ -58,6 +58,14 @@
             <p id="kpi-expense" class="text-2xl font-bold mt-1 text-red-600 dark:text-red-400">—</p>
           </div>
         </div>
+        <a href="/servicios.html" class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4 hover:border-blue-400 dark:hover:border-blue-600 transition-colors group">
+          <div class="w-1 self-stretch rounded-full bg-blue-500"></div>
+          <div class="min-w-0">
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Servicios (est.)</p>
+            <p id="kpi-servicios" class="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">—</p>
+            <p id="kpi-servicios-count" class="text-xs text-slate-400 mt-0.5 group-hover:text-blue-500 transition-colors">Ver servicios →</p>
+          </div>
+        </a>
       </div>
 
       <!-- Charts -->

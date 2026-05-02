@@ -25,6 +25,13 @@ class User(Base):
     debts = relationship("Debt", back_populates="user", cascade="all, delete")
     credit_cards = relationship("CreditCard", back_populates="user", cascade="all, delete")
     profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete")
+    servicios = relationship("Servicio", back_populates="user", cascade="all, delete")
+    notificaciones = relationship("Notificacion", back_populates="user", cascade="all, delete")
+    pagos_servicios = relationship("PagoServicio", back_populates="user", cascade="all, delete")
+    inversor_perfil = relationship("InversorPerfil", back_populates="user", uselist=False, cascade="all, delete")
+    inversiones = relationship("Inversion", back_populates="user", cascade="all, delete")
+    historico_inversiones = relationship("HistoricoInversion", back_populates="user", cascade="all, delete")
+    dividendos_inversiones = relationship("DividendoInversion", back_populates="user", cascade="all, delete")
 
 
 class Category(Base):
@@ -154,3 +161,125 @@ class UserProfile(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="profile")
+
+
+class Servicio(Base):
+    __tablename__ = "servicios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    nombre = Column(String, nullable=False)
+    categoria = Column(String, nullable=False)
+    monto = Column(Float, nullable=False)
+    dia_vencimiento = Column(Integer, nullable=False)   # 1-28
+    frecuencia = Column(String, default="mensual")      # mensual, bimestral, trimestral, semestral, anual
+    notas = Column(String, default="")
+    numero_cuenta = Column(String, default="")
+    link_pago = Column(String, default="")
+    monto_variable = Column(Boolean, default=False)
+    activo = Column(Boolean, default=True)
+    proximo_vencimiento = Column(String, nullable=True)  # YYYY-MM-DD
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="servicios")
+    notificaciones = relationship("Notificacion", back_populates="servicio", cascade="all, delete-orphan")
+    pagos = relationship("PagoServicio", back_populates="servicio", cascade="all, delete-orphan")
+
+
+class Notificacion(Base):
+    __tablename__ = "notificaciones"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    servicio_id = Column(Integer, ForeignKey("servicios.id"), nullable=False)
+    mensaje = Column(String, nullable=False)
+    leida = Column(Boolean, default=False)
+    vencimiento_ref = Column(String, nullable=False)    # YYYY-MM-DD de qué vencimiento es
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    servicio = relationship("Servicio", back_populates="notificaciones")
+    user = relationship("User", back_populates="notificaciones")
+
+
+class PagoServicio(Base):
+    __tablename__ = "pagos_servicios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    servicio_id = Column(Integer, ForeignKey("servicios.id"), nullable=False, index=True)
+    monto_pagado = Column(Float, nullable=False)
+    fecha_pago = Column(String, nullable=False)   # YYYY-MM-DD
+    periodo = Column(String, nullable=False)      # YYYY-MM
+    notas = Column(String, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    servicio = relationship("Servicio", back_populates="pagos")
+    user = relationship("User", back_populates="pagos_servicios")
+
+
+class InversorPerfil(Base):
+    __tablename__ = "inversor_perfiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False, index=True)
+    perfil = Column(String, nullable=False)    # conservador, moderado, agresivo
+    puntaje = Column(Integer, nullable=False)
+    respuestas = Column(String, default="")   # JSON string de respuestas
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="inversor_perfil")
+
+
+class Inversion(Base):
+    __tablename__ = "inversiones"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    tipo = Column(String, nullable=False)          # plazo_fijo, fci, acciones, cedears, bonos, cripto, dolar, inmueble, otros
+    nombre = Column(String, nullable=False)
+    moneda = Column(String, default="ARS")         # ARS, USD
+    monto_invertido = Column(Float, nullable=False)
+    valor_actual = Column(Float, nullable=False)
+    fecha_inicio = Column(String, nullable=False)  # YYYY-MM-DD
+    fecha_vencimiento = Column(String, nullable=True)  # YYYY-MM-DD (para plazo fijo / bonos)
+    tasa_anual = Column(Float, nullable=True)      # TNA para plazo fijo
+    estado = Column(String, default="activo")      # activo, cerrado, vencido
+    notas = Column(String, default="")
+    notas_tesis = Column(String, default="")       # tesis / razonamiento de la inversión
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="inversiones")
+    historico = relationship("HistoricoInversion", back_populates="inversion", cascade="all, delete-orphan")
+    dividendos = relationship("DividendoInversion", back_populates="inversion", cascade="all, delete-orphan")
+
+
+class HistoricoInversion(Base):
+    __tablename__ = "historico_inversiones"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    inversion_id = Column(Integer, ForeignKey("inversiones.id"), nullable=False, index=True)
+    valor = Column(Float, nullable=False)
+    fecha = Column(String, nullable=False)    # YYYY-MM-DD
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    inversion = relationship("Inversion", back_populates="historico")
+    user = relationship("User", back_populates="historico_inversiones")
+
+
+class DividendoInversion(Base):
+    __tablename__ = "dividendos_inversiones"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    inversion_id = Column(Integer, ForeignKey("inversiones.id"), nullable=False, index=True)
+    monto = Column(Float, nullable=False)
+    moneda = Column(String, default="ARS")
+    fecha = Column(String, nullable=False)    # YYYY-MM-DD
+    tipo = Column(String, default="dividendo")  # dividendo, cupon, renta, otro
+    notas = Column(String, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    inversion = relationship("Inversion", back_populates="dividendos")
+    user = relationship("User", back_populates="dividendos_inversiones")

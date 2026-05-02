@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanzasApp — Servicios</title>
+  <script src="/js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-10 border-r border-slate-800"></aside>
+
+  <main class="ml-64 min-h-screen flex flex-col">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div>
+        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Servicios</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Programá y seguí el pago de tus servicios</p>
+      </div>
+      <button onclick="openModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        + Nuevo servicio
+      </button>
+    </header>
+
+    <div class="p-8 flex-1">
+
+      <!-- Alertas urgentes -->
+      <div id="alertas-container" class="mb-6 space-y-2"></div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-blue-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total mensual</p>
+            <p id="kpi-mensual" class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">estimado por mes</p>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-violet-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total anual</p>
+            <p id="kpi-anual" class="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">estimado por año</p>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-amber-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Vencen pronto</p>
+            <p id="kpi-proximos" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">próximos 7 días</p>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-emerald-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Activos</p>
+            <p id="kpi-activos" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">servicios registrados</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notificaciones no leídas -->
+      <div id="notifs-panel" class="hidden mb-6 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-200 dark:border-slate-700">
+          <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+            <i data-lucide="bell" class="w-4 h-4 text-amber-500"></i>
+            Notificaciones pendientes
+          </h3>
+          <button onclick="leerTodas()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Marcar todas como leídas</button>
+        </div>
+        <div id="notifs-list" class="divide-y divide-slate-100 dark:divide-slate-800 max-h-48 overflow-y-auto"></div>
+      </div>
+
+      <!-- Controles: filtro tab + filtro categoría -->
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <div class="flex gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1">
+          <button id="tab-todos" onclick="setTab('todos')" class="px-4 py-1.5 rounded-md text-sm font-medium bg-blue-700 text-white transition">Todos</button>
+          <button id="tab-activos" onclick="setTab('activos')" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Activos</button>
+          <button id="tab-inactivos" onclick="setTab('inactivos')" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Inactivos</button>
+        </div>
+        <div id="cat-filters" class="flex flex-wrap gap-1"></div>
+      </div>
+
+      <!-- Grid de servicios -->
+      <div id="servicios-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <p class="text-slate-400 text-sm col-span-full">Cargando...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Modal agregar/editar servicio ─────────────────────────────────────── -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-900 z-10">
+        <h2 id="modal-title" class="text-base font-semibold text-slate-800 dark:text-white">Nuevo servicio</h2>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-lg leading-none">✕</button>
+      </div>
+      <div class="p-6">
+        <div id="modal-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
+        <form id="servicio-form" class="space-y-4">
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre del servicio</label>
+            <input type="text" id="s-nombre" required placeholder="Ej: Internet Fibertel"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Categoría</label>
+            <select id="s-categoria" required
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="">Seleccioná una categoría</option>
+              <option value="Electricidad">⚡ Electricidad</option>
+              <option value="Gas">🔥 Gas</option>
+              <option value="Agua">💧 Agua</option>
+              <option value="Internet">🌐 Internet</option>
+              <option value="Telefonia">📱 Telefonía / Celular</option>
+              <option value="Streaming">📺 Streaming</option>
+              <option value="Seguro">🛡️ Seguro</option>
+              <option value="Alquiler">🏠 Alquiler</option>
+              <option value="Expensas">🏢 Expensas</option>
+              <option value="Suscripcion">📧 Suscripción</option>
+              <option value="Otros">💡 Otros</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">Monto estimado</label>
+              <label class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 cursor-pointer">
+                <input type="checkbox" id="s-monto-variable" class="accent-blue-600 w-3.5 h-3.5" />
+                Monto variable
+              </label>
+            </div>
+            <input type="number" id="s-monto" min="0.01" step="0.01" required placeholder="0.00"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            <p id="monto-variable-hint" class="hidden text-xs text-slate-400 mt-1">Este monto es solo referencial, podrás ingresar el real al pagar.</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Día de vencimiento</label>
+              <input type="number" id="s-dia" min="1" max="28" required placeholder="Ej: 15"
+                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              <p class="text-xs text-slate-400 mt-1">Del 1 al 28</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Frecuencia</label>
+              <select id="s-frecuencia"
+                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                <option value="mensual">Mensual</option>
+                <option value="bimestral">Bimestral</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="semestral">Semestral</option>
+                <option value="anual">Anual</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número de cuenta / CBU (opcional)</label>
+            <input type="text" id="s-cuenta" placeholder="Ej: 123456789 / CBU"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Link de pago online (opcional)</label>
+            <input type="url" id="s-link" placeholder="https://..."
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas (opcional)</label>
+            <textarea id="s-notas" rows="2" placeholder="Proveedor, observaciones, etc."
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"></textarea>
+          </div>
+
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+            <button type="submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal registrar pago ───────────────────────────────────────────────── -->
+  <div id="modal-pagar" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-sm border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+        <h2 class="text-base font-semibold text-slate-800 dark:text-white">Registrar pago</h2>
+        <button onclick="closePagarModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-lg leading-none">✕</button>
+      </div>
+      <div class="p-6">
+        <p id="pagar-nombre" class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1"></p>
+        <p id="pagar-periodo" class="text-xs text-slate-400 mb-4"></p>
+        <div id="pagar-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
+        <form id="pagar-form" class="space-y-4">
+          <input type="hidden" id="pagar-servicio-id" />
+          <input type="hidden" id="pagar-periodo-value" />
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Monto pagado</label>
+            <input type="number" id="pagar-monto" min="0.01" step="0.01" required
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha de pago</label>
+            <input type="date" id="pagar-fecha" required
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas (opcional)</label>
+            <input type="text" id="pagar-notas" placeholder="Referencia de pago, etc."
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div class="flex gap-3 pt-1">
+            <button type="button" onclick="closePagarModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Confirmar pago</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal historial de pagos ───────────────────────────────────────────── -->
+  <div id="modal-historial" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-700 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
+        <div>
+          <h2 class="text-base font-semibold text-slate-800 dark:text-white">Historial de pagos</h2>
+          <p id="historial-nombre" class="text-xs text-slate-400 mt-0.5"></p>
+        </div>
+        <button onclick="closeHistorialModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-lg leading-none">✕</button>
+      </div>
+      <div id="historial-body" class="flex-1 overflow-y-auto">
+        <p class="px-6 py-4 text-slate-400 text-sm">Cargando...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/servicios.js"></script>
+</body>
+</html>

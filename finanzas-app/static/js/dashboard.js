@@ -23,6 +23,11 @@ async function loadDashboard() {
     balanceEl.className = `text-3xl font-bold mt-1 ${data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`;
     document.getElementById("kpi-income").textContent = formatCurrency(data.total_income);
     document.getElementById("kpi-expense").textContent = formatCurrency(data.total_expense);
+    document.getElementById("kpi-servicios").textContent = formatCurrency(data.servicios_mensual || 0);
+    document.getElementById("kpi-servicios-count").textContent =
+      data.servicios_count > 0
+        ? `${data.servicios_count} servicio${data.servicios_count !== 1 ? "s" : ""} activo${data.servicios_count !== 1 ? "s" : ""} →`
+        : "Ver servicios →";
 
     // Gráfico de dona: actualizar datos si ya existe, crear si no
     const noExp = document.getElementById("no-expenses");

@@ -8,15 +8,20 @@
     { id: "goals",        icon: "target",             label: "Metas" },
     { id: "debts",        icon: "users",              label: "Deudas" },
     { id: "cards",        icon: "credit-card",        label: "Tarjetas" },
+    { id: "servicios",    icon: "zap",                label: "Servicios", badge: true },
+    { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
     { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
   ];
 
-  const links = nav.map(({ id, icon, label }) => {
+  const links = nav.map(({ id, icon, label, badge }) => {
     const active = page === id;
     const cls = active
       ? "flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
       : "flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
-    return `<a href="/${id}.html" class="${cls}"><i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>${label}</a>`;
+    const badgeHtml = badge
+      ? `<span id="notif-badge" class="hidden ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`
+      : "";
+    return `<a href="/${id}.html" class="${cls}"><i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>${label}${badgeHtml}</a>`;
   }).join("");
 
   const profileActive = page === "profile";
@@ -48,4 +53,19 @@
     </div>`;
 
   if (window.lucide) lucide.createIcons();
+
+  // Carga badge de notificaciones no leídas (async, no bloquea el render)
+  if (typeof apiFetch === "function" && typeof getToken === "function" && getToken()) {
+    (async () => {
+      try {
+        const notifs = await apiFetch("/api/servicios/notificaciones");
+        const unread = notifs.filter((n) => !n.leida).length;
+        const badge = document.getElementById("notif-badge");
+        if (badge && unread > 0) {
+          badge.textContent = unread > 9 ? "9+" : String(unread);
+          badge.classList.remove("hidden");
+        }
+      } catch (_) {}
+    })();
+  }
 })();

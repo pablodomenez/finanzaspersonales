@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanzasApp — Inversiones</title>
+  <script src="/js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-10 border-r border-slate-800"></aside>
+
+  <main class="ml-64 min-h-screen flex flex-col">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div>
+        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Inversiones</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Portafolio · perfil inversor · calculadora</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="btn-retomar-quiz" onclick="startQuiz()" class="hidden text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg transition">
+          Rehacer evaluación
+        </button>
+        <a id="btn-export" href="/api/inversiones/exportar-csv" class="hidden items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+          <i data-lucide="download" class="w-4 h-4"></i> CSV
+        </a>
+        <button onclick="openModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          + Nueva inversión
+        </button>
+      </div>
+    </header>
+
+    <div class="p-8 flex-1">
+
+      <!-- ── QUIZ ──────────────────────────────────────────────────────────── -->
+      <div id="quiz-section" class="hidden max-w-2xl mx-auto">
+        <div class="mb-8">
+          <div class="flex items-center justify-between mb-2">
+            <span id="quiz-step-label" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pregunta 1 de 7</span>
+            <span id="quiz-pct" class="text-xs font-medium text-blue-600 dark:text-blue-400">14%</span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+            <div id="quiz-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width:14%"></div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
+          <p id="quiz-numero" class="text-4xl font-black text-blue-600/20 dark:text-blue-400/20 mb-2 leading-none">01</p>
+          <h2 id="quiz-pregunta" class="text-xl font-bold text-slate-800 dark:text-white mb-6 leading-snug"></h2>
+          <div id="quiz-opciones" class="space-y-3"></div>
+          <div class="flex justify-between mt-8">
+            <button id="quiz-btn-ant" onclick="quizAnterior()" class="hidden text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg transition">← Anterior</button>
+            <div></div>
+            <button id="quiz-btn-sig" onclick="quizSiguiente()" disabled
+              class="text-sm font-semibold bg-blue-700 hover:bg-blue-800 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:text-slate-400 text-white px-6 py-2 rounded-lg transition">
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RESULTADO QUIZ ─────────────────────────────────────────────────── -->
+      <div id="quiz-resultado" class="hidden max-w-2xl mx-auto">
+        <div id="resultado-card" class="rounded-2xl p-8 text-center mb-6 border-2">
+          <p class="text-5xl mb-4" id="resultado-emoji"></p>
+          <p class="text-xs font-semibold uppercase tracking-widest mb-2 opacity-70" id="resultado-label">Perfil inversor</p>
+          <h2 id="resultado-titulo" class="text-3xl font-black mb-3"></h2>
+          <p id="resultado-desc" class="text-sm leading-relaxed opacity-80 max-w-md mx-auto"></p>
+          <div class="mt-6">
+            <p class="text-xs font-semibold uppercase tracking-wider opacity-60 mb-3">Inversiones recomendadas</p>
+            <div id="resultado-recomendaciones" class="flex flex-wrap justify-center gap-2"></div>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="startQuiz()" class="flex-1 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Responder de nuevo</button>
+          <button onclick="irAInversiones()" class="flex-1 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition">Ver mis inversiones →</button>
+        </div>
+      </div>
+
+      <!-- ── DASHBOARD ──────────────────────────────────────────────────────── -->
+      <div id="dashboard-section" class="hidden">
+
+        <!-- Tabs principales -->
+        <div class="flex gap-1 mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit">
+          <button id="main-tab-portafolio" onclick="setMainTab('portafolio')" class="px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition">Portafolio</button>
+          <button id="main-tab-calculadora" onclick="setMainTab('calculadora')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Calculadora PF</button>
+        </div>
+
+        <!-- ── TAB PORTAFOLIO ─────────────────────────────────────────────── -->
+        <div id="tab-portafolio">
+
+          <!-- Alertas de vencimiento -->
+          <div id="alertas-venc" class="mb-5 space-y-2"></div>
+
+          <!-- Badge de perfil + settings de referencia -->
+          <div class="flex flex-wrap items-center gap-4 mb-6">
+            <div id="perfil-badge" class="hidden flex items-center gap-3 px-4 py-2.5 rounded-xl border-2">
+              <span id="badge-emoji" class="text-xl"></span>
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider opacity-60" id="badge-label">Perfil</p>
+                <p class="font-bold text-sm leading-tight" id="badge-titulo"></p>
+              </div>
+              <button onclick="startQuiz()" class="ml-2 text-xs opacity-50 hover:opacity-100 transition underline">cambiar</button>
+            </div>
+
+            <!-- Referencias de mercado -->
+            <div class="flex flex-wrap items-center gap-3 ml-auto">
+              <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">🏛 Inflación anual %</span>
+                <input type="number" id="ref-inflacion" min="0" step="0.1" placeholder="118" value=""
+                  class="w-16 text-sm font-bold text-slate-800 dark:text-white bg-transparent border-none outline-none text-right" />
+              </div>
+              <div class="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">💵 USD/ARS</span>
+                <input type="number" id="ref-usd" min="0" step="1" placeholder="1050" value=""
+                  class="w-20 text-sm font-bold text-slate-800 dark:text-white bg-transparent border-none outline-none text-right" />
+              </div>
+              <button onclick="guardarRefs()" class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">Guardar</button>
+            </div>
+          </div>
+
+          <!-- KPIs ARS -->
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Pesos (ARS)</p>
+          <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+              <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Invertido</p>
+              <p id="kpi-ars-inv" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+              <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Valor actual</p>
+              <p id="kpi-ars-act" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+              <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Rendimiento</p>
+              <p id="kpi-ars-rend" class="text-lg font-bold mt-1">—</p>
+              <p id="kpi-ars-pct" class="text-xs font-semibold mt-0.5">—</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+              <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Rend. real 🏛</p>
+              <p id="kpi-ars-real" class="text-lg font-bold mt-1">—</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">vs inflación</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+              <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Dividendos</p>
+              <p id="kpi-ars-div" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">—</p>
+            </div>
+          </div>
+
+          <!-- KPIs USD -->
+          <div id="usd-section" class="hidden mb-5">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Dólares (USD)</p>
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Invertido</p>
+                <p id="kpi-usd-inv" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Valor actual</p>
+                <p id="kpi-usd-act" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Rendimiento</p>
+                <p id="kpi-usd-rend" class="text-lg font-bold mt-1">—</p>
+                <p id="kpi-usd-pct" class="text-xs font-semibold mt-0.5">—</p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">En ARS 💵</p>
+                <p id="kpi-usd-en-ars" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">al tipo de cambio</p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Dividendos</p>
+                <p id="kpi-usd-div" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">—</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="grid grid-cols-3 gap-5 mb-6">
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5">
+              <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Distribución por tipo</h3>
+              <div class="relative h-44">
+                <canvas id="dist-chart"></canvas>
+                <p id="no-dist" class="hidden absolute inset-0 flex items-center justify-center text-slate-400 text-sm">Sin inversiones</p>
+              </div>
+              <!-- ARS vs USD split -->
+              <div id="ars-usd-split" class="hidden mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">ARS vs USD (valor actual)</p>
+                <div class="flex rounded-full overflow-hidden h-3 mb-1" id="split-bar"></div>
+                <div id="split-labels" class="flex justify-between text-[10px] text-slate-500"></div>
+              </div>
+            </div>
+            <div class="col-span-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex flex-col">
+              <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Por tipo — valor actual</h3>
+              <div id="tipo-list" class="flex-1 space-y-2 overflow-y-auto pr-1"></div>
+            </div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="flex gap-1 mb-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit">
+            <button id="tab-activo" onclick="setTab('activo')" class="px-4 py-1.5 rounded-md text-sm font-medium bg-blue-700 text-white transition">Activas</button>
+            <button id="tab-cerrado" onclick="setTab('cerrado')" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cerradas</button>
+            <button id="tab-todas" onclick="setTab('todas')" class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Todas</button>
+          </div>
+
+          <div id="inversiones-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <p class="text-slate-400 text-sm col-span-full">Cargando...</p>
+          </div>
+        </div>
+
+        <!-- ── TAB CALCULADORA ────────────────────────────────────────────── -->
+        <div id="tab-calculadora" class="hidden max-w-2xl mx-auto">
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-7">
+            <h2 class="text-base font-semibold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
+              🏦 Calculadora de Plazo Fijo / Inversión
+            </h2>
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Capital inicial</label>
+                  <input type="number" id="calc-capital" min="1" step="1" placeholder="1000000"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">TNA (%) — Tasa Nominal Anual</label>
+                  <input type="number" id="calc-tna" min="0" step="0.1" placeholder="118.5"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Plazo</label>
+                  <input type="number" id="calc-plazo" min="1" step="1" placeholder="30"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Unidad</label>
+                  <select id="calc-unidad"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    <option value="dias">Días</option>
+                    <option value="meses">Meses</option>
+                  </select>
+                </div>
+              </div>
+              <button onclick="calcular()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+                Calcular
+              </button>
+            </div>
+          </div>
+
+          <!-- Resultado calculadora -->
+          <div id="calc-resultado" class="hidden mt-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+              <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Resultado de la inversión</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-xs text-slate-400">Capital inicial</p>
+                  <p id="c-capital" class="text-lg font-bold text-slate-800 dark:text-white mt-0.5"></p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">Monto final bruto</p>
+                  <p id="c-final" class="text-xl font-bold text-blue-600 dark:text-blue-400 mt-0.5"></p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">Ganancia</p>
+                  <p id="c-ganancia" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5"></p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">Rendimiento período</p>
+                  <p id="c-rend-pct" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5"></p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">TEA equivalente</p>
+                  <p id="c-tea" class="text-lg font-bold text-slate-700 dark:text-slate-300 mt-0.5"></p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">Plazo calculado</p>
+                  <p id="c-dias" class="text-lg font-bold text-slate-700 dark:text-slate-300 mt-0.5"></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">🏛 vs Inflación</h3>
+                <p id="c-inf-label" class="text-xs text-slate-400 mb-2"></p>
+                <p id="c-inf-rend" class="text-xl font-bold"></p>
+                <p id="c-inf-desc" class="text-xs text-slate-400 mt-1"></p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+                <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">💵 vs Dólar</h3>
+                <p id="c-usd-label" class="text-xs text-slate-400 mb-2"></p>
+                <div id="c-usd-result" class="space-y-1"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dashboard-section -->
+    </div>
+  </main>
+
+  <!-- ── Modal agregar/editar inversión ───────────────────────────────────── -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-900 z-10">
+        <h2 id="modal-title" class="text-base font-semibold text-slate-800 dark:text-white">Nueva inversión</h2>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+      </div>
+      <div class="p-6">
+        <div id="modal-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-600 text-sm rounded-lg p-3 mb-4"></div>
+        <form id="inv-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
+            <select id="i-tipo" required onchange="onTipoChange()"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="">Seleccioná un tipo</option>
+              <option value="plazo_fijo">🏦 Plazo Fijo</option>
+              <option value="fci">📊 Fondo Común (FCI)</option>
+              <option value="acciones">📈 Acciones</option>
+              <option value="cedears">🌎 CEDEARs</option>
+              <option value="bonos">📜 Bonos / ONs</option>
+              <option value="cripto">₿ Criptomonedas</option>
+              <option value="dolar">💵 Dólar / USD</option>
+              <option value="inmueble">🏠 Inmueble</option>
+              <option value="otros">💼 Otros</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre / Descripción</label>
+            <input type="text" id="i-nombre" required placeholder="Ej: PF Banco Galicia, AAPL, BTC..."
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Moneda</label>
+              <div class="flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden">
+                <label class="flex-1 flex items-center justify-center py-2.5 text-sm font-medium cursor-pointer has-[:checked]:bg-blue-700 has-[:checked]:text-white text-slate-600 dark:text-slate-400 transition">
+                  <input type="radio" name="i-moneda" value="ARS" checked class="sr-only" />ARS
+                </label>
+                <label class="flex-1 flex items-center justify-center py-2.5 text-sm font-medium cursor-pointer has-[:checked]:bg-blue-700 has-[:checked]:text-white text-slate-600 dark:text-slate-400 border-l border-slate-300 dark:border-slate-600 transition">
+                  <input type="radio" name="i-moneda" value="USD" class="sr-only" />USD
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha inicio</label>
+              <input type="date" id="i-fecha-inicio" required
+                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Monto invertido</label>
+              <input type="number" id="i-monto" min="0.01" step="0.01" required
+                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Valor actual</label>
+              <input type="number" id="i-valor-actual" min="0.01" step="0.01" placeholder="= monto invertido"
+                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            </div>
+          </div>
+          <div id="campo-vencimiento" class="hidden">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha de vencimiento</label>
+            <input type="date" id="i-fecha-venc"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div id="campo-tna" class="hidden">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">TNA (%) — Tasa Nominal Anual</label>
+            <input type="number" id="i-tna" min="0" step="0.01" placeholder="Ej: 118.5"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas</label>
+            <input type="text" id="i-notas" placeholder="Broker, ticker, observaciones..."
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tesis de inversión (opcional)</label>
+            <textarea id="i-tesis" rows="3" placeholder="¿Por qué hiciste esta inversión? ¿Cuál es tu expectativa?"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"></textarea>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+            <button type="submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal actualizar valor ────────────────────────────────────────────── -->
+  <div id="modal-valor" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-sm border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+        <h2 class="text-base font-semibold text-slate-800 dark:text-white">Actualizar valor</h2>
+        <button onclick="closeValorModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+      </div>
+      <div class="p-6">
+        <p id="valor-nombre" class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4"></p>
+        <div id="valor-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 text-red-600 text-sm rounded-lg p-3 mb-4"></div>
+        <form id="valor-form" class="space-y-4">
+          <input type="hidden" id="valor-inv-id" />
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nuevo valor actual</label>
+            <input type="number" id="valor-input" min="0.01" step="0.01" required
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Estado</label>
+            <select id="valor-estado"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <option value="activo">Activa</option>
+              <option value="cerrado">Cerrada</option>
+              <option value="vencido">Vencida</option>
+            </select>
+          </div>
+          <p class="text-xs text-slate-400">El valor anterior se guardará en el historial automáticamente.</p>
+          <div class="flex gap-3 pt-1">
+            <button type="button" onclick="closeValorModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium transition">Cancelar</button>
+            <button type="submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Actualizar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal historial de valores ───────────────────────────────────────── -->
+  <div id="modal-historico" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-700 max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
+        <div>
+          <h2 class="text-base font-semibold text-slate-800 dark:text-white">Historial de valor</h2>
+          <p id="hist-nombre" class="text-xs text-slate-400 mt-0.5"></p>
+        </div>
+        <button onclick="closeHistoricoModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+      </div>
+      <div class="p-5 flex-1 overflow-y-auto">
+        <div class="h-48 mb-5">
+          <canvas id="hist-chart"></canvas>
+        </div>
+        <div id="hist-tabla" class="text-sm"></div>
+        <!-- Registrar valor manual -->
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Registrar valor en fecha</p>
+          <form id="hist-form" class="flex gap-2">
+            <input type="number" id="hist-valor" placeholder="Valor" min="0.01" step="0.01" required
+              class="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            <input type="date" id="hist-fecha" required
+              class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            <button type="submit" class="bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition shrink-0">Agregar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal dividendos / rendimientos ──────────────────────────────────── -->
+  <div id="modal-dividendos" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-700 max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
+        <div>
+          <h2 class="text-base font-semibold text-slate-800 dark:text-white">Dividendos y rentas</h2>
+          <p id="div-nombre" class="text-xs text-slate-400 mt-0.5"></p>
+        </div>
+        <button onclick="closeDivModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+      </div>
+      <div class="p-5 flex-1 overflow-y-auto">
+        <div id="div-totales" class="flex gap-4 mb-5 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg"></div>
+        <div id="div-tabla" class="text-sm mb-5"></div>
+        <!-- Registrar dividendo -->
+        <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Registrar dividendo / renta</p>
+          <form id="div-form" class="space-y-3">
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-xs text-slate-500 mb-1">Monto</label>
+                <input type="number" id="div-monto" min="0.01" step="0.01" required placeholder="0.00"
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-500 mb-1">Moneda</label>
+                <select id="div-moneda"
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  <option value="ARS">ARS</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-500 mb-1">Tipo</label>
+                <select id="div-tipo"
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  <option value="dividendo">Dividendo</option>
+                  <option value="cupon">Cupón</option>
+                  <option value="renta">Renta</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-slate-500 mb-1">Fecha</label>
+                <input type="date" id="div-fecha" required
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-500 mb-1">Notas</label>
+                <input type="text" id="div-notas" placeholder="Opcional"
+                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-sm transition">
+              Registrar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/inversiones.js"></script>
+</body>
+</html>
