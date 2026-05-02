@@ -107,6 +107,7 @@ let histChart = null;
 let currentTab = "activo";
 let currentHistInvId = null;
 let currentDivInvId = null;
+let cotizacionesData = null;
 
 // ── Reference settings (localStorage) ────────────────────────────────────────
 
@@ -135,16 +136,17 @@ function getUsdRate() {
 
 // ── Main tab switching ────────────────────────────────────────────────────────
 
+const MAIN_TABS = ["portafolio", "calculadora", "cotizaciones"];
+
 function setMainTab(tab) {
-  const isPortafolio = tab === "portafolio";
-  document.getElementById("tab-portafolio").classList.toggle("hidden", !isPortafolio);
-  document.getElementById("tab-calculadora").classList.toggle("hidden", isPortafolio);
-  document.getElementById("main-tab-portafolio").className = isPortafolio
-    ? "px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition"
-    : "px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
-  document.getElementById("main-tab-calculadora").className = !isPortafolio
-    ? "px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition"
-    : "px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
+  MAIN_TABS.forEach((t) => {
+    document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== tab);
+    document.getElementById(`main-tab-${t}`).className = t === tab
+      ? "px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition"
+      : "px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
+  });
+  if (tab === "cotizaciones" && !cotizacionesData) fetchCotizaciones();
+  if (window.lucide) lucide.createIcons();
 }
 
 // ── Initialization ────────────────────────────────────────────────────────────
@@ -652,11 +654,23 @@ function invCard(inv) {
 
 const TIPOS_CON_VENCIMIENTO = ["plazo_fijo", "bonos", "fci"];
 const TIPOS_CON_TNA = ["plazo_fijo"];
+const TIPOS_CON_TICKER = ["acciones", "cedears", "bonos", "cripto"];
 
 function onTipoChange() {
   const tipo = document.getElementById("i-tipo").value;
   document.getElementById("campo-vencimiento").classList.toggle("hidden", !TIPOS_CON_VENCIMIENTO.includes(tipo));
   document.getElementById("campo-tna").classList.toggle("hidden", !TIPOS_CON_TNA.includes(tipo));
+  document.getElementById("campo-ticker").classList.toggle("hidden", !TIPOS_CON_TICKER.includes(tipo));
+
+  const hint = document.getElementById("ticker-label-hint");
+  const input = document.getElementById("i-ticker");
+  if (tipo === "cripto") {
+    hint.textContent = "(ID de CoinGecko)";
+    input.placeholder = "Ej: bitcoin, ethereum, solana";
+  } else {
+    hint.textContent = "(Yahoo Finance)";
+    input.placeholder = "Ej: GGAL.BA, AAPL, AL30.BA";
+  }
 }
 
 function openModal() {
@@ -666,6 +680,7 @@ function openModal() {
   document.getElementById("modal-error").classList.add("hidden");
   document.getElementById("campo-vencimiento").classList.add("hidden");
   document.getElementById("campo-tna").classList.add("hidden");
+  document.getElementById("campo-ticker").classList.add("hidden");
   document.getElementById("i-fecha-inicio").value = new Date().toISOString().split("T")[0];
   document.querySelector('input[name="i-moneda"][value="ARS"]').checked = true;
   document.getElementById("modal").classList.remove("hidden");
@@ -688,6 +703,7 @@ function openEdit(id) {
   document.getElementById("i-tna").value = inv.tasa_anual || "";
   document.getElementById("i-notas").value = inv.notas || "";
   document.getElementById("i-tesis").value = inv.notas_tesis || "";
+  document.getElementById("i-ticker").value = inv.ticker || "";
   document.getElementById("modal").classList.remove("hidden");
 }
 
@@ -718,6 +734,7 @@ document.getElementById("inv-form").addEventListener("submit", async (e) => {
     tasa_anual: tna ? parseFloat(tna) : null,
     notas: document.getElementById("i-notas").value.trim(),
     notas_tesis: document.getElementById("i-tesis").value.trim(),
+    ticker: document.getElementById("i-ticker").value.trim(),
   };
 
   const btn = e.target.querySelector('[type="submit"]');
@@ -1095,6 +1112,135 @@ document.getElementById("btn-export").addEventListener("click", async (e) => {
     }
   });
 });
+
+// ── Cotizaciones ──────────────────────────────────────────────────────────────
+
+async function fetchCotizaciones() {
+  const btn = document.getElementById("btn-refresh-cotiz");
+  const statusEl = document.getElementById("cotiz-status");
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Actualizando...';
+  if (window.lucide) lucide.createIcons();
+  statusEl.textContent = "Consultando fuentes externas...";
+  try {
+    cotizacionesData = await apiFetch("/api/inversiones/cotizaciones");
+    renderCotizaciones(cotizacionesData);
+    const now = new Date();
+    statusEl.textContent = `Última actualización: ${now.toLocaleTimeString("es-AR")}`;
+  } catch (e) {
+    statusEl.textContent = "Error al cargar cotizaciones. Intentá de nuevo.";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar precios';
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+function renderCotizaciones(data) {
+  renderDolarPanel(data.dolar || []);
+  renderAccionesPanel(data.acciones || {});
+  renderCriptoPanel(data.cripto || {});
+  if ((data.errores || []).includes("yfinance_no_instalado")) {
+    document.getElementById("cotiz-status").textContent +=
+      " · yfinance no instalado — ejecutá: pip install yfinance";
+  }
+}
+
+const DOLAR_CASA = {
+  oficial:         { label: "Oficial",   icon: "🏛" },
+  blue:            { label: "Blue",      icon: "💵" },
+  bolsa:           { label: "MEP / Bolsa", icon: "📊" },
+  contadoconliqui: { label: "CCL",       icon: "🌎" },
+  mayorista:       { label: "Mayorista", icon: "🏦" },
+  cripto:          { label: "Cripto",    icon: "₿" },
+  tarjeta:         { label: "Tarjeta",   icon: "💳" },
+};
+
+function renderDolarPanel(dolares) {
+  const el = document.getElementById("cotiz-dolar-grid");
+  if (!dolares.length) {
+    el.innerHTML = '<p class="text-slate-400 text-sm col-span-full">No se pudo obtener el tipo de cambio en este momento.</p>';
+    return;
+  }
+  el.innerHTML = dolares.map((d) => {
+    const info = DOLAR_CASA[d.casa] || { label: d.nombre, icon: "💲" };
+    const compra = d.compra
+      ? `<div><p class="text-[10px] text-slate-400 mb-0.5">Compra</p><p class="text-base font-bold text-slate-800 dark:text-white">${fmtARS(d.compra)}</p></div>`
+      : "";
+    const venta = d.venta
+      ? `<div class="text-right"><p class="text-[10px] text-slate-400 mb-0.5">Venta</p><p class="text-base font-bold text-blue-600 dark:text-blue-400">${fmtARS(d.venta)}</p></div>`
+      : "";
+    return `<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+      <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">${info.icon} ${info.label}</p>
+      <div class="flex justify-between items-end gap-2">${compra}${venta}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderAccionesPanel(acciones) {
+  const items = Object.values(acciones);
+  const section = document.getElementById("cotiz-activos-section");
+  if (!items.length) { section.classList.add("hidden"); return; }
+  section.classList.remove("hidden");
+
+  const TIPO_ICON = { acciones: "📈", cedears: "🌎", bonos: "📜" };
+  document.getElementById("cotiz-activos-tbody").innerHTML = items.map((a) => {
+    const precioTxt = a.precio != null
+      ? `<span class="font-bold text-slate-800 dark:text-white">${a.precio.toLocaleString("es-AR", { maximumFractionDigits: 4 })}</span>`
+      : '<span class="text-slate-400">No disponible</span>';
+    return `<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
+      <td class="px-4 py-3">
+        <span class="mr-1">${TIPO_ICON[a.tipo] || "📈"}</span>
+        <span class="font-medium text-slate-700 dark:text-slate-200">${a.nombre}</span>
+      </td>
+      <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-xs">${a.ticker}</td>
+      <td class="px-4 py-3 text-right">${precioTxt}</td>
+      <td class="px-4 py-3 text-right text-xs text-slate-400">${a.currency || a.moneda}</td>
+      <td class="px-4 py-3 text-right">
+        ${a.precio != null
+          ? `<button onclick="openValorModalConPrecio(${a.inv_id}, ${a.precio})"
+              class="text-xs font-medium px-3 py-1.5 rounded-md border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition whitespace-nowrap">
+              Usar precio
+            </button>`
+          : ""}
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function renderCriptoPanel(cripto) {
+  const items = Object.values(cripto);
+  const section = document.getElementById("cotiz-cripto-section");
+  if (!items.length) { section.classList.add("hidden"); return; }
+  section.classList.remove("hidden");
+
+  document.getElementById("cotiz-cripto-tbody").innerHTML = items.map((c) => {
+    const usdTxt = c.precio_usd != null ? `<span class="font-bold text-slate-800 dark:text-white">${fmtUSD(c.precio_usd)}</span>` : '<span class="text-slate-400">—</span>';
+    const arsTxt = c.precio_ars != null ? `<span class="font-bold text-slate-800 dark:text-white">${fmtARS(c.precio_ars)}</span>` : '<span class="text-slate-400">—</span>';
+    return `<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
+      <td class="px-4 py-3">
+        <span class="mr-1">₿</span>
+        <span class="font-medium text-slate-700 dark:text-slate-200">${c.nombre}</span>
+      </td>
+      <td class="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-xs">${c.ticker}</td>
+      <td class="px-4 py-3 text-right">${usdTxt}</td>
+      <td class="px-4 py-3 text-right">${arsTxt}</td>
+      <td class="px-4 py-3 text-right">
+        ${c.precio_usd != null
+          ? `<button onclick="openValorModalConPrecio(${c.inv_id}, ${c.precio_usd})"
+              class="text-xs font-medium px-3 py-1.5 rounded-md border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition whitespace-nowrap">
+              Usar precio
+            </button>`
+          : ""}
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function openValorModalConPrecio(id, precio) {
+  openValorModal(id);
+  document.getElementById("valor-input").value = precio;
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 

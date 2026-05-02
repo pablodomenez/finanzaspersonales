@@ -23,6 +23,7 @@ def _migrate_db():
         "ALTER TABLE servicios ADD COLUMN link_pago TEXT DEFAULT ''",
         "ALTER TABLE servicios ADD COLUMN monto_variable INTEGER DEFAULT 0",
         "ALTER TABLE inversiones ADD COLUMN notas_tesis TEXT DEFAULT ''",
+        "ALTER TABLE inversiones ADD COLUMN ticker TEXT DEFAULT ''",
     ]
     with engine.connect() as conn:
         for sql in new_columns:

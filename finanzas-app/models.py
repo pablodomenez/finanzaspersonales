@@ -247,6 +247,7 @@ class Inversion(Base):
     estado = Column(String, default="activo")      # activo, cerrado, vencido
     notas = Column(String, default="")
     notas_tesis = Column(String, default="")       # tesis / razonamiento de la inversión
+    ticker = Column(String, default="")            # ticker Yahoo Finance o ID CoinGecko
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="inversiones")

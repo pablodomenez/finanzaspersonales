@@ -86,6 +86,7 @@
         <div class="flex gap-1 mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit">
           <button id="main-tab-portafolio" onclick="setMainTab('portafolio')" class="px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition">Portafolio</button>
           <button id="main-tab-calculadora" onclick="setMainTab('calculadora')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Calculadora PF</button>
+          <button id="main-tab-cotizaciones" onclick="setMainTab('cotizaciones')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cotizaciones</button>
         </div>
 
         <!-- ── TAB PORTAFOLIO ─────────────────────────────────────────────── -->
@@ -298,6 +299,77 @@
           </div>
         </div>
 
+        <!-- ── TAB COTIZACIONES ────────────────────────────────────────── -->
+        <div id="tab-cotizaciones" class="hidden">
+
+          <!-- Header con refresh -->
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <p id="cotiz-status" class="text-xs text-slate-400">Presioná actualizar para cargar los precios</p>
+            </div>
+            <button id="btn-refresh-cotiz" onclick="fetchCotizaciones()"
+              class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white transition">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar precios
+            </button>
+          </div>
+
+          <!-- Dólar -->
+          <div class="mb-7">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">💵 Tipo de cambio — Dólar</p>
+            <div id="cotiz-dolar-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <p class="text-slate-400 text-sm col-span-full">—</p>
+            </div>
+          </div>
+
+          <!-- Mis activos con ticker -->
+          <div id="cotiz-activos-section" class="hidden mb-7">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">📈 Mis activos — Precios actuales</p>
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-slate-100 dark:border-slate-800 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th class="text-left px-4 py-3">Inversión</th>
+                    <th class="text-left px-4 py-3">Ticker</th>
+                    <th class="text-right px-4 py-3">Precio actual</th>
+                    <th class="text-right px-4 py-3">Moneda</th>
+                    <th class="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody id="cotiz-activos-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Cripto -->
+          <div id="cotiz-cripto-section" class="hidden mb-7">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">₿ Criptomonedas</p>
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-slate-100 dark:border-slate-800 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th class="text-left px-4 py-3">Inversión</th>
+                    <th class="text-left px-4 py-3">ID CoinGecko</th>
+                    <th class="text-right px-4 py-3">USD</th>
+                    <th class="text-right px-4 py-3">ARS</th>
+                    <th class="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody id="cotiz-cripto-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Info de uso -->
+          <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 p-5 text-sm text-slate-500 dark:text-slate-400 space-y-1.5">
+            <p class="font-semibold text-slate-600 dark:text-slate-300 mb-2">¿Cómo vincular mis inversiones?</p>
+            <p>Al crear o editar una inversión podés agregar el ticker para obtener su precio en tiempo real:</p>
+            <p>• <strong>Acciones / CEDEARs / Bonos:</strong> ticker de Yahoo Finance — ej: <code class="bg-slate-200 dark:bg-slate-700 px-1 rounded">GGAL.BA</code>, <code class="bg-slate-200 dark:bg-slate-700 px-1 rounded">AAPL</code>, <code class="bg-slate-200 dark:bg-slate-700 px-1 rounded">AL30.BA</code></p>
+            <p>• <strong>Criptomonedas:</strong> ID de CoinGecko — ej: <code class="bg-slate-200 dark:bg-slate-700 px-1 rounded">bitcoin</code>, <code class="bg-slate-200 dark:bg-slate-700 px-1 rounded">ethereum</code>, <code class="bg-slate-200 dark:bg-slate-700 px-1 rounded">solana</code></p>
+            <p>• <strong>Dólar:</strong> se obtiene automáticamente de dolarapi.com</p>
+          </div>
+
+        </div><!-- /tab-cotizaciones -->
+
       </div><!-- /dashboard-section -->
     </div>
   </main>
@@ -372,6 +444,14 @@
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">TNA (%) — Tasa Nominal Anual</label>
             <input type="number" id="i-tna" min="0" step="0.01" placeholder="Ej: 118.5"
               class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+          </div>
+          <div id="campo-ticker" class="hidden">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Ticker / ID <span id="ticker-label-hint" class="text-slate-400 font-normal">(Yahoo Finance)</span>
+            </label>
+            <input type="text" id="i-ticker" placeholder="Ej: GGAL.BA, AAPL, bitcoin"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            <p class="text-[11px] text-slate-400 mt-1">Opcional. Permite ver el precio en tiempo real en el panel de Cotizaciones.</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas</label>

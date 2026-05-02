@@ -9,3 +9,5 @@ python-multipart==0.0.9
 pydantic[email]==2.7.1
 python-dotenv==1.0.1
 pg8000==1.31.2
+requests==2.32.3
+yfinance==0.2.51

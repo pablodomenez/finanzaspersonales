@@ -1,5 +1,6 @@
 import io
 import csv
+import logging
 from datetime import date, datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,6 +10,8 @@ from pydantic import BaseModel, Field
 from database import get_db
 from auth import get_current_user
 import models
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/inversiones", tags=["inversiones"])
 
@@ -69,6 +72,7 @@ def _serialize(inv: models.Inversion) -> dict:
         "estado": inv.estado,
         "notas": inv.notas,
         "notas_tesis": getattr(inv, "notas_tesis", "") or "",
+        "ticker": getattr(inv, "ticker", "") or "",
         "dias_invertidos": dias_inv,
         "total_dividendos_ars": round(total_div_ars, 2),
         "total_dividendos_usd": round(total_div_usd, 2),
@@ -107,6 +111,7 @@ class InversionCreate(BaseModel):
     tasa_anual: Optional[float] = None
     notas: Optional[str] = ""
     notas_tesis: Optional[str] = ""
+    ticker: Optional[str] = ""
 
 
 class InversionUpdate(BaseModel):
@@ -121,6 +126,7 @@ class InversionUpdate(BaseModel):
     estado: Optional[str] = None
     notas: Optional[str] = None
     notas_tesis: Optional[str] = None
+    ticker: Optional[str] = None
 
 
 class HistoricoCreate(BaseModel):
@@ -272,6 +278,94 @@ def delete_dividendo(div_id: int, db: Session = Depends(get_db),
     db.commit()
 
 
+# ── Cotizaciones en tiempo real ───────────────────────────────────────────────
+
+@router.get("/cotizaciones")
+def get_cotizaciones(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    import requests as req
+
+    result = {"dolar": [], "acciones": {}, "cripto": {}, "errores": []}
+
+    # 1. Dólar (siempre)
+    try:
+        r = req.get("https://dolarapi.com/v1/dolares", timeout=8)
+        r.raise_for_status()
+        result["dolar"] = r.json()
+    except Exception as e:
+        logger.warning(f"Error dolarapi: {e}")
+        result["errores"].append("dolar")
+
+    # 2. Inversiones activas con ticker
+    inv_list = (
+        db.query(models.Inversion)
+        .filter(
+            models.Inversion.user_id == current_user.id,
+            models.Inversion.estado == "activo",
+        )
+        .all()
+    )
+
+    bolsa_tickers = {}  # symbol -> meta
+    cripto_ids = {}     # coin_id -> meta
+
+    for inv in inv_list:
+        tick = (getattr(inv, "ticker", "") or "").strip()
+        if not tick:
+            continue
+        if inv.tipo in ("acciones", "cedears", "bonos"):
+            sym = tick.upper()
+            bolsa_tickers[sym] = {"inv_id": inv.id, "nombre": inv.nombre, "tipo": inv.tipo, "moneda": inv.moneda}
+        elif inv.tipo == "cripto":
+            cid = tick.lower()
+            cripto_ids[cid] = {"inv_id": inv.id, "nombre": inv.nombre}
+
+    # 3. Yahoo Finance (acciones / CEDEARs / bonos)
+    if bolsa_tickers:
+        try:
+            import yfinance as yf
+            for sym, meta in bolsa_tickers.items():
+                try:
+                    t = yf.Ticker(sym)
+                    fi = t.fast_info
+                    price = fi.last_price
+                    currency = getattr(fi, "currency", None)
+                    result["acciones"][sym] = {**meta, "ticker": sym, "precio": round(float(price), 4), "currency": currency}
+                except Exception as e:
+                    logger.warning(f"yfinance error {sym}: {e}")
+                    result["acciones"][sym] = {**meta, "ticker": sym, "precio": None, "currency": None}
+        except ImportError:
+            result["errores"].append("yfinance_no_instalado")
+        except Exception as e:
+            logger.warning(f"Error Yahoo Finance: {e}")
+            result["errores"].append("acciones")
+
+    # 4. CoinGecko (cripto)
+    if cripto_ids:
+        try:
+            ids_str = ",".join(cripto_ids.keys())
+            r = req.get(
+                f"https://api.coingecko.com/api/v3/simple/price?ids={ids_str}&vs_currencies=usd,ars",
+                timeout=8,
+                headers={"Accept": "application/json"},
+            )
+            r.raise_for_status()
+            prices = r.json()
+            for cid, meta in cripto_ids.items():
+                if cid in prices:
+                    result["cripto"][cid] = {
+                        **meta, "ticker": cid,
+                        "precio_usd": prices[cid].get("usd"),
+                        "precio_ars": prices[cid].get("ars"),
+                    }
+                else:
+                    result["cripto"][cid] = {**meta, "ticker": cid, "precio_usd": None, "precio_ars": None}
+        except Exception as e:
+            logger.warning(f"Error CoinGecko: {e}")
+            result["errores"].append("cripto")
+
+    return result
+
+
 # ── CRUD inversiones ──────────────────────────────────────────────────────────
 
 @router.get("")
@@ -297,7 +391,7 @@ def create_inversion(data: InversionCreate, db: Session = Depends(get_db),
         monto_invertido=data.monto_invertido, valor_actual=valor,
         fecha_inicio=data.fecha_inicio, fecha_vencimiento=data.fecha_vencimiento,
         tasa_anual=data.tasa_anual, notas=data.notas or "",
-        notas_tesis=data.notas_tesis or "",
+        notas_tesis=data.notas_tesis or "", ticker=data.ticker or "",
     )
     db.add(inv)
     db.flush()
