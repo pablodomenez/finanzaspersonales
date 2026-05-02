@@ -25,6 +25,8 @@ if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 elif "+pg8000" in DATABASE_URL:
     ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
     connect_args = {"ssl_context": ssl_context}
 else:
     connect_args = {"sslmode": "require"}
