@@ -117,9 +117,19 @@ function renderCard(p) {
     urgencyBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Vigente</span>`;
   }
 
-  const ahorro = p.ahorro_mensual && p.ahorro_mensual > 0
-    ? `<span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Ahorrás ${formatCurrency(p.ahorro_mensual)}/mes</span>`
-    : "";
+  // Ahorro mensual y total acumulado desde inicio
+  let ahorroHtml = "";
+  if (p.ahorro_mensual && p.ahorro_mensual > 0) {
+    let totalAhorradoHtml = "";
+    if (p.fecha_inicio_promo) {
+      const inicio = new Date(p.fecha_inicio_promo);
+      const hoy = new Date();
+      const meses = Math.max(1, (hoy.getFullYear() * 12 + hoy.getMonth()) - (inicio.getFullYear() * 12 + inicio.getMonth()) + 1);
+      const totalAhorrado = meses * p.ahorro_mensual;
+      totalAhorradoHtml = ` · <span class="text-slate-400">Total ahorrado: ${formatCurrency(totalAhorrado)}</span>`;
+    }
+    ahorroHtml = `<div class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Ahorrás ${formatCurrency(p.ahorro_mensual)}/mes${totalAhorradoHtml}</div>`;
+  }
 
   const contacto = [];
   if (p.telefono_contacto) {
@@ -155,7 +165,7 @@ function renderCard(p) {
         </div>
       </div>
 
-      ${ahorro ? `<div class="text-center">${ahorro}</div>` : ""}
+      ${ahorroHtml ? `<div>${ahorroHtml}</div>` : ""}
 
       <div class="space-y-1 text-xs text-slate-600 dark:text-slate-400">
         <div class="flex items-center gap-1.5">
@@ -168,6 +178,9 @@ function renderCard(p) {
       </div>
 
       <div class="flex gap-2 mt-auto pt-1 border-t border-slate-100 dark:border-slate-800">
+        <button data-action="renovar" data-id="${p.id}" data-nombre="${p.servicio_nombre}" class="flex-1 flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-md text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition font-medium">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>Renovar
+        </button>
         <button data-action="edit" data-id="${p.id}" class="flex-1 flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium">
           <i data-lucide="pencil" class="w-3.5 h-3.5"></i>Editar
         </button>
@@ -213,6 +226,46 @@ async function leerTodas() {
     if (badge) badge.classList.add("hidden");
   } catch (_) {}
 }
+
+// ── Modal Renovar ─────────────────────────────────────────────────────────────
+
+function openRenovarModal(id, nombre) {
+  document.getElementById("renovar-id").value = id;
+  document.getElementById("renovar-nombre").textContent = nombre;
+  document.getElementById("renovar-error").classList.add("hidden");
+  document.getElementById("renovar-fecha").value = "";
+  document.getElementById("modal-renovar").classList.remove("hidden");
+}
+
+function closeRenovarModal() {
+  document.getElementById("modal-renovar").classList.add("hidden");
+}
+
+document.getElementById("renovar-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errDiv = document.getElementById("renovar-error");
+  errDiv.classList.add("hidden");
+  const id = document.getElementById("renovar-id").value;
+  const fecha = document.getElementById("renovar-fecha").value;
+  try {
+    await apiFetch(`/api/promociones/${id}/renovar`, {
+      method: "PATCH",
+      body: JSON.stringify({ nueva_fecha_fin: fecha }),
+    });
+    closeRenovarModal();
+    loadPromos();
+    // ocultar badge si ya no hay pendientes
+    const badge = document.getElementById("promo-badge");
+    if (badge) badge.classList.add("hidden");
+  } catch (err) {
+    errDiv.textContent = err.message || "Error al renovar la promoción.";
+    errDiv.classList.remove("hidden");
+  }
+});
+
+document.getElementById("modal-renovar").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("modal-renovar")) closeRenovarModal();
+});
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
@@ -287,7 +340,9 @@ document.getElementById("promos-grid").addEventListener("click", async (e) => {
   const action = btn.dataset.action;
   const id = parseInt(btn.dataset.id);
 
-  if (action === "edit") {
+  if (action === "renovar") {
+    openRenovarModal(id, btn.dataset.nombre);
+  } else if (action === "edit") {
     openModal(id);
   } else if (action === "delete") {
     if (!confirm("¿Eliminar esta promoción?")) return;

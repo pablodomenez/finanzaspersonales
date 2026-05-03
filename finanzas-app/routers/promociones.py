@@ -107,6 +107,10 @@ class PromocionUpdate(BaseModel):
     notas: Optional[str] = None
 
 
+class PromocionRenovar(BaseModel):
+    nueva_fecha_fin: str = Field(min_length=1)
+
+
 # ── Rutas ─────────────────────────────────────────────────────────────────────
 
 @router.get("")
@@ -187,6 +191,34 @@ def update_promocion(
         p.activa = data.activa
     if data.notas is not None:
         p.notas = data.notas
+
+    db.commit()
+    db.refresh(p)
+    return _serialize(p)
+
+
+@router.patch("/{promo_id}/renovar")
+def renovar_promocion(
+    promo_id: int,
+    data: PromocionRenovar,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    p = db.query(models.Promocion).filter(
+        models.Promocion.id == promo_id,
+        models.Promocion.user_id == current_user.id,
+    ).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Promoción no encontrada")
+
+    p.fecha_fin_promo = data.nueva_fecha_fin
+    p.activa = True
+
+    # marcar notificaciones anteriores como leídas
+    db.query(models.NotificacionPromo).filter(
+        models.NotificacionPromo.promocion_id == p.id,
+        models.NotificacionPromo.leida == False,
+    ).update({"leida": True})
 
     db.commit()
     db.refresh(p)

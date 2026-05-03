@@ -107,7 +107,52 @@ async function loadDashboard() {
   }
 }
 
+async function loadPromosWidget() {
+  try {
+    const promos = await apiFetch("/api/promociones");
+    const porVencer = promos.filter(p => p.activa && !p.vencida && p.dias_restantes !== null && p.dias_restantes <= 7);
+    const widget = document.getElementById("promos-widget");
+    const list = document.getElementById("promos-widget-list");
+
+    if (porVencer.length === 0) {
+      widget.classList.add("hidden");
+      return;
+    }
+
+    widget.classList.remove("hidden");
+    list.innerHTML = porVencer.map(p => {
+      const dias = p.dias_restantes;
+      const cuandoLabel = dias === 0 ? "hoy" : dias === 1 ? "mañana" : `en ${dias} días`;
+      const color = dias <= 2 ? "red" : "amber";
+      const contacto = p.link_contacto
+        ? `<a href="${p.link_contacto}" target="_blank" class="text-xs text-blue-600 dark:text-blue-400 hover:underline ml-2">Renovar →</a>`
+        : p.telefono_contacto
+          ? `<span class="text-xs text-slate-400 ml-2">${p.telefono_contacto}</span>`
+          : "";
+      return `
+        <div class="flex items-center justify-between px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+          <div class="flex items-center gap-3">
+            <span class="text-lg">${p.icono}</span>
+            <div>
+              <p class="text-sm font-medium text-slate-800 dark:text-slate-200">${p.servicio_nombre}</p>
+              <p class="text-xs text-slate-400">${p.descripcion_promo || "Promo vigente"}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-${color}-100 dark:bg-${color}-900/30 text-${color}-700 dark:text-${color}-400">
+              Vence ${cuandoLabel}
+            </span>
+            ${contacto}
+          </div>
+        </div>`;
+    }).join("");
+
+    lucide.createIcons();
+  } catch (_) {}
+}
+
 document.getElementById("month-select").addEventListener("change", loadDashboard);
 yearSelect.addEventListener("change", loadDashboard);
 
 loadDashboard();
+loadPromosWidget();
