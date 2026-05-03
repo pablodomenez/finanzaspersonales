@@ -9,6 +9,7 @@
     { id: "debts",        icon: "users",              label: "Deudas" },
     { id: "cards",        icon: "credit-card",        label: "Tarjetas" },
     { id: "servicios",    icon: "zap",                label: "Servicios", badge: true },
+    { id: "promociones",  icon: "tag",                label: "Promociones", badge: "promo" },
     { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
     { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
   ];
@@ -18,9 +19,12 @@
     const cls = active
       ? "flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
       : "flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
-    const badgeHtml = badge
-      ? `<span id="notif-badge" class="hidden ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`
-      : "";
+    let badgeHtml = "";
+    if (badge === true) {
+      badgeHtml = `<span id="notif-badge" class="hidden ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
+    } else if (badge === "promo") {
+      badgeHtml = `<span id="promo-badge" class="hidden ml-auto bg-amber-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
+    }
     return `<a href="/${id}.html" class="${cls}"><i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>${label}${badgeHtml}</a>`;
   }).join("");
 
@@ -54,17 +58,28 @@
 
   if (window.lucide) lucide.createIcons();
 
-  // Carga badge de notificaciones y dispara chequeo de vencimientos (async, no bloquea el render)
+  // Carga badges de notificaciones y dispara chequeos (async, no bloquea el render)
   if (typeof apiFetch === "function" && typeof getToken === "function" && getToken()) {
     (async () => {
       try {
-        // Chequeo de vencimientos on-demand (reemplaza el scheduler en Vercel)
         await apiFetch("/api/servicios/check-vencimientos", { method: "POST" });
+      } catch (_) {}
+      try {
+        await apiFetch("/api/promociones/check-vencimientos", { method: "POST" });
       } catch (_) {}
       try {
         const notifs = await apiFetch("/api/servicios/notificaciones");
         const unread = notifs.filter((n) => !n.leida).length;
         const badge = document.getElementById("notif-badge");
+        if (badge && unread > 0) {
+          badge.textContent = unread > 9 ? "9+" : String(unread);
+          badge.classList.remove("hidden");
+        }
+      } catch (_) {}
+      try {
+        const promoNotifs = await apiFetch("/api/promociones/notificaciones");
+        const unread = promoNotifs.filter((n) => !n.leida).length;
+        const badge = document.getElementById("promo-badge");
         if (badge && unread > 0) {
           badge.textContent = unread > 9 ? "9+" : String(unread);
           badge.classList.remove("hidden");

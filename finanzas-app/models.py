@@ -32,6 +32,8 @@ class User(Base):
     inversiones = relationship("Inversion", back_populates="user", cascade="all, delete")
     historico_inversiones = relationship("HistoricoInversion", back_populates="user", cascade="all, delete")
     dividendos_inversiones = relationship("DividendoInversion", back_populates="user", cascade="all, delete")
+    promociones = relationship("Promocion", back_populates="user", cascade="all, delete")
+    notificaciones_promo = relationship("NotificacionPromo", back_populates="user", cascade="all, delete")
 
 
 class Category(Base):
@@ -284,3 +286,41 @@ class DividendoInversion(Base):
 
     inversion = relationship("Inversion", back_populates="dividendos")
     user = relationship("User", back_populates="dividendos_inversiones")
+
+
+class Promocion(Base):
+    __tablename__ = "promociones"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    servicio_nombre = Column(String, nullable=False)
+    categoria = Column(String, default="")
+    descripcion_promo = Column(String, default="")
+    monto_con_promo = Column(Float, nullable=False)
+    monto_sin_promo = Column(Float, nullable=True)
+    numero_cliente = Column(String, default="")
+    telefono_contacto = Column(String, default="")
+    link_contacto = Column(String, default="")
+    fecha_inicio_promo = Column(String, nullable=True)   # YYYY-MM-DD
+    fecha_fin_promo = Column(String, nullable=False)     # YYYY-MM-DD
+    activa = Column(Boolean, default=True)
+    notas = Column(String, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="promociones")
+    notificaciones_promo = relationship("NotificacionPromo", back_populates="promocion", cascade="all, delete-orphan")
+
+
+class NotificacionPromo(Base):
+    __tablename__ = "notificaciones_promo"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    promocion_id = Column(Integer, ForeignKey("promociones.id"), nullable=False)
+    mensaje = Column(String, nullable=False)
+    leida = Column(Boolean, default=False)
+    vencimiento_ref = Column(String, nullable=False)   # YYYY-MM-DD
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    promocion = relationship("Promocion", back_populates="notificaciones_promo")
+    user = relationship("User", back_populates="notificaciones_promo")

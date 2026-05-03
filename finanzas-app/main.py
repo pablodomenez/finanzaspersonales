@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
 try:
@@ -24,6 +24,7 @@ def _migrate_db():
         "ALTER TABLE servicios ADD COLUMN monto_variable INTEGER DEFAULT 0",
         "ALTER TABLE inversiones ADD COLUMN notas_tesis TEXT DEFAULT ''",
         "ALTER TABLE inversiones ADD COLUMN ticker TEXT DEFAULT ''",
+        # nuevas tablas se crean vía create_all; columnas extra de tablas existentes van aquí
     ]
     with engine.connect() as conn:
         for sql in new_columns:
@@ -44,16 +45,18 @@ except Exception as e:
 async def lifespan(app: FastAPI):
     # Vercel es serverless — no hay procesos persistentes, se usa endpoint on-demand
     if not os.getenv("VERCEL"):
-        task = asyncio.create_task(servicios.check_vencimientos_loop())
+        task_svc = asyncio.create_task(servicios.check_vencimientos_loop())
+        task_promo = asyncio.create_task(promociones.check_promo_loop())
     else:
-        task = None
+        task_svc = task_promo = None
     yield
-    if task:
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+    for task in [task_svc, task_promo]:
+        if task:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
 
 
 app = FastAPI(title="FinanzasApp", version="1.0.0", lifespan=lifespan)
@@ -78,6 +81,7 @@ app.include_router(cards.router)
 app.include_router(profile.router)
 app.include_router(servicios.router)
 app.include_router(inversiones.router)
+app.include_router(promociones.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter
