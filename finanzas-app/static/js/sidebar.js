@@ -36,8 +36,12 @@
   document.getElementById("sidebar").innerHTML = `
     <div class="px-5 py-5 border-b border-slate-700">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-          <span class="text-white font-bold text-sm">F</span>
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%); box-shadow: 0 2px 8px rgba(14,165,233,0.4);">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="11" width="4" height="6" rx="1.2" fill="white" opacity="0.6"/>
+            <rect x="7" y="6.5" width="4" height="10.5" rx="1.2" fill="white" opacity="0.8"/>
+            <rect x="13" y="2" width="4" height="15" rx="1.2" fill="white"/>
+          </svg>
         </div>
         <div>
           <span class="font-bold text-white text-sm tracking-tight leading-tight block">Finanzas Personales</span>
