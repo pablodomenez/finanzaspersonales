@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="FinanzasApp", version="1.0.0", lifespan=lifespan)
 
-_allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000").split(",")
+_allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000").lstrip('﻿').strip().split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
