@@ -39,3 +39,5 @@ test_app.mjs
 create_supabase_tables.py
 package.json
 package-lock.json
+
+.env*.local
