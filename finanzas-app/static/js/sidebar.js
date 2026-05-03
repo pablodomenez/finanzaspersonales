@@ -39,7 +39,10 @@
         <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
           <span class="text-white font-bold text-sm">F</span>
         </div>
-        <span class="font-bold text-white text-base tracking-tight">FinanzasApp</span>
+        <div>
+          <span class="font-bold text-white text-sm tracking-tight leading-tight block">Finanzas Personales</span>
+          <span class="text-xs text-slate-400 leading-tight block">by PabloFinance</span>
+        </div>
       </div>
       <p id="user-greeting" class="text-xs text-slate-500 mt-2 truncate"></p>
     </div>
