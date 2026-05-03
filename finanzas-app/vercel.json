@@ -3,11 +3,7 @@
   "builds": [
     {
       "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxDuration": 30,
-        "includeFiles": ["static/**", "routers/**", "*.py"]
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
