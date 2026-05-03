@@ -42,13 +42,18 @@ except Exception as e:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    task = asyncio.create_task(servicios.check_vencimientos_loop())
+    # Vercel es serverless — no hay procesos persistentes, se usa endpoint on-demand
+    if not os.getenv("VERCEL"):
+        task = asyncio.create_task(servicios.check_vencimientos_loop())
+    else:
+        task = None
     yield
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    if task:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(title="FinanzasApp", version="1.0.0", lifespan=lifespan)
@@ -118,9 +123,10 @@ try:
 except Exception as e:
     print(f"Seed error: {e}")
 
-# Servir frontend estático
+# Servir frontend estático (local y en Vercel via includeFiles)
 _static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
-app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")
+if os.path.isdir(_static_dir):
+    app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")
 
 
 @app.exception_handler(404)

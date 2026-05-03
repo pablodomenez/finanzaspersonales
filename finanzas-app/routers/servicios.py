@@ -224,6 +224,13 @@ def list_notificaciones(
     return [_serialize_notif(n) for n in items]
 
 
+@router.post("/check-vencimientos", status_code=200)
+def trigger_check_vencimientos(current_user: models.User = Depends(get_current_user)):
+    """Ejecuta el chequeo de vencimientos on-demand (reemplaza el scheduler en Vercel)."""
+    _check_vencimientos_sync()
+    return {"status": "ok"}
+
+
 @router.patch("/notificaciones/leer-todas", status_code=204)
 def leer_todas(
     db: Session = Depends(get_db),

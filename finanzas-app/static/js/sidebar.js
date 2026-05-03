@@ -54,9 +54,13 @@
 
   if (window.lucide) lucide.createIcons();
 
-  // Carga badge de notificaciones no leídas (async, no bloquea el render)
+  // Carga badge de notificaciones y dispara chequeo de vencimientos (async, no bloquea el render)
   if (typeof apiFetch === "function" && typeof getToken === "function" && getToken()) {
     (async () => {
+      try {
+        // Chequeo de vencimientos on-demand (reemplaza el scheduler en Vercel)
+        await apiFetch("/api/servicios/check-vencimientos", { method: "POST" });
+      } catch (_) {}
       try {
         const notifs = await apiFetch("/api/servicios/notificaciones");
         const unread = notifs.filter((n) => !n.leida).length;
