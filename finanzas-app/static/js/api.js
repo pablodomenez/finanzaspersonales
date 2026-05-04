@@ -12,6 +12,7 @@ function setSession(token, name) {
 function clearSession() {
   localStorage.removeItem("token");
   localStorage.removeItem("user_name");
+  localStorage.removeItem("google_picture");
 }
 
 function requireAuth() {

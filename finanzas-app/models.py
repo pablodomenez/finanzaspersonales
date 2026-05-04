@@ -18,7 +18,6 @@ class User(Base):
     name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     google_id = Column(String, unique=True, nullable=True, index=True)
-    picture = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete")

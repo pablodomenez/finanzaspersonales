@@ -17,8 +17,11 @@
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     const name = params.get("name");
+    const picture = params.get("picture");
     if (token) {
       setSession(token, name || "");
+      if (picture) localStorage.setItem("google_picture", picture);
+      else localStorage.removeItem("google_picture");
       window.location.replace("/dashboard.html");
     } else {
       window.location.replace("/login.html?error=google_token");

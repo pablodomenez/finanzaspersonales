@@ -102,11 +102,12 @@
         }
       } catch (_) {}
       try {
+        const googlePic = localStorage.getItem("google_picture");
         const profile = await apiFetch("/api/profile");
         const iconEl = document.getElementById("sidebar-profile-icon");
         if (iconEl) {
-          if (profile.google_picture) {
-            iconEl.innerHTML = `<img src="${profile.google_picture}" class="w-5 h-5 rounded-full object-cover shrink-0" alt="foto">`;
+          if (googlePic) {
+            iconEl.innerHTML = `<img src="${googlePic}" class="w-5 h-5 rounded-full object-cover shrink-0" alt="foto">`;
           } else if (profile.avatar_emoji && profile.avatar_emoji !== "👤") {
             iconEl.textContent = profile.avatar_emoji;
             iconEl.className = "shrink-0 text-base leading-none flex items-center justify-center";
