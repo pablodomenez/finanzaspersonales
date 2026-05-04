@@ -18,47 +18,58 @@
 </head>
 <body class="bg-gray-50 dark:bg-slate-950 min-h-screen">
 
-  <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-10 border-r border-slate-800"></aside>
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-20 border-r border-slate-800 -translate-x-full md:translate-x-0 transition-transform duration-300"></aside>
 
-  <main class="ml-64 min-h-screen flex flex-col">
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-10 hidden md:hidden" onclick="closeSidebar()"></div>
+
+  <main class="md:ml-64 min-h-screen flex flex-col">
 
     <!-- ── Header ── -->
-    <header class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
-      <div>
-        <h1 id="greeting" class="text-xl font-bold text-gray-900 dark:text-white">Hola 👋</h1>
-        <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Este es el resumen de tus finanzas hoy</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <select id="month-select" class="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
-          <option value="1">Enero</option><option value="2">Febrero</option>
-          <option value="3">Marzo</option><option value="4">Abril</option>
-          <option value="5">Mayo</option><option value="6">Junio</option>
-          <option value="7">Julio</option><option value="8">Agosto</option>
-          <option value="9">Septiembre</option><option value="10">Octubre</option>
-          <option value="11">Noviembre</option><option value="12">Diciembre</option>
-        </select>
-        <select id="year-select" class="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500"></select>
-        <button onclick="window.location.href='/transactions.html'" class="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-violet-200 dark:shadow-none">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          Nuevo movimiento
-        </button>
-        <button class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-          <i data-lucide="search" class="w-4 h-4"></i>
-        </button>
-        <button class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors relative">
-          <i data-lucide="bell" class="w-4 h-4"></i>
-          <span id="notif-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full"></span>
-        </button>
-        <button class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-          <i data-lucide="help-circle" class="w-4 h-4"></i>
-        </button>
+    <header class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10">
+      <button class="md:hidden p-2 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 flex-shrink-0" onclick="openSidebar()" aria-label="Abrir menú">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="flex-1 flex items-center justify-between min-w-0">
+        <div class="min-w-0">
+          <h1 id="greeting" class="text-xl font-bold text-gray-900 dark:text-white">Hola 👋</h1>
+          <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Este es el resumen de tus finanzas hoy</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="hidden sm:flex items-center gap-2">
+            <select id="month-select" class="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+              <option value="1">Enero</option><option value="2">Febrero</option>
+              <option value="3">Marzo</option><option value="4">Abril</option>
+              <option value="5">Mayo</option><option value="6">Junio</option>
+              <option value="7">Julio</option><option value="8">Agosto</option>
+              <option value="9">Septiembre</option><option value="10">Octubre</option>
+              <option value="11">Noviembre</option><option value="12">Diciembre</option>
+            </select>
+            <select id="year-select" class="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500"></select>
+          </div>
+          <button onclick="window.location.href='/transactions.html'" class="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-violet-200 dark:shadow-none">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Nuevo movimiento</span>
+          </button>
+          <div class="hidden md:flex items-center gap-2">
+            <button id="btn-search" onclick="openSearch()" class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors" title="Buscar (Ctrl+K)">
+              <i data-lucide="search" class="w-4 h-4"></i>
+            </button>
+            <button id="btn-notif" onclick="toggleNotifPanel()" class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors relative" title="Alertas">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span id="notif-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full"></span>
+            </button>
+            <button id="btn-help" onclick="openHelp()" class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors" title="Ayuda y FAQ">
+              <i data-lucide="help-circle" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <div class="p-6 flex-1 space-y-5">
+    <div class="p-4 md:p-6 flex-1 space-y-5">
 
       <!-- ── KPI Cards ── -->
-      <div class="grid grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
         <!-- Saldo total -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
@@ -111,10 +122,10 @@
       </div>
 
       <!-- ── Charts + Insights Row ── -->
-      <div class="grid grid-cols-12 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         <!-- Resumen mensual (line chart) -->
-        <div class="col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Resumen mensual</h3>
             <span id="chart-period-label" class="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
@@ -136,7 +147,7 @@
         </div>
 
         <!-- Gastos por categoría (donut) -->
-        <div class="col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Gastos por categoría</h3>
             <span class="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
@@ -163,7 +174,7 @@
         </div>
 
         <!-- Insights panel -->
-        <div class="col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm flex flex-col">
+        <div class="lg:col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm flex flex-col">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Insights para vos</h3>
             <i data-lucide="sparkles" class="w-4 h-4 text-violet-500"></i>
@@ -177,7 +188,7 @@
       </div>
 
       <!-- ── Bottom Row ── -->
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <!-- Presupuesto mensual -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
@@ -216,10 +227,10 @@
       </div>
 
       <!-- ── Score + Tip Row ── -->
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <!-- Score financiero -->
-        <div class="col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Score financiero</h3>
             <i data-lucide="award" class="w-4 h-4 text-amber-500"></i>
@@ -275,6 +286,58 @@
 
     </div>
   </main>
+
+  <!-- ── Search overlay ── -->
+  <div id="search-overlay" class="hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-16 px-4" onclick="closeSearchOnOverlay(event)">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+      <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+        <i data-lucide="search" class="w-5 h-5 text-gray-400 flex-shrink-0"></i>
+        <input id="search-input" type="text" placeholder="Buscar transacciones, categorías, páginas..."
+               class="flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
+               oninput="runSearch(this.value)" onkeydown="searchKeyNav(event)">
+        <button onclick="closeSearch()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 flex-shrink-0">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="search-results" class="max-h-80 overflow-y-auto p-2">
+        <p class="text-xs text-gray-400 px-3 py-6 text-center">Escribí para buscar...</p>
+      </div>
+      <div class="px-4 py-2.5 border-t border-gray-100 dark:border-slate-700 flex items-center gap-4">
+        <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">Esc</kbd> cerrar</span>
+        <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">↑↓</kbd> navegar</span>
+        <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">Enter</kbd> ir</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Notification panel ── -->
+  <div id="notif-panel" class="hidden fixed z-40 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl w-80" style="top:68px;right:16px;">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-semibold text-gray-900 dark:text-white">Alertas</span>
+        <span id="notif-count" class="hidden text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold"></span>
+      </div>
+      <button onclick="markAllNotifRead()" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">Marcar leído</button>
+    </div>
+    <div id="notif-list" class="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800">
+      <p class="text-xs text-gray-400 text-center py-8">Cargando alertas...</p>
+    </div>
+  </div>
+
+  <!-- ── Help panel ── -->
+  <div id="help-overlay" class="hidden fixed inset-0 bg-black/30 z-40" onclick="closeHelp()"></div>
+  <div id="help-panel" class="hidden fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
+      <div class="flex items-center gap-2.5">
+        <i data-lucide="help-circle" class="w-5 h-5 text-violet-500"></i>
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Guía de uso</h2>
+      </div>
+      <button onclick="closeHelp()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-4 py-4" id="faq-container"></div>
+  </div>
 
   <script src="/js/api.js"></script>
   <script src="/js/sidebar.js"></script>
