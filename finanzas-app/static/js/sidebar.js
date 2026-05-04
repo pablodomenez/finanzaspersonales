@@ -67,6 +67,13 @@
 
   if (window.lucide) lucide.createIcons();
 
+  // Auto-cierre al navegar en mobile (los links se inyectan aquí, por eso va dentro del IIFE)
+  document.querySelectorAll('#sidebar a').forEach(function(link) {
+    link.addEventListener('click', function() {
+      if (window.innerWidth < 768) closeSidebar();
+    });
+  });
+
   // Carga badges de notificaciones y dispara chequeos (async, no bloquea el render)
   if (typeof apiFetch === "function" && typeof getToken === "function" && getToken()) {
     (async () => {
@@ -97,3 +104,14 @@
     })();
   }
 })();
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.remove('-translate-x-full');
+  document.getElementById('sidebar-overlay').classList.remove('hidden');
+  document.body.classList.add('overflow-hidden');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('sidebar-overlay').classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+}
