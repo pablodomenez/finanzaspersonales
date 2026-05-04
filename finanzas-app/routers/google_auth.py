@@ -1,5 +1,6 @@
 import os
 from urllib.parse import urlencode
+from dotenv import load_dotenv
 import requests as http_req
 from fastapi import APIRouter, Depends
 from fastapi.responses import RedirectResponse
@@ -8,18 +9,16 @@ from database import get_db
 import models
 from auth import create_access_token
 
-router = APIRouter(prefix="/api/auth", tags=["google-auth"])
+load_dotenv()
 
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
+router = APIRouter(prefix="/api/auth", tags=["google-auth"])
 
 
 @router.get("/google")
 def google_login():
     params = {
-        "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
+        "redirect_uri": os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback"),
         "response_type": "code",
         "scope": "openid email profile",
         "access_type": "offline",
@@ -35,9 +34,9 @@ def google_callback(code: str = None, error: str = None, db: Session = Depends(g
 
     token_resp = http_req.post("https://oauth2.googleapis.com/token", data={
         "code": code,
-        "client_id": GOOGLE_CLIENT_ID,
-        "client_secret": GOOGLE_CLIENT_SECRET,
-        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
+        "client_secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
+        "redirect_uri": os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback"),
         "grant_type": "authorization_code",
     })
     if not token_resp.ok:
