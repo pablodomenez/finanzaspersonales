@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -16,25 +17,21 @@ if DATABASE_URL.startswith("postgres://"):
 
 is_postgres = DATABASE_URL.startswith("postgresql")
 
-# En Vercel usar psycopg2-binary (mejor soporte de SCRAM auth con Supavisor)
-# Localmente se usa pg8000 si está especificado, o el driver por defecto
-if os.getenv("VERCEL") and is_postgres:
-    # Quitar cualquier driver previo y usar psycopg2
+if is_postgres:
+    # Quitar driver explícito en la URL (+pg8000, +psycopg2) y usar psycopg2 por defecto
     for drv in ("+pg8000", "+psycopg2"):
         DATABASE_URL = DATABASE_URL.replace(f"postgresql{drv}://", "postgresql://", 1)
+    # Eliminar channel_binding que psycopg2 no soporta
+    parsed = urlparse(DATABASE_URL)
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    params.pop("channel_binding", None)
+    new_query = urlencode({k: v[0] for k, v in params.items()})
+    DATABASE_URL = urlunparse(parsed._replace(query=new_query))
 
 if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
-elif os.getenv("VERCEL") and is_postgres:
-    connect_args = {"sslmode": "require"}
-elif "+pg8000" in DATABASE_URL:
-    import ssl
-    ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
-    connect_args = {"ssl_context": ssl_context}
 else:
-    connect_args = {"sslmode": "require"}
+    connect_args = {}
 
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
