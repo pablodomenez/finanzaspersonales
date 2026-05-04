@@ -12,6 +12,7 @@
     { id: "promociones",  icon: "tag",                label: "Promociones", badge: "promo" },
     { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
     { id: "compartidos",  icon: "users-round",        label: "Compartidos" },
+    { id: "decisiones",   icon: "sparkles",           label: "Decisiones" },
     { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
   ];
 
