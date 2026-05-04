@@ -55,6 +55,7 @@ def google_callback(code: str = None, error: str = None, db: Session = Depends(g
     google_id = info.get("sub")
     email = info.get("email", "")
     name = info.get("name") or email.split("@")[0]
+    picture = info.get("picture")
 
     user = db.query(models.User).filter(models.User.google_id == google_id).first()
     if not user:
@@ -69,6 +70,7 @@ def google_callback(code: str = None, error: str = None, db: Session = Depends(g
                 google_id=google_id,
             )
             db.add(user)
+    user.picture = picture
     db.commit()
     db.refresh(user)
 
