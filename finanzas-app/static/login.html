@@ -36,126 +36,126 @@
       </div>
 
       <!-- Headline -->
-      <h2 class="text-4xl font-bold text-white leading-tight mb-3">Tomá el control<br/>de tu dinero<br/>en minutos.</h2>
-      <p class="text-slate-400 text-sm leading-relaxed mb-8">Dejá de preguntarte en qué se te va la plata. Control, claridad y decisiones en un solo lugar.</p>
+      <h2 class="text-4xl font-bold leading-tight mb-3">
+        <span class="text-white">Toma el control<br/>de tu dinero,</span><br/>
+        <span style="background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">viví con tranquilidad</span>
+      </h2>
+      <p class="text-slate-400 text-sm leading-relaxed mb-6">Dejá de preguntarte en qué se te va la plata. Control, claridad y decisiones en un solo lugar.</p>
 
-      <!-- Mini Dashboard Mock -->
+      <!-- Mini Dashboard Mock — estilo real de la app -->
       <div class="flex-1 flex items-center">
-        <div class="w-full rounded-2xl border border-slate-700/60 overflow-hidden" style="background: rgba(15,23,42,0.7); backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
-          <!-- Header del mock -->
-          <div class="px-4 pt-4 pb-3 border-b border-slate-700/50">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-slate-400 text-xs font-medium">Balance total</p>
-                <div class="flex items-baseline gap-2 mt-0.5">
-                  <span class="text-white font-bold text-xl">$ 248.500</span>
-                  <span class="text-emerald-400 text-xs font-semibold flex items-center gap-0.5">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2L8.5 6.5H1.5L5 2Z" fill="currentColor"/></svg>
-                    +12%
-                  </span>
-                </div>
-              </div>
-              <div class="flex gap-1.5">
-                <div class="w-2 h-2 rounded-full bg-red-400/80"></div>
-                <div class="w-2 h-2 rounded-full bg-yellow-400/80"></div>
-                <div class="w-2 h-2 rounded-full bg-emerald-400/80"></div>
-              </div>
+        <div class="w-full rounded-2xl overflow-hidden border border-slate-700/40" style="box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+          <!-- Topbar del mock -->
+          <div class="flex items-center justify-between px-4 py-2.5 border-b border-gray-200/10" style="background: #1e293b;">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 rounded" style="background: linear-gradient(135deg, #0ea5e9, #3b82f6);"></div>
+              <span class="text-white text-xs font-semibold">Finanzas Personales</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-400 text-xs">Hola, Pablo 👋</span>
+              <div class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white text-xs font-bold">P</div>
             </div>
           </div>
 
-          <!-- Contenido del mock -->
-          <div class="flex gap-0 divide-x divide-slate-700/50">
-            <!-- Gráfico de barras -->
-            <div class="flex-1 px-4 py-3">
-              <p class="text-slate-500 text-xs mb-3 font-medium">Últimos 4 meses</p>
-              <div class="flex items-end gap-2 h-20">
-                <div class="flex-1 flex flex-col items-center gap-1">
-                  <div class="w-full rounded-t-md" style="height: 52px; background: linear-gradient(to top, #3b82f6, #60a5fa);"></div>
-                  <span class="text-slate-500 text-xs">Ene</span>
+          <!-- Contenido principal (fondo claro como la app real) -->
+          <div class="p-3" style="background: #f8fafc;">
+            <!-- KPI cards row -->
+            <div class="grid grid-cols-4 gap-2 mb-3">
+              <div class="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-gray-400 text-xs">Saldo</span>
+                  <div class="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+                  </div>
                 </div>
-                <div class="flex-1 flex flex-col items-center gap-1">
-                  <div class="w-full rounded-t-md" style="height: 38px; background: linear-gradient(to top, #0ea5e9, #38bdf8);"></div>
-                  <span class="text-slate-500 text-xs">Feb</span>
+                <p class="text-gray-900 font-bold text-sm leading-none">$248k</p>
+                <p class="text-emerald-500 text-xs mt-0.5">+12%</p>
+              </div>
+              <div class="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-gray-400 text-xs">Ingresos</span>
+                  <div class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg>
+                  </div>
                 </div>
-                <div class="flex-1 flex flex-col items-center gap-1">
-                  <div class="w-full rounded-t-md" style="height: 64px; background: linear-gradient(to top, #3b82f6, #60a5fa);"></div>
-                  <span class="text-slate-500 text-xs">Mar</span>
+                <p class="text-gray-900 font-bold text-sm leading-none">$420k</p>
+                <p class="text-emerald-500 text-xs mt-0.5">+8%</p>
+              </div>
+              <div class="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-gray-400 text-xs">Gastos</span>
+                  <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
+                  </div>
                 </div>
-                <div class="flex-1 flex flex-col items-center gap-1">
-                  <div class="w-full rounded-t-md opacity-50" style="height: 45px; background: linear-gradient(to top, #6366f1, #818cf8); border: 1px dashed #818cf8;"></div>
-                  <span class="text-blue-400 text-xs font-medium">Abr</span>
+                <p class="text-gray-900 font-bold text-sm leading-none">$171k</p>
+                <p class="text-red-500 text-xs mt-0.5">+3%</p>
+              </div>
+              <div class="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-gray-400 text-xs">Ahorro</span>
+                  <div class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5"><path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8.5 3.3 1.6 4.3 1.2 1.1 2.8 1.7 5.4 1.7 1 0 1.6-.7 1.6-1.5 0-.2 0-.4-.1-.6"/><path d="M2 9v1c0 1.1.9 2 2 2h1"/><path d="M22 15.5c0-.2 0-.3-.1-.5"/></svg>
+                  </div>
                 </div>
+                <p class="text-gray-900 font-bold text-sm leading-none">$249k</p>
+                <p class="text-amber-500 text-xs mt-0.5">59%</p>
               </div>
             </div>
 
-            <!-- Categorías -->
-            <div class="flex-1 px-4 py-3">
-              <p class="text-slate-500 text-xs mb-3 font-medium">Categorías</p>
-              <div class="space-y-2">
-                <div>
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-slate-300 text-xs">🍔 Comida</span>
-                    <span class="text-slate-400 text-xs">35%</span>
-                  </div>
-                  <div class="h-1 rounded-full bg-slate-700">
-                    <div class="h-1 rounded-full bg-blue-500" style="width: 35%"></div>
-                  </div>
+            <!-- Chart area -->
+            <div class="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-700 text-xs font-semibold">Resumen mensual</span>
+                <span class="text-gray-400 text-xs bg-gray-100 px-2 py-0.5 rounded-md">2025</span>
+              </div>
+              <!-- Gráfico de barras dobles (ingresos + gastos) -->
+              <div class="flex items-end gap-1.5 h-14">
+                <div class="flex-1 flex items-end gap-0.5">
+                  <div class="flex-1 rounded-t-sm" style="height: 38px; background: #7c3aed;"></div>
+                  <div class="flex-1 rounded-t-sm" style="height: 24px; background: #fca5a5;"></div>
                 </div>
-                <div>
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-slate-300 text-xs">🚗 Transporte</span>
-                    <span class="text-slate-400 text-xs">22%</span>
-                  </div>
-                  <div class="h-1 rounded-full bg-slate-700">
-                    <div class="h-1 rounded-full bg-cyan-500" style="width: 22%"></div>
-                  </div>
+                <div class="flex-1 flex items-end gap-0.5">
+                  <div class="flex-1 rounded-t-sm" style="height: 46px; background: #7c3aed;"></div>
+                  <div class="flex-1 rounded-t-sm" style="height: 30px; background: #fca5a5;"></div>
                 </div>
-                <div>
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-slate-300 text-xs">🏠 Vivienda</span>
-                    <span class="text-slate-400 text-xs">28%</span>
-                  </div>
-                  <div class="h-1 rounded-full bg-slate-700">
-                    <div class="h-1 rounded-full bg-indigo-500" style="width: 28%"></div>
-                  </div>
+                <div class="flex-1 flex items-end gap-0.5">
+                  <div class="flex-1 rounded-t-sm" style="height: 52px; background: #7c3aed;"></div>
+                  <div class="flex-1 rounded-t-sm" style="height: 34px; background: #fca5a5;"></div>
                 </div>
-                <div>
-                  <div class="flex items-center justify-between mb-0.5">
-                    <span class="text-slate-300 text-xs">💡 Otros</span>
-                    <span class="text-slate-400 text-xs">15%</span>
-                  </div>
-                  <div class="h-1 rounded-full bg-slate-700">
-                    <div class="h-1 rounded-full bg-emerald-500" style="width: 15%"></div>
-                  </div>
+                <div class="flex-1 flex items-end gap-0.5">
+                  <div class="flex-1 rounded-t-sm opacity-40" style="height: 42px; background: #7c3aed; border: 1px dashed #7c3aed;"></div>
+                  <div class="flex-1 rounded-t-sm opacity-40" style="height: 26px; background: #fca5a5; border: 1px dashed #fca5a5;"></div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Footer del mock -->
-          <div class="px-4 py-2.5 border-t border-slate-700/50 flex gap-3">
-            <div class="flex items-center gap-1.5">
-              <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
-              <span class="text-slate-400 text-xs">Ingresos <span class="text-emerald-400 font-semibold">$420k</span></span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <div class="w-2 h-2 rounded-full bg-red-400"></div>
-              <span class="text-slate-400 text-xs">Gastos <span class="text-red-400 font-semibold">$171k</span></span>
+              <div class="flex justify-between mt-1.5">
+                <span class="text-gray-300 text-xs">Ene</span>
+                <span class="text-gray-300 text-xs">Feb</span>
+                <span class="text-gray-300 text-xs">Mar</span>
+                <span class="text-violet-400 text-xs font-medium">Abr</span>
+              </div>
+              <div class="flex gap-3 mt-2 pt-2 border-t border-gray-100">
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-sm bg-violet-600"></div><span class="text-gray-400 text-xs">Ingresos</span></div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-sm bg-red-300"></div><span class="text-gray-400 text-xs">Gastos</span></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Prueba social y confianza -->
+      <!-- Prueba social: avatar stack -->
       <div class="mt-6 space-y-3">
-        <div class="flex gap-3">
-          <div class="flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-500/30" style="background: rgba(59,130,246,0.12);">
-            <span class="text-sm">⭐</span>
-            <span class="text-blue-300 text-xs font-medium">+1.200 usuarios activos</span>
+        <div class="flex items-center gap-4">
+          <div class="flex -space-x-2 flex-shrink-0">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold" style="border-color: #0f172a; background: #3b82f6;">A</div>
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold" style="border-color: #0f172a; background: #7c3aed;">M</div>
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold" style="border-color: #0f172a; background: #059669;">L</div>
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold" style="border-color: #0f172a; background: #d97706;">R</div>
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold" style="border-color: #0f172a; background: #e11d48;">C</div>
           </div>
-          <div class="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-500/30" style="background: rgba(16,185,129,0.12);">
-            <span class="text-sm">📈</span>
-            <span class="text-emerald-300 text-xs font-medium">Ahorro +18% promedio</span>
+          <div>
+            <p class="text-white text-sm font-semibold">+1.200 personas</p>
+            <p class="text-slate-400 text-xs">ya organizan sus finanzas con esta app</p>
           </div>
         </div>
         <div class="flex gap-4">
