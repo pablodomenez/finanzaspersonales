@@ -33,6 +33,7 @@ def _profile_dict(user: models.User, profile: models.UserProfile) -> dict:
         "occupation": profile.occupation if profile else "",
         "bio": profile.bio if profile else "",
         "avatar_emoji": profile.avatar_emoji if profile else "👤",
+        "google_picture": user.picture or None,
     }
 
 
