@@ -11,6 +11,7 @@
     { id: "servicios",    icon: "zap",                label: "Servicios", badge: true },
     { id: "promociones",  icon: "tag",                label: "Promociones", badge: "promo" },
     { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
+    { id: "compartidos",  icon: "users-round",        label: "Compartidos" },
     { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
   ];
 

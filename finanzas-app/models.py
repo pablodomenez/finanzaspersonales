@@ -34,6 +34,7 @@ class User(Base):
     dividendos_inversiones = relationship("DividendoInversion", back_populates="user", cascade="all, delete")
     promociones = relationship("Promocion", back_populates="user", cascade="all, delete")
     notificaciones_promo = relationship("NotificacionPromo", back_populates="user", cascade="all, delete")
+    shared_groups = relationship("SharedGroup", back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -324,3 +325,44 @@ class NotificacionPromo(Base):
 
     promocion = relationship("Promocion", back_populates="notificaciones_promo")
     user = relationship("User", back_populates="notificaciones_promo")
+
+
+class SharedGroup(Base):
+    __tablename__ = "shared_groups"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name        = Column(String, nullable=False)
+    description = Column(String, default="")
+    is_settled  = Column(Boolean, default=False)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    user         = relationship("User", back_populates="shared_groups")
+    participants = relationship("SharedParticipant", back_populates="group", cascade="all, delete-orphan")
+    expenses     = relationship("SharedExpense", back_populates="group", cascade="all, delete-orphan")
+
+
+class SharedParticipant(Base):
+    __tablename__ = "shared_participants"
+
+    id       = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("shared_groups.id"), nullable=False, index=True)
+    name     = Column(String, nullable=False)
+
+    group    = relationship("SharedGroup", back_populates="participants")
+    expenses = relationship("SharedExpense", back_populates="participant")
+
+
+class SharedExpense(Base):
+    __tablename__ = "shared_expenses"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    group_id       = Column(Integer, ForeignKey("shared_groups.id"), nullable=False, index=True)
+    participant_id = Column(Integer, ForeignKey("shared_participants.id"), nullable=False)
+    description    = Column(String, nullable=False)
+    amount         = Column(Float, nullable=False)
+    date           = Column(DateTime, default=datetime.utcnow)
+    created_at     = Column(DateTime, default=datetime.utcnow)
+
+    group       = relationship("SharedGroup", back_populates="expenses")
+    participant = relationship("SharedParticipant", back_populates="expenses")
