@@ -3,17 +3,17 @@
   const page = window.location.pathname.split("/").pop().replace(".html", "");
   const nav = [
     { id: "dashboard",    icon: "layout-dashboard",  label: "Dashboard" },
-    { id: "transactions", icon: "arrow-left-right",   label: "Movimientos" },
+    { id: "transactions", icon: "arrow-left-right",   label: "Transacciones" },
     { id: "budgets",      icon: "wallet",             label: "Presupuestos" },
-    { id: "cards",        icon: "credit-card",        label: "Tarjetas" },
+    { id: "goals",        icon: "target",             label: "Metas" },
     { id: "debts",        icon: "users",              label: "Deudas" },
-    { id: "goals",        icon: "target",             label: "Objetivos" },
-    { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
+    { id: "cards",        icon: "credit-card",        label: "Tarjetas" },
     { id: "servicios",    icon: "zap",                label: "Servicios", badge: true },
     { id: "promociones",  icon: "tag",                label: "Promociones", badge: "promo" },
+    { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
     { id: "compartidos",  icon: "users-round",        label: "Compartidos" },
-    { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
     { id: "decisiones",   icon: "sparkles",           label: "Decisiones" },
+    { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
   ];
 
   const links = nav.map(({ id, icon, label, badge }) => {
@@ -57,8 +57,8 @@
       <button id="theme-toggle" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 text-sm font-medium transition-colors">
         <i data-lucide="moon" class="w-4 h-4 shrink-0"></i>Cambiar tema
       </button>
-      <a href="/profile.html" class="${profileCls}" id="sidebar-profile-link">
-        <span id="sidebar-profile-icon" class="w-4 h-4 shrink-0 flex items-center justify-center leading-none"><i data-lucide="user" class="w-4 h-4"></i></span>Mi Perfil
+      <a href="/profile.html" class="${profileCls}">
+        <i data-lucide="user" class="w-4 h-4 shrink-0"></i>Mi Perfil
       </a>
       <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-red-400 hover:bg-red-900/30 hover:text-red-300 text-sm font-medium transition-colors">
         <i data-lucide="log-out" class="w-4 h-4 shrink-0"></i>Cerrar sesión
@@ -99,18 +99,6 @@
         if (badge && unread > 0) {
           badge.textContent = unread > 9 ? "9+" : String(unread);
           badge.classList.remove("hidden");
-        }
-      } catch (_) {}
-      try {
-        const profile = await apiFetch("/api/profile");
-        const iconEl = document.getElementById("sidebar-profile-icon");
-        if (iconEl) {
-          if (profile.google_picture) {
-            iconEl.innerHTML = `<img src="${profile.google_picture}" class="w-5 h-5 rounded-full object-cover shrink-0" alt="foto">`;
-          } else if (profile.avatar_emoji && profile.avatar_emoji !== "👤") {
-            iconEl.textContent = profile.avatar_emoji;
-            iconEl.className = "shrink-0 text-base leading-none flex items-center justify-center";
-          }
         }
       } catch (_) {}
     })();
