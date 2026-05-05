@@ -95,7 +95,7 @@ const _HELP_FAQ = [
 
   const btnGroup = document.createElement("div");
   btnGroup.id = "_common-actions";
-  btnGroup.className = "hidden md:flex items-center gap-2 ml-2";
+  btnGroup.className = "hidden md:flex items-center gap-2";
   btnGroup.innerHTML = `
     <button id="_search-btn" onclick="openGlobalSearch()" title="Buscar (Ctrl+K)"
       class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
@@ -110,7 +110,13 @@ const _HELP_FAQ = [
       class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
       <i data-lucide="help-circle" class="w-4 h-4"></i>
     </button>`;
-  rightSide.appendChild(btnGroup);
+
+  // Wrap the 3 icon buttons + CTA button in a flex row so they sit side by side
+  const rightWrapper = document.createElement("div");
+  rightWrapper.className = "flex items-center gap-3";
+  flexRow.replaceChild(rightWrapper, rightSide);
+  rightWrapper.appendChild(btnGroup);
+  rightWrapper.appendChild(rightSide);
 
   // Inject panels at end of body
   const panels = document.createElement("div");
