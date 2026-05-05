@@ -97,7 +97,7 @@ const _HELP_FAQ = [
   btnGroup.id = "_common-actions";
   btnGroup.className = "hidden md:flex items-center gap-2 ml-2";
   btnGroup.innerHTML = `
-    <button onclick="openGlobalSearch()" title="Buscar (Ctrl+K)"
+    <button id="_search-btn" onclick="openGlobalSearch()" title="Buscar (Ctrl+K)"
       class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
       <i data-lucide="search" class="w-4 h-4"></i>
     </button>
@@ -106,7 +106,7 @@ const _HELP_FAQ = [
       <i data-lucide="bell" class="w-4 h-4"></i>
       <span id="_notif-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full"></span>
     </button>
-    <button onclick="openGlobalHelp()" title="Ayuda"
+    <button id="_help-btn" onclick="openGlobalHelp()" title="Ayuda"
       class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
       <i data-lucide="help-circle" class="w-4 h-4"></i>
     </button>`;
