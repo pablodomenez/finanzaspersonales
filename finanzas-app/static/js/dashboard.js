@@ -42,7 +42,7 @@ function pctChange(current, prev) {
 }
 
 function renderChangeBadge(pct, inverse = false) {
-  if (pct === null) return '<span class="text-gray-400">— vs mes anterior</span>';
+  if (pct === null) return '';
   const good = inverse ? pct <= 0 : pct >= 0;
   const colorCls = good
     ? "text-emerald-600 dark:text-emerald-400"
@@ -212,6 +212,26 @@ async function loadDashboard() {
 
   } catch (err) {
     console.error("Dashboard error:", err);
+    const zero = formatCurrency(0);
+    document.getElementById("kpi-balance").textContent  = zero;
+    document.getElementById("kpi-income").textContent   = zero;
+    document.getElementById("kpi-expense").textContent  = zero;
+    document.getElementById("kpi-savings").textContent  = zero;
+    document.getElementById("kpi-balance-change").innerHTML  = '';
+    document.getElementById("kpi-income-change").innerHTML   = '';
+    document.getElementById("kpi-expense-change").innerHTML  = '';
+    document.getElementById("kpi-savings-change").innerHTML  = '';
+    const noExp = document.getElementById("no-expenses");
+    if (noExp) noExp.classList.remove("hidden");
+    const donutCenter = document.getElementById("donut-center");
+    if (donutCenter) donutCenter.classList.add("hidden");
+    const catList = document.getElementById("category-list");
+    if (catList) catList.innerHTML = '<p class="text-xs text-gray-400">Sin gastos este mes</p>';
+    const topIns = document.getElementById("top-category-insight");
+    if (topIns) topIns.textContent = '';
+    renderInsights({ total_income: 0, total_expense: 0, by_category: [], recent_transactions: [] }, null);
+    renderRecentTransactions([]);
+    renderScore({ total_income: 0, total_expense: 0, recent_transactions: [] });
   }
 }
 
