@@ -50,18 +50,6 @@
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span class="hidden sm:inline">Nuevo movimiento</span>
           </button>
-          <div class="hidden md:flex items-center gap-2">
-            <button id="btn-search" onclick="openSearch()" class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors" title="Buscar (Ctrl+K)">
-              <i data-lucide="search" class="w-4 h-4"></i>
-            </button>
-            <button id="btn-notif" onclick="toggleNotifPanel()" class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors relative" title="Alertas">
-              <i data-lucide="bell" class="w-4 h-4"></i>
-              <span id="notif-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full"></span>
-            </button>
-            <button id="btn-help" onclick="openHelp()" class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors" title="Ayuda y FAQ">
-              <i data-lucide="help-circle" class="w-4 h-4"></i>
-            </button>
-          </div>
         </div>
       </div>
     </header>
@@ -287,60 +275,9 @@
     </div>
   </main>
 
-  <!-- ── Search overlay ── -->
-  <div id="search-overlay" class="hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-16 px-4" onclick="closeSearchOnOverlay(event)">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
-      <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-        <i data-lucide="search" class="w-5 h-5 text-gray-400 flex-shrink-0"></i>
-        <input id="search-input" type="text" placeholder="Buscar transacciones, categorías, páginas..."
-               class="flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
-               oninput="runSearch(this.value)" onkeydown="searchKeyNav(event)">
-        <button onclick="closeSearch()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 flex-shrink-0">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-      <div id="search-results" class="max-h-80 overflow-y-auto p-2">
-        <p class="text-xs text-gray-400 px-3 py-6 text-center">Escribí para buscar...</p>
-      </div>
-      <div class="px-4 py-2.5 border-t border-gray-100 dark:border-slate-700 flex items-center gap-4">
-        <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">Esc</kbd> cerrar</span>
-        <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">↑↓</kbd> navegar</span>
-        <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">Enter</kbd> ir</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Notification panel ── -->
-  <div id="notif-panel" class="hidden fixed z-40 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl w-80" style="top:68px;right:16px;">
-    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-semibold text-gray-900 dark:text-white">Alertas</span>
-        <span id="notif-count" class="hidden text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold"></span>
-      </div>
-      <button onclick="markAllNotifRead()" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">Marcar leído</button>
-    </div>
-    <div id="notif-list" class="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800">
-      <p class="text-xs text-gray-400 text-center py-8">Cargando alertas...</p>
-    </div>
-  </div>
-
-  <!-- ── Help panel ── -->
-  <div id="help-overlay" class="hidden fixed inset-0 bg-black/30 z-40" onclick="closeHelp()"></div>
-  <div id="help-panel" class="hidden fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
-      <div class="flex items-center gap-2.5">
-        <i data-lucide="help-circle" class="w-5 h-5 text-violet-500"></i>
-        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Guía de uso</h2>
-      </div>
-      <button onclick="closeHelp()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-    </div>
-    <div class="flex-1 overflow-y-auto px-4 py-4" id="faq-container"></div>
-  </div>
-
-  <script src="/js/api.js?v=2"></script>
-  <script src="/js/sidebar.js?v=2"></script>
-  <script src="/js/dashboard.js?v=2"></script>
+  <script src="/js/api.js?v=3"></script>
+  <script src="/js/sidebar.js?v=3"></script>
+  <script src="/js/common.js?v=1"></script>
+  <script src="/js/dashboard.js?v=3"></script>
 </body>
 </html>
