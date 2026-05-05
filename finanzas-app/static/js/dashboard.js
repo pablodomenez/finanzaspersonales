@@ -869,7 +869,7 @@ const FAQ_DATA = [
     items: [
       {
         q: "¿Cómo registro un ingreso o gasto?",
-        a: "Hacé click en el botón "+ Nuevo movimiento" del header. Elegí si es ingreso o gasto, seleccioná una categoría, completá el monto y una descripción opcional, y guardá. El dashboard se actualizará automáticamente.",
+        a: "Hacé click en el botón '+ Nuevo movimiento' del header. Elegí si es ingreso o gasto, seleccioná una categoría, completá el monto y una descripción opcional, y guardá. El dashboard se actualizará automáticamente.",
       },
       {
         q: "¿Puedo editar o eliminar movimientos?",
@@ -895,7 +895,7 @@ const FAQ_DATA = [
     items: [
       {
         q: "¿Cómo creo una meta?",
-        a: "En la sección Metas, hacé click en "+ Nueva meta", poné un nombre, el monto objetivo y una fecha límite opcional. Podés ir agregando ahorros parciales desde el botón "+ Ahorrar" de cada meta.",
+        a: "En la sección Metas, hacé click en '+ Nueva meta', poné un nombre, el monto objetivo y una fecha límite opcional. Podés ir agregando ahorros parciales desde el botón '+ Ahorrar' de cada meta.",
       },
     ],
   },
