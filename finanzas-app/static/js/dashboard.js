@@ -41,6 +41,18 @@ function pctChange(current, prev) {
   return ((current - prev) / Math.abs(prev)) * 100;
 }
 
+function setKpiColor(el, value) {
+  el.classList.remove(
+    "text-gray-900","dark:text-white",
+    "text-emerald-500","dark:text-emerald-400",
+    "text-red-500","dark:text-red-400",
+    "text-slate-400","dark:text-slate-500"
+  );
+  if (value > 0)       { el.classList.add("text-emerald-500","dark:text-emerald-400"); }
+  else if (value < 0)  { el.classList.add("text-red-500","dark:text-red-400"); }
+  else                 { el.classList.add("text-slate-400","dark:text-slate-500"); }
+}
+
 function renderChangeBadge(pct, inverse = false) {
   if (pct === null) return '';
   const good = inverse ? pct <= 0 : pct >= 0;
@@ -72,10 +84,20 @@ async function loadDashboard() {
     const savings     = data.total_income - data.total_expense;
     const prevSavings = prevData ? (prevData.income - prevData.expense) : null;
 
-    document.getElementById("kpi-balance").textContent  = formatCurrency(data.balance);
-    document.getElementById("kpi-income").textContent   = formatCurrency(data.total_income);
-    document.getElementById("kpi-expense").textContent  = formatCurrency(data.total_expense);
-    document.getElementById("kpi-savings").textContent  = formatCurrency(savings);
+    const elBalance  = document.getElementById("kpi-balance");
+    const elIncome   = document.getElementById("kpi-income");
+    const elExpense  = document.getElementById("kpi-expense");
+    const elSavings  = document.getElementById("kpi-savings");
+
+    elBalance.textContent  = formatCurrency(data.balance);
+    elIncome.textContent   = formatCurrency(data.total_income);
+    elExpense.textContent  = formatCurrency(data.total_expense);
+    elSavings.textContent  = formatCurrency(savings);
+
+    setKpiColor(elBalance, data.balance);
+    setKpiColor(elIncome,  data.total_income);
+    setKpiColor(elExpense, -data.total_expense);
+    setKpiColor(elSavings, savings);
 
     document.getElementById("kpi-balance-change").innerHTML  = renderChangeBadge(pctChange(data.balance, prevData ? prevData.income - prevData.expense : null));
     document.getElementById("kpi-income-change").innerHTML   = renderChangeBadge(pctChange(data.total_income, prevData?.income));
@@ -213,10 +235,11 @@ async function loadDashboard() {
   } catch (err) {
     console.error("Dashboard error:", err);
     const zero = formatCurrency(0);
-    document.getElementById("kpi-balance").textContent  = zero;
-    document.getElementById("kpi-income").textContent   = zero;
-    document.getElementById("kpi-expense").textContent  = zero;
-    document.getElementById("kpi-savings").textContent  = zero;
+    ["kpi-balance","kpi-income","kpi-expense","kpi-savings"].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = zero;
+      setKpiColor(el, 0);
+    });
     document.getElementById("kpi-balance-change").innerHTML  = '';
     document.getElementById("kpi-income-change").innerHTML   = '';
     document.getElementById("kpi-expense-change").innerHTML  = '';
