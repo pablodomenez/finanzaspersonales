@@ -35,11 +35,8 @@ def _migrate_db():
         "ALTER TABLE card_expenses ADD COLUMN expense_type TEXT DEFAULT 'cuota'",
         "ALTER TABLE card_expenses ADD COLUMN end_month INTEGER",
         "ALTER TABLE card_expenses ADD COLUMN end_year INTEGER",
-        "ALTER TABLE shared_groups ADD COLUMN is_virtual INTEGER DEFAULT 0",
-        "ALTER TABLE shared_groups ADD COLUMN join_token TEXT",
-        "ALTER TABLE shared_participants ADD COLUMN user_id INTEGER",
-        # Convierte is_virtual de INTEGER a BOOLEAN en PostgreSQL (incompatibles con Column(Boolean))
-        "ALTER TABLE shared_groups ALTER COLUMN is_virtual TYPE BOOLEAN USING is_virtual::BOOLEAN",
+        "ALTER TABLE shared_groups ADD COLUMN IF NOT EXISTS join_token TEXT",
+        "ALTER TABLE shared_participants ADD COLUMN IF NOT EXISTS user_id INTEGER",
     ]
     new_categories = [
         (15, "Mascotas",          "🐾", "expense"),
