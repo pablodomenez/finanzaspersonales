@@ -26,8 +26,12 @@ def _migrate_db():
         "ALTER TABLE inversiones ADD COLUMN ticker TEXT DEFAULT ''",
         "ALTER TABLE users ADD COLUMN google_id TEXT",
         "ALTER TABLE users ADD COLUMN terms_accepted_at TIMESTAMP",
-        "ALTER TABLE transactions ADD COLUMN payment_method TEXT",
+        "ALTER TABLE transactions ADD COLUMN IF NOT EXISTS payment_method TEXT",
         # nuevas tablas se crean vía create_all; columnas extra de tablas existentes van aquí
+    ]
+    new_categories = [
+        (15, "Mascotas",          "🐾", "expense"),
+        (16, "Tarjeta de crédito","💳", "expense"),
     ]
     with engine.connect() as conn:
         for sql in new_columns:
@@ -36,6 +40,14 @@ def _migrate_db():
                 conn.commit()
             except Exception:
                 pass  # columna ya existe
+        for cat_id, name, icon, cat_type in new_categories:
+            try:
+                conn.execute(text(
+                    "INSERT INTO categories (id, name, icon, type) VALUES (:id, :name, :icon, :type) ON CONFLICT (id) DO NOTHING"
+                ), {"id": cat_id, "name": name, "icon": icon, "type": cat_type})
+                conn.commit()
+            except Exception:
+                pass
 
 
 try:
