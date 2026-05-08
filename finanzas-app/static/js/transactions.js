@@ -30,7 +30,7 @@ async function loadTransactions() {
   if (type) params.set("type", type);
 
   const tbody = document.getElementById("transactions-body");
-  tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Cargando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Cargando...</td></tr>';
 
   try {
     const data = await apiFetch(`/api/transactions?${params}`);
@@ -38,15 +38,26 @@ async function loadTransactions() {
     data.forEach(t => { transactionMap[t.id] = t; });
 
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Sin transacciones para este período</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Sin transacciones para este período</td></tr>';
       return;
     }
+    const paymentLabels = {
+      efectivo: "💵 Efectivo",
+      transferencia: "🏦 Transferencia",
+      debito: "💳 Débito",
+      credito: "💳 Crédito",
+      debito_automatico: "🔄 Débito auto.",
+      cheque: "📄 Cheque",
+    };
     tbody.innerHTML = data.map(t => `
       <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition">
         <td class="px-6 py-4 text-gray-800 dark:text-gray-200">
           <span class="mr-1">${t.category.icon}</span>${t.category.name}
         </td>
         <td class="px-6 py-4 text-gray-600 dark:text-gray-400">${t.description || "—"}</td>
+        <td class="px-6 py-4 text-gray-500 dark:text-gray-400 hidden md:table-cell">
+          ${t.payment_method ? `<span class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">${paymentLabels[t.payment_method] || t.payment_method}</span>` : '<span class="text-slate-300 dark:text-slate-600">—</span>'}
+        </td>
         <td class="px-6 py-4 text-gray-500 dark:text-gray-400">${formatDate(t.date)}</td>
         <td class="px-6 py-4 text-right font-semibold ${t.type === "income" ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}">
           ${t.type === "income" ? "+" : "-"}${formatCurrency(t.amount)}
@@ -58,7 +69,7 @@ async function loadTransactions() {
       </tr>
     `).join("");
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-400">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-red-400">${err.message}</td></tr>`;
   }
 }
 
@@ -76,6 +87,7 @@ function openNewModal() {
   document.getElementById("edit-id").value = "";
   document.getElementById("t-type").value = "expense";
   document.getElementById("t-amount").value = "";
+  document.getElementById("t-payment-method").value = "";
   document.getElementById("t-description").value = "";
   document.getElementById("t-date").value = new Date().toISOString().slice(0, 10);
   document.getElementById("modal-error").classList.add("hidden");
@@ -90,6 +102,7 @@ function editTransaction(t) {
   populateCategorySelect(t.type);
   document.getElementById("t-category").value = t.category.id;
   document.getElementById("t-amount").value = t.amount;
+  document.getElementById("t-payment-method").value = t.payment_method || "";
   document.getElementById("t-description").value = t.description;
   document.getElementById("t-date").value = t.date.slice(0, 10);
   document.getElementById("modal-error").classList.add("hidden");
@@ -118,12 +131,14 @@ document.getElementById("transaction-form").addEventListener("submit", async (e)
   errEl.classList.add("hidden");
 
   const editId = document.getElementById("edit-id").value;
+  const paymentMethod = document.getElementById("t-payment-method").value;
   const body = {
     type: document.getElementById("t-type").value,
     amount: parseFloat(document.getElementById("t-amount").value),
     category_id: parseInt(document.getElementById("t-category").value),
     description: document.getElementById("t-description").value,
     date: new Date(document.getElementById("t-date").value + "T12:00:00").toISOString(),
+    payment_method: paymentMethod || null,
   };
 
   try {

@@ -105,8 +105,10 @@ DEFAULT_CATEGORIES = [
     {"id": 10, "name": "Entretenimiento","icon": "🎮", "type": "expense"},
     {"id": 11, "name": "Ropa",         "icon": "👕", "type": "expense"},
     {"id": 12, "name": "Ahorro",       "icon": "🏦", "type": "expense"},
-    {"id": 13, "name": "Servicios",    "icon": "💡", "type": "expense"},
-    {"id": 14, "name": "Otros gastos", "icon": "📦", "type": "expense"},
+    {"id": 13, "name": "Servicios",         "icon": "💡", "type": "expense"},
+    {"id": 14, "name": "Otros gastos",      "icon": "📦", "type": "expense"},
+    {"id": 15, "name": "Mascotas",          "icon": "🐾", "type": "expense"},
+    {"id": 16, "name": "Tarjeta de crédito","icon": "💳", "type": "expense"},
 ]
 
 @cats_router.get("")

@@ -61,6 +61,7 @@ class Transaction(Base):
     type = Column(Enum(TransactionType), nullable=False)
     description = Column(String, default="")
     date = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    payment_method = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="transactions")

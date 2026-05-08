@@ -17,6 +17,7 @@ class TransactionCreate(BaseModel):
     category_id: int
     description: Optional[str] = ""
     date: Optional[datetime] = None
+    payment_method: Optional[str] = None
 
 
 class TransactionUpdate(BaseModel):
@@ -25,6 +26,7 @@ class TransactionUpdate(BaseModel):
     category_id: Optional[int] = None
     description: Optional[str] = None
     date: Optional[datetime] = None
+    payment_method: Optional[str] = None
 
 
 def _serialize(t: models.Transaction) -> dict:
@@ -34,6 +36,7 @@ def _serialize(t: models.Transaction) -> dict:
         "type": t.type,
         "description": t.description,
         "date": t.date.isoformat(),
+        "payment_method": t.payment_method,
         "category": {"id": t.category.id, "name": t.category.name, "icon": t.category.icon},
     }
 
@@ -79,6 +82,7 @@ def create_transaction(
         category_id=data.category_id,
         description=data.description or "",
         date=data.date or datetime.utcnow(),
+        payment_method=data.payment_method,
     )
     db.add(t)
     db.commit()
