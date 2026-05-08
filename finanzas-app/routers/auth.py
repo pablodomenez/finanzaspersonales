@@ -1,10 +1,12 @@
-from datetime import datetime
+import secrets
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
 from database import get_db
 import models
 import auth as auth_utils
+import email_utils
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -76,3 +78,61 @@ def me(current_user: models.User = Depends(auth_utils.get_current_user)):
         "email": current_user.email,
         "terms_accepted": current_user.terms_accepted_at is not None,
     }
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8)
+
+
+@router.post("/forgot-password", status_code=200)
+def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == data.email).first()
+    # Siempre responder OK para no revelar si el email existe
+    if not user:
+        return {"ok": True}
+
+    # Invalidar tokens anteriores del usuario
+    db.query(models.PasswordResetToken).filter(
+        models.PasswordResetToken.user_id == user.id,
+        models.PasswordResetToken.used == False,
+    ).update({"used": True})
+    db.commit()
+
+    token = secrets.token_urlsafe(32)
+    reset_token = models.PasswordResetToken(
+        user_id=user.id,
+        token=token,
+        expires_at=datetime.utcnow() + timedelta(hours=1),
+    )
+    db.add(reset_token)
+    db.commit()
+
+    email_utils.send_password_reset(user.email, user.name, token)
+    return {"ok": True}
+
+
+@router.post("/reset-password", status_code=200)
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    reset_token = db.query(models.PasswordResetToken).filter(
+        models.PasswordResetToken.token == data.token,
+        models.PasswordResetToken.used == False,
+    ).first()
+
+    if not reset_token:
+        raise HTTPException(status_code=400, detail="Token inválido o ya utilizado")
+    if reset_token.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="El enlace expiró. Solicitá uno nuevo.")
+
+    user = db.query(models.User).filter(models.User.id == reset_token.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    user.hashed_password = auth_utils.hash_password(data.new_password)
+    reset_token.used = True
+    db.commit()
+    return {"ok": True}

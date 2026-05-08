@@ -545,4 +545,57 @@ document.getElementById("year-select").addEventListener("change", loadAll);
 
 loadAll();
 
+// ── Cotizaciones dólar ────────────────────────────────────────────────────────
+async function loadCotizaciones() {
+  const grid = document.getElementById("cotizaciones-grid");
+  const updEl = document.getElementById("cotiz-updated");
+  if (!grid) return;
+
+  const SHOW = ["oficial", "blue", "bolsa", "contadoconliqui", "tarjeta", "cripto"];
+  const COLORS = {
+    oficial:          "text-blue-600 dark:text-blue-400",
+    blue:             "text-emerald-600 dark:text-emerald-400",
+    bolsa:            "text-violet-600 dark:text-violet-400",
+    contadoconliqui:  "text-amber-600 dark:text-amber-400",
+    tarjeta:          "text-pink-600 dark:text-pink-400",
+    cripto:           "text-orange-600 dark:text-orange-400",
+  };
+
+  try {
+    const data = await apiFetch("/api/cotizaciones");
+    const items = data.filter(d => SHOW.includes(d.casa));
+
+    if (!items.length) {
+      grid.innerHTML = '<div class="col-span-full text-xs text-gray-400">No se pudo obtener cotizaciones.</div>';
+      return;
+    }
+
+    grid.innerHTML = items.map(d => {
+      const color  = COLORS[d.casa] || "text-gray-700 dark:text-slate-300";
+      const venta  = d.venta != null ? `$${Number(d.venta).toLocaleString("es-AR", {minimumFractionDigits: 0, maximumFractionDigits: 0})}` : "—";
+      const compra = d.compra != null ? `$${Number(d.compra).toLocaleString("es-AR", {minimumFractionDigits: 0, maximumFractionDigits: 0})}` : "—";
+      return `
+        <div class="bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-2 flex flex-col gap-0.5 min-w-0">
+          <span class="text-xs text-gray-400 dark:text-slate-500 truncate">${d.nombre}</span>
+          <span class="text-sm font-bold ${color} truncate">${venta}</span>
+          <span class="text-xs text-gray-400 dark:text-slate-500">Compra: ${compra}</span>
+        </div>`;
+    }).join("");
+
+    // Hora de la última cotización
+    const last = items[0]?.fecha;
+    if (last) {
+      try {
+        const d = new Date(last);
+        updEl.textContent = `Act. ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}`;
+      } catch (_) {}
+    }
+  } catch (_) {
+    grid.innerHTML = '<div class="col-span-full text-xs text-gray-400">No se pudo obtener cotizaciones.</div>';
+  }
+  lucide.createIcons();
+}
+
+loadCotizaciones();
+
 

@@ -165,3 +165,96 @@ document.getElementById("transaction-form").addEventListener("submit", async (e)
 window.openModal = openNewModal;
 
 Promise.all([loadCategories(), loadTransactions()]);
+
+// ── Importar CSV ──────────────────────────────────────────────────────────────
+let _csvFile = null;
+
+window.openImportModal = function () {
+  _csvFile = null;
+  document.getElementById("csv-file-input").value = "";
+  document.getElementById("drop-filename").textContent = "Ningún archivo seleccionado";
+  document.getElementById("import-btn").disabled = true;
+  document.getElementById("import-result").classList.add("hidden");
+  document.getElementById("import-result").innerHTML = "";
+  document.getElementById("import-modal").classList.remove("hidden");
+  lucide.createIcons();
+};
+
+window.closeImportModal = function () {
+  document.getElementById("import-modal").classList.add("hidden");
+};
+
+window.handleFileSelect = function (event) {
+  const file = event.target.files[0];
+  if (file) _setImportFile(file);
+};
+
+window.handleDrop = function (event) {
+  event.preventDefault();
+  document.getElementById("drop-zone").classList.remove("border-blue-500", "bg-blue-50", "dark:bg-blue-900/10");
+  const file = event.dataTransfer.files[0];
+  if (file) _setImportFile(file);
+};
+
+function _setImportFile(file) {
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    alert("El archivo debe ser un CSV (.csv)");
+    return;
+  }
+  _csvFile = file;
+  document.getElementById("drop-filename").textContent = file.name;
+  document.getElementById("import-btn").disabled = false;
+}
+
+window.submitImport = async function () {
+  if (!_csvFile) return;
+  const btn = document.getElementById("import-btn");
+  const resultEl = document.getElementById("import-result");
+  btn.disabled = true;
+  btn.textContent = "Importando...";
+  resultEl.classList.add("hidden");
+
+  const formData = new FormData();
+  formData.append("file", _csvFile);
+
+  try {
+    const token = getToken();
+    const res = await fetch("/api/transactions/import", {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Error al importar");
+
+    const hasErrors = data.errors && data.errors.length > 0;
+    const errHtml = hasErrors
+      ? `<div class="mt-2">
+          <p class="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">Filas con error (${data.errors.length}):</p>
+          <ul class="text-xs text-red-500 dark:text-red-400 space-y-0.5 max-h-28 overflow-y-auto">
+            ${data.errors.map(e => `<li>Fila ${e.fila}: ${e.error}</li>`).join("")}
+          </ul>
+        </div>` : "";
+
+    resultEl.innerHTML = `
+      <div class="rounded-lg p-3 ${data.imported > 0 ? "bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800" : "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800"}">
+        <p class="text-sm font-semibold ${data.imported > 0 ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}">
+          ✓ ${data.imported} transacciones importadas de ${data.total_rows} filas
+        </p>
+        ${errHtml}
+      </div>`;
+    resultEl.classList.remove("hidden");
+
+    if (data.imported > 0) {
+      loadTransactions();
+      // Cerrar modal después de 2 seg si no hubo errores
+      if (!hasErrors) setTimeout(closeImportModal, 2000);
+    }
+  } catch (err) {
+    resultEl.innerHTML = `<div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3">${err.message}</div>`;
+    resultEl.classList.remove("hidden");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Importar";
+  }
+};

@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from database import get_db
 from auth import get_current_user
 import models
+import email_utils
 
 router = APIRouter(prefix="/api/servicios", tags=["servicios"])
 
@@ -466,13 +467,14 @@ def _crear_notificacion(db, servicio: models.Servicio, venc: date, overdue: bool
         return
 
     today = date.today()
+    dias = (venc - today).days
+
     if overdue:
         mensaje = (
             f"⚠️ '{servicio.nombre}' venció el {venc.strftime('%d/%m/%Y')} "
             f"sin registrar el pago. Monto: ${servicio.monto:,.0f}"
         )
     else:
-        dias = (venc - today).days
         if dias == 0:
             cuando = "hoy"
         elif dias == 1:
@@ -490,6 +492,60 @@ def _crear_notificacion(db, servicio: models.Servicio, venc: date, overdue: bool
     db.add(notif)
     db.commit()
 
+    # Enviar email al usuario
+    user = db.query(models.User).filter(models.User.id == servicio.user_id).first()
+    if user:
+        email_utils.send_service_reminder(
+            to=user.email,
+            name=user.name,
+            service_name=servicio.nombre,
+            amount=servicio.monto,
+            days=dias if not overdue else -1,
+            due_date=venc.strftime("%d/%m/%Y"),
+        )
+
+
+def _check_debts_sync():
+    """Envía recordatorios por email para deudas que vencen pronto."""
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        today = date.today()
+        alert_limit = today + timedelta(days=3)
+
+        debts = db.query(models.Debt).filter(
+            models.Debt.paid == False,
+            models.Debt.due_date.isnot(None),
+        ).all()
+
+        for debt in debts:
+            due = debt.due_date.date() if isinstance(debt.due_date, datetime) else debt.due_date
+            if due is None:
+                continue
+            days = (due - today).days
+            if days > 3:
+                continue
+
+            # Verificar si ya se envió email hoy para esta deuda
+            sent_key = f"debt_email_{debt.id}_{today.isoformat()}"
+            # Usamos un campo de notas como flag simple — en prod se podría usar una tabla
+            if debt.description and sent_key in (debt.description or ""):
+                continue
+
+            user = db.query(models.User).filter(models.User.id == debt.user_id).first()
+            if user:
+                email_utils.send_debt_reminder(
+                    to=user.email,
+                    name=user.name,
+                    person_name=debt.person_name,
+                    amount=debt.amount,
+                    debt_type=debt.type.value if hasattr(debt.type, "value") else str(debt.type),
+                    days=days,
+                    due_date=due.strftime("%d/%m/%Y"),
+                )
+    finally:
+        db.close()
+
 
 async def check_vencimientos_loop():
     while True:
@@ -497,4 +553,8 @@ async def check_vencimientos_loop():
             await asyncio.to_thread(_check_vencimientos_sync)
         except Exception as e:
             print(f"[Scheduler] Error al chequear vencimientos: {e}")
+        try:
+            await asyncio.to_thread(_check_debts_sync)
+        except Exception as e:
+            print(f"[Scheduler] Error al chequear deudas: {e}")
         await asyncio.sleep(24 * 3600)

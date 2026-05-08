@@ -1,6 +1,8 @@
+import csv
+import io
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import extract
 from pydantic import BaseModel, Field
@@ -110,6 +112,158 @@ def update_transaction(
     db.commit()
     db.refresh(t)
     return _serialize(t)
+
+
+@router.post("/import", status_code=200)
+async def import_transactions(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Importa transacciones desde un CSV.
+    Columnas requeridas: fecha, descripcion, monto, tipo
+    Columnas opcionales: categoria, forma_pago
+
+    tipo acepta: gasto/expense/g/e   o   ingreso/income/i
+    fecha acepta: DD/MM/YYYY, YYYY-MM-DD, DD-MM-YYYY
+    """
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
+
+    content = await file.read()
+    try:
+        text = content.decode("utf-8-sig")  # utf-8-sig maneja el BOM de Excel
+    except UnicodeDecodeError:
+        try:
+            text = content.decode("latin-1")
+        except Exception:
+            raise HTTPException(status_code=400, detail="No se pudo leer el archivo. Asegurate de guardarlo en UTF-8 o Latin-1.")
+
+    # Detectar delimitador
+    sample = text[:2000]
+    delimiter = ";" if sample.count(";") > sample.count(",") else ","
+
+    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+
+    # Normalizar nombres de columnas
+    def normalize(s: str) -> str:
+        return s.strip().lower().replace(" ", "_").replace("á","a").replace("é","e").replace("í","i").replace("ó","o").replace("ú","u")
+
+    COL_ALIASES = {
+        "fecha":       ["fecha", "date", "fecha_operacion", "fecha_transaccion"],
+        "descripcion": ["descripcion", "description", "concepto", "detalle", "motivo"],
+        "monto":       ["monto", "amount", "importe", "valor"],
+        "tipo":        ["tipo", "type", "movimiento"],
+        "categoria":   ["categoria", "category", "rubro"],
+        "forma_pago":  ["forma_pago", "payment_method", "medio_pago", "medio"],
+    }
+
+    # Categorías por defecto mapeadas por nombre
+    categories = {c["name"].lower(): c["id"] for c in [
+        {"id": 5, "name": "Comida"}, {"id": 6, "name": "Transporte"},
+        {"id": 7, "name": "Vivienda"}, {"id": 8, "name": "Salud"},
+        {"id": 9, "name": "Educación"}, {"id": 10, "name": "Entretenimiento"},
+        {"id": 11, "name": "Ropa"}, {"id": 12, "name": "Ahorro"},
+        {"id": 13, "name": "Servicios"}, {"id": 14, "name": "Otros gastos"},
+        {"id": 15, "name": "Mascotas"}, {"id": 1, "name": "Sueldo"},
+        {"id": 2, "name": "Freelance"}, {"id": 3, "name": "Inversiones"},
+        {"id": 4, "name": "Otros ingresos"},
+    ]}
+
+    def parse_date(s: str) -> datetime:
+        s = s.strip()
+        for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y", "%Y/%m/%d", "%d/%m/%y"):
+            try:
+                return datetime.strptime(s, fmt)
+            except ValueError:
+                continue
+        raise ValueError(f"Fecha no reconocida: {s}")
+
+    def parse_tipo(s: str) -> models.TransactionType:
+        s = s.strip().lower()
+        if s in ("gasto", "expense", "g", "e", "débito", "debito", "egreso"):
+            return models.TransactionType.expense
+        if s in ("ingreso", "income", "i", "crédito", "credito"):
+            return models.TransactionType.income
+        raise ValueError(f"Tipo no reconocido: {s}")
+
+    if reader.fieldnames is None:
+        raise HTTPException(status_code=400, detail="El CSV está vacío o no tiene encabezados")
+
+    norm_fields = {normalize(f): f for f in reader.fieldnames if f}
+
+    def get_col(row: dict, key: str) -> Optional[str]:
+        for alias in COL_ALIASES.get(key, [key]):
+            if alias in norm_fields:
+                val = row.get(norm_fields[alias], "").strip()
+                return val if val else None
+        return None
+
+    # Verificar columnas mínimas
+    required = ["fecha", "monto", "tipo"]
+    missing = [k for k in required if not any(a in norm_fields for a in COL_ALIASES[k])]
+    if missing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Columnas requeridas no encontradas: {', '.join(missing)}. "
+                   f"Columnas detectadas: {', '.join(reader.fieldnames)}",
+        )
+
+    created, errors = [], []
+
+    for i, row in enumerate(reader, start=2):  # start=2 porque fila 1 es encabezado
+        try:
+            fecha_str  = get_col(row, "fecha")
+            monto_str  = get_col(row, "monto")
+            tipo_str   = get_col(row, "tipo")
+            desc_str   = get_col(row, "descripcion") or ""
+            cat_str    = get_col(row, "categoria") or ""
+            pago_str   = get_col(row, "forma_pago") or ""
+
+            if not fecha_str or not monto_str or not tipo_str:
+                errors.append({"fila": i, "error": "Fila incompleta (fecha, monto o tipo vacíos)"})
+                continue
+
+            fecha = parse_date(fecha_str)
+            tipo  = parse_tipo(tipo_str)
+
+            # Monto: quitar símbolos y convertir comas decimales
+            monto_clean = monto_str.replace("$", "").replace(" ", "").replace(".", "").replace(",", ".")
+            monto = abs(float(monto_clean))
+            if monto <= 0:
+                errors.append({"fila": i, "error": f"Monto inválido: {monto_str}"})
+                continue
+
+            # Resolver categoría
+            cat_id = 14  # Otros gastos por defecto
+            if tipo == models.TransactionType.income:
+                cat_id = 4  # Otros ingresos por defecto
+            if cat_str:
+                cat_id = categories.get(cat_str.lower(), cat_id)
+
+            t = models.Transaction(
+                user_id=current_user.id,
+                amount=monto,
+                type=tipo,
+                category_id=cat_id,
+                description=desc_str,
+                date=fecha,
+                payment_method=pago_str or None,
+            )
+            db.add(t)
+            created.append(i)
+        except Exception as e:
+            errors.append({"fila": i, "error": str(e)})
+
+    if created:
+        db.commit()
+
+    return {
+        "imported": len(created),
+        "errors": errors[:20],  # máximo 20 errores para no saturar
+        "total_rows": len(created) + len(errors),
+    }
 
 
 @router.delete("/{transaction_id}", status_code=204)

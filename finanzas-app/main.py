@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
 try:
@@ -105,6 +105,7 @@ app.include_router(compartidos.router)
 app.include_router(decisiones.router)
 app.include_router(google_auth.router)
 app.include_router(feedback.router)
+app.include_router(cotizaciones.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter
