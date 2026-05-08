@@ -11,6 +11,9 @@ router = APIRouter(prefix="/api/cards", tags=["cards"])
 
 CARD_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#ef4444", "#10b981", "#f59e0b", "#06b6d4", "#6366f1"]
 
+MONTH_NAMES = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+               "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+
 
 class CardCreate(BaseModel):
     name: str = Field(min_length=1)
@@ -26,9 +29,21 @@ class ExpenseCreate(BaseModel):
     card_id: int
     description: str = Field(min_length=1)
     total_amount: float = Field(gt=0)
+    expense_type: str = "cuota"  # "cuota" | "debito_automatico"
     installments: int = Field(default=1, ge=1, le=120)
     first_payment_month: int = Field(ge=1, le=12)
     first_payment_year: int = Field(ge=2020, le=2100)
+    end_month: Optional[int] = Field(None, ge=1, le=12)
+    end_year: Optional[int] = Field(None, ge=2020, le=2100)
+
+
+class PaymentCreate(BaseModel):
+    card_id: int
+    month: int = Field(ge=1, le=12)
+    year: int = Field(ge=2020, le=2100)
+    total_due: float = Field(ge=0)
+    amount_paid: float = Field(ge=0)
+    notes: str = ""
 
 
 def _serialize_card(c: models.CreditCard) -> dict:
@@ -44,31 +59,81 @@ def _serialize_card(c: models.CreditCard) -> dict:
     }
 
 
+def _serialize_payment(p: models.CardPayment) -> dict:
+    return {
+        "id": p.id,
+        "card_id": p.card_id,
+        "month": p.month,
+        "year": p.year,
+        "total_due": p.total_due,
+        "amount_paid": p.amount_paid,
+        "pending_balance": p.pending_balance,
+        "status": p.status,
+        "paid_at": p.paid_at.isoformat() if p.paid_at else None,
+        "notes": p.notes or "",
+    }
+
+
+def _etype(e: models.CardExpense) -> str:
+    return e.expense_type or "cuota"
+
+
+def _monthly_amount(e: models.CardExpense) -> float:
+    if _etype(e) == "debito_automatico":
+        return e.total_amount
+    return e.total_amount / (e.installments or 1)
+
+
+def _is_active(e: models.CardExpense, month: int, year: int) -> bool:
+    qm = year * 12 + month
+    fm = e.first_payment_year * 12 + e.first_payment_month
+    if _etype(e) == "debito_automatico":
+        if qm < fm:
+            return False
+        if e.end_year and e.end_month:
+            return qm <= e.end_year * 12 + e.end_month
+        return True
+    pos = qm - fm + 1
+    return 1 <= pos <= (e.installments or 1)
+
+
 def _installment_info(e: models.CardExpense, month: int, year: int) -> dict:
+    if _etype(e) == "debito_automatico":
+        return {
+            "id": e.id,
+            "card_id": e.card_id,
+            "description": e.description,
+            "total_amount": e.total_amount,
+            "expense_type": "debito_automatico",
+            "installments": None,
+            "installment_amount": e.total_amount,
+            "installment_number": None,
+            "remaining": None,
+            "first_payment_month": e.first_payment_month,
+            "first_payment_year": e.first_payment_year,
+            "end_month": e.end_month,
+            "end_year": e.end_year,
+        }
     qm = year * 12 + month
     fm = e.first_payment_year * 12 + e.first_payment_month
     installment_number = qm - fm + 1
-    remaining = e.installments - installment_number
-    installment_amount = round(e.total_amount / e.installments, 2)
+    remaining = (e.installments or 1) - installment_number
+    installment_amount = round(e.total_amount / (e.installments or 1), 2)
     return {
         "id": e.id,
         "card_id": e.card_id,
         "description": e.description,
         "total_amount": e.total_amount,
+        "expense_type": "cuota",
         "installments": e.installments,
         "installment_amount": installment_amount,
         "installment_number": installment_number,
         "remaining": remaining,
         "first_payment_month": e.first_payment_month,
         "first_payment_year": e.first_payment_year,
+        "end_month": None,
+        "end_year": None,
     }
-
-
-def _is_active(e: models.CardExpense, month: int, year: int) -> bool:
-    qm = year * 12 + month
-    fm = e.first_payment_year * 12 + e.first_payment_month
-    pos = qm - fm + 1
-    return 1 <= pos <= e.installments
 
 
 @router.get("/colors")
@@ -98,19 +163,31 @@ def card_summary(
         .filter(models.CardExpense.user_id == current_user.id)
         .all()
     )
+    payments_this_month = (
+        db.query(models.CardPayment)
+        .filter(
+            models.CardPayment.user_id == current_user.id,
+            models.CardPayment.month == month,
+            models.CardPayment.year == year,
+        )
+        .all()
+    )
+    payment_map = {p.card_id: p for p in payments_this_month}
 
     card_results = []
     grand_total = 0.0
 
     for card in cards:
         active = [e for e in all_expenses if e.card_id == card.id and _is_active(e, month, year)]
-        monthly_total = round(sum(e.total_amount / e.installments for e in active), 2)
+        monthly_total = round(sum(_monthly_amount(e) for e in active), 2)
         grand_total += monthly_total
+        payment = payment_map.get(card.id)
         card_results.append({
             **_serialize_card(card),
             "monthly_total": monthly_total,
             "expense_count": len(active),
             "expenses": [_installment_info(e, month, year) for e in active],
+            "payment": _serialize_payment(payment) if payment else None,
         })
 
     return {
@@ -206,14 +283,20 @@ def create_expense(
     if not card:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
 
+    etype = data.expense_type if data.expense_type in ("cuota", "debito_automatico") else "cuota"
+    installments = 1 if etype == "debito_automatico" else data.installments
+
     expense = models.CardExpense(
         user_id=current_user.id,
         card_id=data.card_id,
         description=data.description,
         total_amount=data.total_amount,
-        installments=data.installments,
+        expense_type=etype,
+        installments=installments,
         first_payment_month=data.first_payment_month,
         first_payment_year=data.first_payment_year,
+        end_month=data.end_month if etype == "debito_automatico" else None,
+        end_year=data.end_year if etype == "debito_automatico" else None,
     )
     db.add(expense)
     db.commit()
@@ -235,4 +318,96 @@ def delete_expense(
     if not expense:
         raise HTTPException(status_code=404, detail="Gasto no encontrado")
     db.delete(expense)
+    db.commit()
+
+
+@router.post("/payments", status_code=201)
+def upsert_payment(
+    data: PaymentCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    card = db.query(models.CreditCard).filter(
+        models.CreditCard.id == data.card_id,
+        models.CreditCard.user_id == current_user.id,
+    ).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+
+    pending = round(max(0.0, data.total_due - data.amount_paid), 2)
+    status = "paid" if pending == 0 else "partial"
+
+    existing = db.query(models.CardPayment).filter(
+        models.CardPayment.card_id == data.card_id,
+        models.CardPayment.month == data.month,
+        models.CardPayment.year == data.year,
+        models.CardPayment.user_id == current_user.id,
+    ).first()
+
+    if existing:
+        existing.total_due = data.total_due
+        existing.amount_paid = data.amount_paid
+        existing.pending_balance = pending
+        existing.status = status
+        existing.notes = data.notes
+        existing.paid_at = datetime.utcnow()
+        db.commit()
+        db.refresh(existing)
+        return _serialize_payment(existing)
+
+    payment = models.CardPayment(
+        user_id=current_user.id,
+        card_id=data.card_id,
+        month=data.month,
+        year=data.year,
+        total_due=data.total_due,
+        amount_paid=data.amount_paid,
+        pending_balance=pending,
+        status=status,
+        notes=data.notes,
+    )
+    db.add(payment)
+    db.commit()
+    db.refresh(payment)
+    return _serialize_payment(payment)
+
+
+@router.get("/payments/{card_id}")
+def get_card_payments(
+    card_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    card = db.query(models.CreditCard).filter(
+        models.CreditCard.id == card_id,
+        models.CreditCard.user_id == current_user.id,
+    ).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+
+    payments = (
+        db.query(models.CardPayment)
+        .filter(
+            models.CardPayment.card_id == card_id,
+            models.CardPayment.user_id == current_user.id,
+        )
+        .order_by(models.CardPayment.year.desc(), models.CardPayment.month.desc())
+        .all()
+    )
+    return [_serialize_payment(p) for p in payments]
+
+
+@router.delete("/payments/{payment_id}", status_code=204)
+def delete_payment(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    payment = db.query(models.CardPayment).filter(
+        models.CardPayment.id == payment_id,
+        models.CardPayment.user_id == current_user.id,
+    ).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Pago no encontrado")
+    db.delete(payment)
     db.commit()

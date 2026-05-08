@@ -28,6 +28,9 @@ def _migrate_db():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP",
         "ALTER TABLE transactions ADD COLUMN IF NOT EXISTS payment_method TEXT",
         "ALTER TABLE pagos_servicios ADD COLUMN IF NOT EXISTS forma_pago TEXT DEFAULT ''",
+        "ALTER TABLE card_expenses ADD COLUMN expense_type TEXT DEFAULT 'cuota'",
+        "ALTER TABLE card_expenses ADD COLUMN end_month INTEGER",
+        "ALTER TABLE card_expenses ADD COLUMN end_year INTEGER",
         # nuevas tablas se crean vía create_all; columnas extra de tablas existentes van aquí
     ]
     new_categories = [

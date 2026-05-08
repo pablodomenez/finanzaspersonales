@@ -134,6 +134,7 @@ class CreditCard(Base):
 
     user = relationship("User", back_populates="credit_cards")
     expenses = relationship("CardExpense", back_populates="card", cascade="all, delete-orphan")
+    payments = relationship("CardPayment", back_populates="card", cascade="all, delete-orphan")
 
 
 class CardExpense(Base):
@@ -144,12 +145,33 @@ class CardExpense(Base):
     card_id = Column(Integer, ForeignKey("credit_cards.id"), nullable=False, index=True)
     description = Column(String, nullable=False)
     total_amount = Column(Float, nullable=False)
+    expense_type = Column(String, default="cuota")  # "cuota" | "debito_automatico"
     installments = Column(Integer, default=1)
     first_payment_month = Column(Integer, nullable=False)
     first_payment_year = Column(Integer, nullable=False)
+    end_month = Column(Integer, nullable=True)
+    end_year = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     card = relationship("CreditCard", back_populates="expenses")
+
+
+class CardPayment(Base):
+    __tablename__ = "card_payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    card_id = Column(Integer, ForeignKey("credit_cards.id"), nullable=False, index=True)
+    month = Column(Integer, nullable=False)
+    year = Column(Integer, nullable=False)
+    total_due = Column(Float, nullable=False)
+    amount_paid = Column(Float, nullable=False)
+    pending_balance = Column(Float, nullable=False, default=0.0)
+    status = Column(String, default="pending")  # "paid" | "partial"
+    paid_at = Column(DateTime, default=datetime.utcnow)
+    notes = Column(String, default="")
+
+    card = relationship("CreditCard", back_populates="payments")
 
 
 class UserProfile(Base):
