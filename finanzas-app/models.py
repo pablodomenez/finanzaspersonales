@@ -37,6 +37,7 @@ class User(Base):
     promociones = relationship("Promocion", back_populates="user", cascade="all, delete")
     notificaciones_promo = relationship("NotificacionPromo", back_populates="user", cascade="all, delete")
     shared_groups = relationship("SharedGroup", back_populates="user", cascade="all, delete-orphan")
+    shared_group_memberships = relationship("SharedGroupMember", back_populates="user", cascade="all, delete-orphan")
     feedbacks = relationship("Feedback", back_populates="user", cascade="all, delete")
 
 
@@ -388,11 +389,14 @@ class SharedGroup(Base):
     name        = Column(String, nullable=False)
     description = Column(String, default="")
     is_settled  = Column(Boolean, default=False)
+    is_virtual  = Column(Boolean, default=False, nullable=False)
     created_at  = Column(DateTime, default=datetime.utcnow)
 
     user         = relationship("User", back_populates="shared_groups")
     participants = relationship("SharedParticipant", back_populates="group", cascade="all, delete-orphan")
     expenses     = relationship("SharedExpense", back_populates="group", cascade="all, delete-orphan")
+    members      = relationship("SharedGroupMember", back_populates="group", cascade="all, delete-orphan")
+    invites      = relationship("SharedGroupInvite", back_populates="group", cascade="all, delete-orphan")
 
 
 class SharedParticipant(Base):
@@ -401,9 +405,40 @@ class SharedParticipant(Base):
     id       = Column(Integer, primary_key=True, index=True)
     group_id = Column(Integer, ForeignKey("shared_groups.id"), nullable=False, index=True)
     name     = Column(String, nullable=False)
+    user_id  = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
 
     group    = relationship("SharedGroup", back_populates="participants")
     expenses = relationship("SharedExpense", back_populates="participant")
+
+
+class SharedGroupMember(Base):
+    __tablename__ = "shared_group_members"
+
+    id        = Column(Integer, primary_key=True, index=True)
+    group_id  = Column(Integer, ForeignKey("shared_groups.id"), nullable=False, index=True)
+    user_id   = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    role      = Column(String, default="member")  # "owner" | "member"
+    joined_at = Column(DateTime, default=datetime.utcnow)
+
+    group = relationship("SharedGroup", back_populates="members")
+    user  = relationship("User", back_populates="shared_group_memberships")
+
+
+class SharedGroupInvite(Base):
+    __tablename__ = "shared_group_invites"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    group_id    = Column(Integer, ForeignKey("shared_groups.id"), nullable=False, index=True)
+    inviter_id  = Column(Integer, ForeignKey("users.id"), nullable=False)
+    invitee_id  = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token       = Column(String, unique=True, nullable=False, index=True)
+    status      = Column(String, default="pending")  # "pending" | "accepted" | "declined"
+    expires_at  = Column(DateTime, nullable=False)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    group   = relationship("SharedGroup", back_populates="invites")
+    inviter = relationship("User", foreign_keys=[inviter_id])
+    invitee = relationship("User", foreign_keys=[invitee_id])
 
 
 class SharedExpense(Base):

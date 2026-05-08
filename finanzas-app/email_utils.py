@@ -98,6 +98,19 @@ def send_service_reminder(to: str, name: str, service_name: str, amount: float, 
     return send_email(to, subject, _base_template(content))
 
 
+def send_group_invite(to: str, invitee_name: str, inviter_name: str, group_name: str, token: str) -> bool:
+    invite_url = f"{APP_URL}/compartidos.html?invite={token}"
+    content = f"""
+<p>Hola <strong>{invitee_name}</strong>,</p>
+<p><strong>{inviter_name}</strong> te invitó a unirte al grupo colaborativo <strong>"{group_name}"</strong> en Finanzas Personales.</p>
+<p>En este grupo podrás cargar tus propios gastos y ver el balance actualizado con todos los integrantes.</p>
+<a href="{invite_url}" class="btn">Aceptar invitación</a>
+<div class="alert">Este enlace expira en <strong>7 días</strong>. Si no esperabas esta invitación, podés ignorar este email.</div>
+<p style="font-size:12px;color:#94a3b8;">Si el botón no funciona, copiá este link: {invite_url}</p>
+"""
+    return send_email(to, f"{inviter_name} te invitó a un grupo — Finanzas Personales", _base_template(content))
+
+
 def send_debt_reminder(to: str, name: str, person_name: str, amount: float, debt_type: str, days: int, due_date: str) -> bool:
     direction = "le debés a" if debt_type == "owe" else "te debe"
     urgency_class = "danger" if days <= 0 else "alert"

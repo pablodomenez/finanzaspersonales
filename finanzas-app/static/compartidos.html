@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -21,17 +21,25 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="flex-1 flex items-center justify-between">
-      <div>
-        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Gastos Compartidos</h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Viajes, alquileres, cenas y más</p>
-      </div>
-      <button id="btn-new-group" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
-        + Nuevo grupo
-      </button>
+        <div>
+          <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Gastos Compartidos</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Viajes, alquileres, cenas y más</p>
+        </div>
+        <button id="btn-new-group" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          + Nuevo grupo
+        </button>
       </div>
     </header>
 
     <div class="p-4 md:p-8 flex-1">
+
+      <!-- Invitaciones pendientes -->
+      <div id="invites-section" class="hidden mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <h3 class="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-3 flex items-center gap-2">
+          <i data-lucide="mail" class="w-4 h-4"></i> Invitaciones pendientes
+        </h3>
+        <div id="invites-list" class="space-y-2"></div>
+      </div>
 
       <!-- Tabs activos / saldados -->
       <div class="flex gap-1 mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit">
@@ -59,6 +67,10 @@
         <button id="btn-add-expense" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">
           + Gasto
         </button>
+        <!-- Botón invitar (solo en grupos colaborativos y si es owner) -->
+        <button id="btn-invite-member" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+          Invitar
+        </button>
         <button id="btn-settle" class="px-3 py-1.5 rounded-lg text-xs font-medium border transition"></button>
         <button id="btn-delete-group" class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -71,6 +83,12 @@
 
     <!-- Cuerpo del panel con scroll -->
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+      <!-- Miembros del grupo (solo en grupos colaborativos) -->
+      <div id="members-section" class="hidden">
+        <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Miembros</h3>
+        <div id="members-list" class="flex flex-wrap gap-2"></div>
+      </div>
 
       <!-- Tabla de pagos -->
       <div>
@@ -119,6 +137,19 @@
       <div class="p-6">
         <div id="group-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
         <form id="group-form" class="space-y-4">
+
+          <!-- Tipo de grupo -->
+          <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+            <label class="flex-1 cursor-pointer">
+              <input type="radio" name="group-mode" value="personal" class="sr-only peer" checked />
+              <span class="block text-center text-xs font-medium py-2 rounded-md peer-checked:bg-white dark:peer-checked:bg-slate-700 peer-checked:text-blue-700 dark:peer-checked:text-blue-400 peer-checked:shadow-sm text-slate-500 dark:text-slate-400 transition">Personal</span>
+            </label>
+            <label class="flex-1 cursor-pointer">
+              <input type="radio" name="group-mode" value="virtual" class="sr-only peer" />
+              <span class="block text-center text-xs font-medium py-2 rounded-md peer-checked:bg-white dark:peer-checked:bg-slate-700 peer-checked:text-purple-600 dark:peer-checked:text-purple-400 peer-checked:shadow-sm text-slate-500 dark:text-slate-400 transition">Colaborativo</span>
+            </label>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre del grupo</label>
             <input type="text" id="g-name" required placeholder="Ej: Viaje a Bariloche"
@@ -129,7 +160,9 @@
             <input type="text" id="g-desc" placeholder="Ej: Enero 2025"
               class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
-          <div>
+
+          <!-- Sección participantes (solo modo personal) -->
+          <div id="participants-section">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Participantes <span class="text-slate-400 font-normal">(mínimo 2)</span></label>
             <div id="participants-inputs" class="space-y-2">
               <div class="flex gap-2 participant-row">
@@ -149,6 +182,12 @@
               <i data-lucide="plus" class="w-3.5 h-3.5"></i> Agregar participante
             </button>
           </div>
+
+          <!-- Nota modo colaborativo -->
+          <div id="virtual-note" class="hidden text-xs text-slate-500 dark:text-slate-400 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+            Vas a ser el primer integrante. Podés invitar a los demás después de crear el grupo desde el panel de detalle.
+          </div>
+
           <div class="flex gap-3 pt-2">
             <button type="button" data-action="close-group-modal" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
             <button type="submit" id="group-submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Crear grupo</button>
@@ -168,9 +207,10 @@
       <div class="p-6">
         <div id="expense-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
         <form id="expense-form" class="space-y-4">
-          <div>
+          <!-- Selector de participante (oculto en grupos colaborativos) -->
+          <div id="expense-participant-row">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Quién pagó</label>
-            <select id="e-participant" required
+            <select id="e-participant"
               class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
             </select>
           </div>
@@ -192,6 +232,32 @@
           <div class="flex gap-3 pt-2">
             <button type="button" data-action="close-expense-modal" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
             <button type="submit" id="expense-submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Invitar usuario ────────────────────────────── -->
+  <div id="modal-invite" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-sm border border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+        <h2 class="text-base font-semibold text-slate-800 dark:text-white">Invitar participante</h2>
+        <button data-action="close-invite-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-lg leading-none">✕</button>
+      </div>
+      <div class="p-6">
+        <div id="invite-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
+        <div id="invite-success" class="hidden bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-sm rounded-lg p-3 mb-4"></div>
+        <form id="invite-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email del usuario</label>
+            <input type="email" id="invite-email" required placeholder="usuario@ejemplo.com"
+              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-600" />
+            <p class="text-xs text-slate-400 mt-1">El usuario debe tener una cuenta en la app.</p>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="button" data-action="close-invite-modal" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+            <button type="submit" id="invite-submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Invitar</button>
           </div>
         </form>
       </div>

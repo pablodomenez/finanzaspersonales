@@ -4,18 +4,65 @@ initPageCommons();
 let allGroups = [];
 let currentTab = "activos";
 let currentGroupId = null;
+let currentGroupIsVirtual = false;
+let currentGroupIsOwner = false;
+let currentMyParticipantId = null;
 
 // ── Carga inicial ─────────────────────────────────────────────────────────────
 
 async function loadGroups() {
   try {
-    allGroups = await apiFetch("/api/compartidos");
+    const [groups, invites] = await Promise.all([
+      apiFetch("/api/compartidos"),
+      apiFetch("/api/compartidos/invites").catch(() => []),
+    ]);
+    allGroups = groups;
+    renderInvites(invites);
     renderGroups();
   } catch (e) {
     document.getElementById("groups-grid").innerHTML =
       '<p class="text-red-400 text-sm col-span-full">Error al cargar grupos.</p>';
   }
 }
+
+// ── Invitaciones pendientes ───────────────────────────────────────────────────
+
+function renderInvites(invites) {
+  const section = document.getElementById("invites-section");
+  const list = document.getElementById("invites-list");
+
+  if (!invites.length) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  section.classList.remove("hidden");
+  list.innerHTML = invites
+    .map(
+      (inv) => `
+    <div class="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border border-amber-200 dark:border-amber-800">
+      <div>
+        <p class="text-sm font-semibold text-slate-800 dark:text-white">${esc(inv.group_name)}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Invitado por <strong>${esc(inv.inviter_name)}</strong></p>
+      </div>
+      <div class="flex gap-2">
+        <button data-action="accept-invite" data-token="${inv.token}" data-group-id="${inv.group_id}"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition">
+          Aceptar
+        </button>
+        <button data-action="decline-invite" data-token="${inv.token}"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+          Rechazar
+        </button>
+      </div>
+    </div>`
+    )
+    .join("");
+
+  if (window.lucide) lucide.createIcons();
+}
+
+// ── Grupos grid ───────────────────────────────────────────────────────────────
 
 function renderGroups() {
   const grid = document.getElementById("groups-grid");
@@ -38,15 +85,18 @@ function renderGroups() {
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 flex flex-col gap-3 hover:border-blue-400 dark:hover:border-blue-500 transition cursor-pointer group-card" data-id="${g.id}">
       <div class="flex items-start justify-between gap-2">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
-            <i data-lucide="users-round" class="w-4 h-4 text-blue-600 dark:text-blue-400"></i>
+          <div class="w-8 h-8 rounded-lg ${g.is_virtual ? "bg-purple-100 dark:bg-purple-900/40" : "bg-blue-100 dark:bg-blue-900/40"} flex items-center justify-center flex-shrink-0">
+            <i data-lucide="${g.is_virtual ? "users" : "users-round"}" class="w-4 h-4 ${g.is_virtual ? "text-purple-600 dark:text-purple-400" : "text-blue-600 dark:text-blue-400"}"></i>
           </div>
           <div>
             <p class="font-semibold text-slate-800 dark:text-white text-sm leading-tight">${esc(g.name)}</p>
             ${g.description ? `<p class="text-xs text-slate-400 mt-0.5">${esc(g.description)}</p>` : ""}
           </div>
         </div>
-        ${g.is_settled ? '<span class="flex-shrink-0 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-xs font-semibold px-2 py-0.5 rounded-full">Saldado</span>' : ""}
+        <div class="flex flex-col items-end gap-1 flex-shrink-0">
+          ${g.is_virtual ? '<span class="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 text-xs font-semibold px-2 py-0.5 rounded-full">Colaborativo</span>' : ""}
+          ${g.is_settled ? '<span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 text-xs font-semibold px-2 py-0.5 rounded-full">Saldado</span>' : ""}
+        </div>
       </div>
       <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-3">
         <span>${g.participant_count} personas</span>
@@ -85,11 +135,27 @@ function closeDetail() {
 }
 
 function renderDetail(data) {
-  const { group, participants, expenses, balances, settlements } = data;
+  const { group, participants, expenses, balances, settlements, my_participant_id } = data;
+
+  currentGroupIsVirtual = group.is_virtual;
+  currentGroupIsOwner = group.is_owner;
+  currentMyParticipantId = my_participant_id;
 
   document.getElementById("detail-title").textContent = group.name;
   document.getElementById("detail-desc").textContent =
     group.description || `${participants.length} participantes · Total: ${formatCurrency(group.total)}`;
+
+  // Botón invitar: solo visible en grupos colaborativos y para el owner
+  const btnInvite = document.getElementById("btn-invite-member");
+  if (group.is_virtual && group.is_owner) {
+    btnInvite.classList.remove("hidden");
+  } else {
+    btnInvite.classList.add("hidden");
+  }
+
+  // Botones settle y delete: solo para el owner
+  document.getElementById("btn-settle").style.display = group.is_owner ? "" : "none";
+  document.getElementById("btn-delete-group").style.display = group.is_owner ? "" : "none";
 
   const btnSettle = document.getElementById("btn-settle");
   if (group.is_settled) {
@@ -100,6 +166,37 @@ function renderDetail(data) {
     btnSettle.textContent = "Marcar saldado";
     btnSettle.className =
       "px-3 py-1.5 rounded-lg text-xs font-medium border border-emerald-400 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition";
+  }
+
+  // Sección de miembros (solo grupos colaborativos)
+  const membersSection = document.getElementById("members-section");
+  const membersList = document.getElementById("members-list");
+  if (group.is_virtual) {
+    membersSection.classList.remove("hidden");
+    membersList.innerHTML = participants
+      .map((p) => {
+        const isMe = p.user_id != null && p.id === my_participant_id;
+        return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+          ${esc(p.name)}${isMe ? ' <span class="text-blue-500">(vos)</span>' : ""}
+        </span>`;
+      })
+      .join("");
+  } else {
+    membersSection.classList.add("hidden");
+  }
+
+  // Selector "Quién pagó": ocultar en grupos colaborativos (auto-atribuido)
+  const participantRow = document.getElementById("expense-participant-row");
+  if (group.is_virtual) {
+    participantRow.classList.add("hidden");
+    document.getElementById("e-participant").removeAttribute("required");
+  } else {
+    participantRow.classList.remove("hidden");
+    document.getElementById("e-participant").setAttribute("required", "required");
+    const sel = document.getElementById("e-participant");
+    sel.innerHTML = participants
+      .map((p) => `<option value="${p.id}">${esc(p.name)}</option>`)
+      .join("");
   }
 
   // Tabla de gastos
@@ -114,20 +211,22 @@ function renderDetail(data) {
     expTable.classList.remove("hidden");
     expEmpty.classList.add("hidden");
     tbody.innerHTML = expenses
-      .map(
-        (e) => `
+      .map((e) => {
+        // Mostrar papelera si: es owner O es el participante del gasto
+        const canDelete = group.is_owner || (my_participant_id && e.participant_id === my_participant_id);
+        return `
       <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
         <td class="px-4 py-3 font-medium text-slate-700 dark:text-slate-200">${esc(e.participant_name)}</td>
         <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${esc(e.description)}</td>
         <td class="px-4 py-3 text-right font-semibold text-slate-800 dark:text-white">${formatCurrency(e.amount)}</td>
         <td class="px-4 py-3 text-center text-slate-400 text-xs">${fmtDate(e.date)}</td>
         <td class="px-2 py-3 text-center">
-          <button data-action="delete-expense" data-id="${e.id}" class="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+          ${canDelete ? `<button data-action="delete-expense" data-id="${e.id}" class="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
+          </button>` : ""}
         </td>
-      </tr>`
-      )
+      </tr>`;
+      })
       .join("");
   }
 
@@ -188,12 +287,6 @@ function renderDetail(data) {
       )
       .join("");
   }
-
-  // Poblar select de participantes en el modal de gasto
-  const sel = document.getElementById("e-participant");
-  sel.innerHTML = participants
-    .map((p) => `<option value="${p.id}">${esc(p.name)}</option>`)
-    .join("");
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -215,6 +308,11 @@ function openGroupModal() {
   document.getElementById("g-name").value = "";
   document.getElementById("g-desc").value = "";
   document.getElementById("group-error").classList.add("hidden");
+
+  // Resetear al modo personal
+  document.querySelector('input[name="group-mode"][value="personal"]').checked = true;
+  document.getElementById("participants-section").classList.remove("hidden");
+  document.getElementById("virtual-note").classList.add("hidden");
 
   const container = document.getElementById("participants-inputs");
   container.innerHTML = [1, 2]
@@ -265,6 +363,19 @@ function closeExpenseModal() {
   document.getElementById("modal-expense").classList.add("hidden");
 }
 
+// ── Modal: Invitar usuario ────────────────────────────────────────────────────
+
+function openInviteModal() {
+  document.getElementById("invite-email").value = "";
+  document.getElementById("invite-error").classList.add("hidden");
+  document.getElementById("invite-success").classList.add("hidden");
+  document.getElementById("modal-invite").classList.remove("hidden");
+}
+
+function closeInviteModal() {
+  document.getElementById("modal-invite").classList.add("hidden");
+}
+
 // ── Utilidades ────────────────────────────────────────────────────────────────
 
 function esc(str) {
@@ -282,10 +393,18 @@ function fmtDate(iso) {
 
 // ── Event listeners ───────────────────────────────────────────────────────────
 
+// Toggle de modo en el modal de grupo
+document.querySelectorAll('input[name="group-mode"]').forEach((radio) => {
+  radio.addEventListener("change", () => {
+    const isVirtual = radio.value === "virtual";
+    document.getElementById("participants-section").classList.toggle("hidden", isVirtual);
+    document.getElementById("virtual-note").classList.toggle("hidden", !isVirtual);
+  });
+});
+
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-action]");
   if (!btn) {
-    // click en tarjeta de grupo
     const card = e.target.closest(".group-card");
     if (card) openDetail(Number(card.dataset.id));
     return;
@@ -296,6 +415,7 @@ document.addEventListener("click", async (e) => {
   if (action === "close-detail") closeDetail();
   if (action === "close-group-modal") closeGroupModal();
   if (action === "close-expense-modal") closeExpenseModal();
+  if (action === "close-invite-modal") closeInviteModal();
 
   if (action === "remove-participant") {
     btn.closest(".participant-row").remove();
@@ -310,7 +430,30 @@ document.addEventListener("click", async (e) => {
       await loadGroups();
       if (window.lucide) lucide.createIcons();
     } catch (err) {
-      alert("Error al eliminar el pago.");
+      alert(err.message || "Error al eliminar el pago.");
+    }
+  }
+
+  if (action === "accept-invite") {
+    const token = btn.dataset.token;
+    const groupId = btn.dataset.groupId;
+    try {
+      await apiFetch(`/api/compartidos/invites/${token}/accept`, { method: "POST" });
+      await loadGroups();
+      openDetail(Number(groupId));
+    } catch (err) {
+      alert(err.message || "Error al aceptar la invitación.");
+    }
+  }
+
+  if (action === "decline-invite") {
+    if (!confirm("¿Rechazar esta invitación?")) return;
+    const token = btn.dataset.token;
+    try {
+      await apiFetch(`/api/compartidos/invites/${token}/decline`, { method: "POST" });
+      await loadGroups();
+    } catch (err) {
+      alert(err.message || "Error al rechazar la invitación.");
     }
   }
 });
@@ -322,10 +465,14 @@ document.getElementById("btn-add-expense").addEventListener("click", () => {
   if (currentGroupId) openExpenseModal();
 });
 
+document.getElementById("btn-invite-member").addEventListener("click", () => {
+  if (currentGroupId) openInviteModal();
+});
+
 document.getElementById("btn-settle").addEventListener("click", async () => {
   if (!currentGroupId) return;
   try {
-    const updated = await apiFetch(`/api/compartidos/${currentGroupId}/settle`, { method: "PATCH" });
+    await apiFetch(`/api/compartidos/${currentGroupId}/settle`, { method: "PATCH" });
     await loadGroups();
     const data = await apiFetch(`/api/compartidos/${currentGroupId}`);
     renderDetail(data);
@@ -360,23 +507,35 @@ document.getElementById("group-form").addEventListener("submit", async (e) => {
 
   const name = document.getElementById("g-name").value.trim();
   const description = document.getElementById("g-desc").value.trim();
-  const participants = Array.from(document.querySelectorAll(".participant-name"))
-    .map((i) => i.value.trim())
-    .filter(Boolean);
-
-  if (participants.length < 2) {
-    errEl.textContent = "Agregá al menos 2 participantes con nombre.";
-    errEl.classList.remove("hidden");
-    return;
-  }
+  const isVirtual = document.querySelector('input[name="group-mode"]:checked').value === "virtual";
 
   const submit = document.getElementById("group-submit");
   submit.disabled = true;
+
   try {
-    await apiFetch("/api/compartidos", {
-      method: "POST",
-      body: JSON.stringify({ name, description, participants }),
-    });
+    if (isVirtual) {
+      await apiFetch("/api/compartidos/virtual", {
+        method: "POST",
+        body: JSON.stringify({ name, description }),
+      });
+    } else {
+      const participants = Array.from(document.querySelectorAll(".participant-name"))
+        .map((i) => i.value.trim())
+        .filter(Boolean);
+
+      if (participants.length < 2) {
+        errEl.textContent = "Agregá al menos 2 participantes con nombre.";
+        errEl.classList.remove("hidden");
+        submit.disabled = false;
+        return;
+      }
+
+      await apiFetch("/api/compartidos", {
+        method: "POST",
+        body: JSON.stringify({ name, description, participants }),
+      });
+    }
+
     closeGroupModal();
     await loadGroups();
   } catch (err) {
@@ -393,18 +552,24 @@ document.getElementById("expense-form").addEventListener("submit", async (e) => 
   const errEl = document.getElementById("expense-error");
   errEl.classList.add("hidden");
 
-  const participant_id = Number(document.getElementById("e-participant").value);
   const description = document.getElementById("e-description").value.trim();
   const amount = parseFloat(document.getElementById("e-amount").value);
   const dateVal = document.getElementById("e-date").value;
   const date = dateVal ? new Date(dateVal).toISOString() : undefined;
+
+  const body = { description, amount, ...(date && { date }) };
+
+  // En grupos personales incluir participant_id; en colaborativos el backend lo auto-atribuye
+  if (!currentGroupIsVirtual) {
+    body.participant_id = Number(document.getElementById("e-participant").value);
+  }
 
   const submit = document.getElementById("expense-submit");
   submit.disabled = true;
   try {
     const data = await apiFetch(`/api/compartidos/${currentGroupId}/expenses`, {
       method: "POST",
-      body: JSON.stringify({ participant_id, description, amount, ...(date && { date }) }),
+      body: JSON.stringify(body),
     });
     closeExpenseModal();
     renderDetail(data);
@@ -412,6 +577,34 @@ document.getElementById("expense-form").addEventListener("submit", async (e) => 
     if (window.lucide) lucide.createIcons();
   } catch (err) {
     errEl.textContent = err.message || "Error al registrar el pago.";
+    errEl.classList.remove("hidden");
+  } finally {
+    submit.disabled = false;
+  }
+});
+
+// Formulario: invitar usuario
+document.getElementById("invite-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById("invite-error");
+  const succEl = document.getElementById("invite-success");
+  errEl.classList.add("hidden");
+  succEl.classList.add("hidden");
+
+  const email = document.getElementById("invite-email").value.trim();
+  const submit = document.getElementById("invite-submit");
+  submit.disabled = true;
+
+  try {
+    const res = await apiFetch(`/api/compartidos/${currentGroupId}/invite`, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+    succEl.textContent = `Invitación enviada a ${res.invitee_name}. Recibirá un email para unirse.`;
+    succEl.classList.remove("hidden");
+    document.getElementById("invite-email").value = "";
+  } catch (err) {
+    errEl.textContent = err.message || "Error al enviar la invitación.";
     errEl.classList.remove("hidden");
   } finally {
     submit.disabled = false;
