@@ -1,5 +1,14 @@
 // Inyecta el sidebar en <aside id="sidebar"> y marca la página activa
 (function () {
+  const style = document.createElement("style");
+  style.textContent = `
+    #sidebar nav::-webkit-scrollbar { width: 4px; }
+    #sidebar nav::-webkit-scrollbar-track { background: transparent; }
+    #sidebar nav::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    #sidebar nav::-webkit-scrollbar-thumb:hover { background: #475569; }
+    #sidebar nav { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+  `;
+  document.head.appendChild(style);
   const page = window.location.pathname.split("/").pop().replace(".html", "");
   const nav = [
     { id: "dashboard",    icon: "layout-dashboard",  label: "Dashboard" },
