@@ -45,8 +45,12 @@ async function apiFetch(path, options = {}) {
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Error desconocido" }));
-    throw new Error(err.detail || "Error en la solicitud");
+    let body = "";
+    try { body = await res.text(); } catch (_) {}
+    let detail = `Error ${res.status}`;
+    try { const j = JSON.parse(body); detail = j.detail || detail; } catch (_) {}
+    if (!body) detail = `Error ${res.status} (sin respuesta del servidor)`;
+    throw new Error(detail);
   }
 
   if (res.status === 204) return null;
