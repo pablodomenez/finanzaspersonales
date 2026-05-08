@@ -19,15 +19,15 @@ def _migrate_db():
     """Agrega columnas nuevas a tablas existentes sin perder datos."""
     from sqlalchemy import text
     new_columns = [
-        "ALTER TABLE servicios ADD COLUMN numero_cuenta TEXT DEFAULT ''",
-        "ALTER TABLE servicios ADD COLUMN link_pago TEXT DEFAULT ''",
-        "ALTER TABLE servicios ADD COLUMN monto_variable INTEGER DEFAULT 0",
-        "ALTER TABLE inversiones ADD COLUMN notas_tesis TEXT DEFAULT ''",
-        "ALTER TABLE inversiones ADD COLUMN ticker TEXT DEFAULT ''",
-        "ALTER TABLE users ADD COLUMN google_id TEXT",
-        "ALTER TABLE users ADD COLUMN terms_accepted_at TIMESTAMP",
+        "ALTER TABLE servicios ADD COLUMN IF NOT EXISTS numero_cuenta TEXT DEFAULT ''",
+        "ALTER TABLE servicios ADD COLUMN IF NOT EXISTS link_pago TEXT DEFAULT ''",
+        "ALTER TABLE servicios ADD COLUMN IF NOT EXISTS monto_variable INTEGER DEFAULT 0",
+        "ALTER TABLE inversiones ADD COLUMN IF NOT EXISTS notas_tesis TEXT DEFAULT ''",
+        "ALTER TABLE inversiones ADD COLUMN IF NOT EXISTS ticker TEXT DEFAULT ''",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP",
         "ALTER TABLE transactions ADD COLUMN IF NOT EXISTS payment_method TEXT",
-        "ALTER TABLE pagos_servicios ADD COLUMN forma_pago TEXT DEFAULT ''",
+        "ALTER TABLE pagos_servicios ADD COLUMN IF NOT EXISTS forma_pago TEXT DEFAULT ''",
         # nuevas tablas se crean vía create_all; columnas extra de tablas existentes van aquí
     ]
     new_categories = [
@@ -40,7 +40,7 @@ def _migrate_db():
                 conn.execute(text(sql))
                 conn.commit()
             except Exception:
-                pass  # columna ya existe
+                conn.rollback()  # evita que PostgreSQL aborte todas las queries siguientes
         for cat_id, name, icon, cat_type in new_categories:
             try:
                 conn.execute(text(
@@ -48,7 +48,7 @@ def _migrate_db():
                 ), {"id": cat_id, "name": name, "icon": icon, "type": cat_type})
                 conn.commit()
             except Exception:
-                pass
+                conn.rollback()
 
 
 try:
