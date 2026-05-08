@@ -18,11 +18,12 @@
     const token = params.get("token");
     const name = params.get("name");
     const picture = params.get("picture");
+    const termsAccepted = params.get("terms_accepted");
     if (token) {
-      setSession(token, name || "");
+      setSession(token, name || "", termsAccepted);
       if (picture) localStorage.setItem("google_picture", picture);
       else localStorage.removeItem("google_picture");
-      window.location.replace("/dashboard.html");
+      window.location.replace(termsAccepted === "true" ? "/dashboard.html" : "/terms.html");
     } else {
       window.location.replace("/login.html?error=google_token");
     }

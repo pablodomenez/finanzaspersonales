@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
@@ -23,6 +24,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_name: str
+    terms_accepted: bool
 
 
 @router.post("/register", response_model=TokenResponse)
@@ -38,7 +40,7 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
     token = auth_utils.create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token, user_name=user.name)
+    return TokenResponse(access_token=token, user_name=user.name, terms_accepted=False)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -47,9 +49,28 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     if not user or not auth_utils.verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
     token = auth_utils.create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token, user_name=user.name)
+    return TokenResponse(
+        access_token=token,
+        user_name=user.name,
+        terms_accepted=(user.terms_accepted_at is not None),
+    )
+
+
+@router.post("/accept-terms", status_code=200)
+def accept_terms(
+    current_user: models.User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db),
+):
+    current_user.terms_accepted_at = datetime.utcnow()
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/me")
 def me(current_user: models.User = Depends(auth_utils.get_current_user)):
-    return {"id": current_user.id, "name": current_user.name, "email": current_user.email}
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "terms_accepted": current_user.terms_accepted_at is not None,
+    }

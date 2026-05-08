@@ -4,20 +4,30 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
-function setSession(token, name) {
+function setSession(token, name, termsAccepted) {
   localStorage.setItem("token", token);
   localStorage.setItem("user_name", name);
+  localStorage.setItem("terms_accepted", termsAccepted === true || termsAccepted === "true" ? "true" : "false");
 }
 
 function clearSession() {
   localStorage.removeItem("token");
   localStorage.removeItem("user_name");
   localStorage.removeItem("google_picture");
+  localStorage.removeItem("terms_accepted");
 }
 
 function requireAuth() {
   if (!getToken()) {
     window.location.href = "/login.html";
+    return;
+  }
+  requireTerms();
+}
+
+function requireTerms() {
+  if (localStorage.getItem("terms_accepted") !== "true") {
+    window.location.href = "/terms.html";
   }
 }
 

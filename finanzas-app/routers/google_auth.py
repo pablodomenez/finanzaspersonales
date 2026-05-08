@@ -74,5 +74,8 @@ def google_callback(code: str = None, error: str = None, db: Session = Depends(g
     db.refresh(user)
 
     jwt_token = create_access_token({"sub": str(user.id)})
+    terms_accepted = "true" if user.terms_accepted_at is not None else "false"
     from urllib.parse import quote
-    return RedirectResponse(f"/oauth-callback.html?token={jwt_token}&name={quote(user.name)}&picture={quote(picture)}")
+    return RedirectResponse(
+        f"/oauth-callback.html?token={jwt_token}&name={quote(user.name)}&picture={quote(picture)}&terms_accepted={terms_accepted}"
+    )

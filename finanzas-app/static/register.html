@@ -127,8 +127,8 @@
             password: document.getElementById("password").value,
           }),
         });
-        setSession(data.access_token, data.user_name);
-        window.location.href = "/dashboard.html";
+        setSession(data.access_token, data.user_name, data.terms_accepted);
+        window.location.href = data.terms_accepted ? "/dashboard.html" : "/terms.html";
       } catch (err) {
         errEl.textContent = err.message;
         errEl.classList.remove("hidden");

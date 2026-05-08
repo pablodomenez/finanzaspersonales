@@ -19,6 +19,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     google_id = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    terms_accepted_at = Column(DateTime, nullable=True)
 
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete")
     budgets = relationship("Budget", back_populates="user", cascade="all, delete")
