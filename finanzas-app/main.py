@@ -25,7 +25,7 @@ def _migrate_db():
         "ALTER TABLE inversiones ADD COLUMN notas_tesis TEXT DEFAULT ''",
         "ALTER TABLE inversiones ADD COLUMN ticker TEXT DEFAULT ''",
         "ALTER TABLE users ADD COLUMN google_id TEXT",
-        "ALTER TABLE users ADD COLUMN terms_accepted_at DATETIME",
+        "ALTER TABLE users ADD COLUMN terms_accepted_at TIMESTAMP",
         # nuevas tablas se crean vía create_all; columnas extra de tablas existentes van aquí
     ]
     with engine.connect() as conn:
