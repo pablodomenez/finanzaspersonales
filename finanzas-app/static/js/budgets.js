@@ -126,6 +126,7 @@ document.getElementById("budget-form").addEventListener("submit", async (e) => {
   } catch (err) {
     errEl.textContent = err.message;
     errEl.classList.remove("hidden");
+  } finally {
     btn.disabled = false;
   }
 });

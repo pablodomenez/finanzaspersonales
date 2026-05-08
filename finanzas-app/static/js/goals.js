@@ -152,6 +152,7 @@ document.getElementById("goal-form").addEventListener("submit", async (e) => {
   } catch (err) {
     errEl.textContent = err.message;
     errEl.classList.remove("hidden");
+  } finally {
     btn.disabled = false;
   }
 });
@@ -172,6 +173,7 @@ document.getElementById("contrib-form").addEventListener("submit", async (e) => 
   } catch (err) {
     errEl.textContent = err.message;
     errEl.classList.remove("hidden");
+  } finally {
     btn.disabled = false;
   }
 });
