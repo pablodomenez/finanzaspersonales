@@ -1,9 +1,10 @@
 import secrets
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
 from database import get_db
+from limiter import limiter
 import models
 import auth as auth_utils
 import email_utils
@@ -30,7 +31,8 @@ class TokenResponse(BaseModel):
 
 
 @router.post("/register", response_model=TokenResponse)
-def register(data: RegisterRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register(request: Request, data: RegisterRequest, db: Session = Depends(get_db)):
     if db.query(models.User).filter(models.User.email == data.email).first():
         raise HTTPException(status_code=400, detail="El email ya está registrado")
     user = models.User(
@@ -46,7 +48,8 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == data.email).first()
     if not user or not auth_utils.verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
@@ -90,7 +93,8 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password", status_code=200)
-def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def forgot_password(request: Request, data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == data.email).first()
     # Siempre responder OK para no revelar si el email existe
     if not user:
@@ -117,7 +121,8 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/reset-password", status_code=200)
-def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def reset_password(request: Request, data: ResetPasswordRequest, db: Session = Depends(get_db)):
     reset_token = db.query(models.PasswordResetToken).filter(
         models.PasswordResetToken.token == data.token,
         models.PasswordResetToken.used == False,

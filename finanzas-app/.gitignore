@@ -11,8 +11,10 @@ __pycache__/
 *.sqlite
 *.sqlite3
 
-# Variables de entorno
+# Variables de entorno — nunca commitear credenciales
 .env
+.env.*
+!.env.example
 
 # Logs
 *.log
@@ -40,5 +42,4 @@ create_supabase_tables.py
 package.json
 package-lock.json
 
-.env*.local
 .vercel

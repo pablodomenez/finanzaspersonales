@@ -114,6 +114,9 @@ def update_transaction(
     return _serialize(t)
 
 
+MAX_IMPORT_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
 @router.post("/import", status_code=200)
 async def import_transactions(
     file: UploadFile = File(...),
@@ -131,7 +134,9 @@ async def import_transactions(
     if not file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
 
-    content = await file.read()
+    content = await file.read(MAX_IMPORT_SIZE + 1)
+    if len(content) > MAX_IMPORT_SIZE:
+        raise HTTPException(status_code=413, detail="El archivo no puede superar 5 MB")
     try:
         text = content.decode("utf-8-sig")  # utf-8-sig maneja el BOM de Excel
     except UnicodeDecodeError:

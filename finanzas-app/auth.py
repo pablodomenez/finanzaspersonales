@@ -9,7 +9,10 @@ from sqlalchemy.orm import Session
 from database import get_db
 import models
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production").lstrip('﻿').strip()
+SECRET_KEY = os.getenv("SECRET_KEY", "").lstrip('﻿').strip()
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY no está configurada. Generá una con: python -c \"import secrets; print(secrets.token_hex(32))\"")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080").lstrip('﻿').strip())
 
