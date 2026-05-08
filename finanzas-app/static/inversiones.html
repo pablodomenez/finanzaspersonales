@@ -90,10 +90,11 @@
       <div id="dashboard-section" class="hidden">
 
         <!-- Tabs principales -->
-        <div class="flex gap-1 mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit">
+        <div class="flex gap-1 mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit flex-wrap">
           <button id="main-tab-portafolio" onclick="setMainTab('portafolio')" class="px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition">Portafolio</button>
           <button id="main-tab-calculadora" onclick="setMainTab('calculadora')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Calculadora PF</button>
           <button id="main-tab-cotizaciones" onclick="setMainTab('cotizaciones')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cotizaciones</button>
+          <button id="main-tab-simulador" onclick="setMainTab('simulador')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">🎯 Meta</button>
         </div>
 
         <!-- ── TAB PORTAFOLIO ─────────────────────────────────────────────── -->
@@ -101,6 +102,39 @@
 
           <!-- Alertas de vencimiento -->
           <div id="alertas-venc" class="mb-5 space-y-2"></div>
+
+          <!-- Panel macro en tiempo real -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex items-center gap-3">
+              <span class="text-xl">💵</span>
+              <div class="min-w-0">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Dólar Blue</p>
+                <p id="macro-usd-blue" class="text-sm font-bold text-slate-800 dark:text-white">—</p>
+              </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex items-center gap-3">
+              <span class="text-xl">🏦</span>
+              <div class="min-w-0">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Dólar Oficial</p>
+                <p id="macro-usd-oficial" class="text-sm font-bold text-slate-800 dark:text-white">—</p>
+              </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex items-center gap-3">
+              <span class="text-xl">📊</span>
+              <div class="min-w-0">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Inflación mensual</p>
+                <p id="macro-inflacion" class="text-sm font-bold text-rose-600 dark:text-rose-400">—</p>
+              </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-3 flex items-center gap-3">
+              <span class="text-xl">⚠️</span>
+              <div class="min-w-0">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Riesgo País</p>
+                <p id="macro-riesgo" class="text-sm font-bold text-amber-600 dark:text-amber-400">—</p>
+              </div>
+            </div>
+          </div>
+          <p id="macro-updated" class="text-[10px] text-slate-400 -mt-3 mb-5">Cargando datos del mercado...</p>
 
           <!-- Badge de perfil + settings de referencia -->
           <div class="flex flex-wrap items-center gap-4 mb-6">
@@ -126,6 +160,9 @@
                   class="w-20 text-sm font-bold text-slate-800 dark:text-white bg-transparent border-none outline-none text-right" />
               </div>
               <button onclick="guardarRefs()" class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">Guardar</button>
+              <button onclick="fetchReferencias(true)" title="Sincronizar con el mercado" class="text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition" id="btn-sync-refs">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              </button>
             </div>
           </div>
 
@@ -375,7 +412,156 @@
             <p>• <strong>Dólar:</strong> se obtiene automáticamente de dolarapi.com</p>
           </div>
 
+          <!-- Binance referral -->
+          <a href="https://www.binance.com/join?ref=PABLODOMENEZ" target="_blank" rel="noopener noreferrer"
+            class="mt-5 flex items-center justify-between gap-4 bg-gradient-to-r from-amber-400/10 to-yellow-300/10 border border-amber-400/40 dark:border-amber-500/30 rounded-xl p-5 group hover:border-amber-400/70 transition-all">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+                <span class="text-xl">₿</span>
+              </div>
+              <div>
+                <p class="font-bold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">Operá cripto en Binance</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">El exchange más grande del mundo. Registrate con este link y accedé a beneficios exclusivos.</p>
+              </div>
+            </div>
+            <div class="flex-shrink-0 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-5 py-2.5 rounded-lg text-sm transition whitespace-nowrap shadow-sm">
+              Registrarse →
+            </div>
+          </a>
+
         </div><!-- /tab-cotizaciones -->
+
+        <!-- ── TAB SIMULADOR META ─────────────────────────────────────────── -->
+        <div id="tab-simulador" class="hidden max-w-2xl mx-auto">
+
+          <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-7 mb-5">
+            <h2 class="text-base font-semibold text-slate-800 dark:text-white mb-1 flex items-center gap-2">
+              🎯 Simulador de cartera objetivo
+            </h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
+              Definí tu meta y calculamos cuánto tenés que aportar por mes para llegar.
+            </p>
+
+            <div class="space-y-4">
+              <!-- Fila 1 -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Monto objetivo</label>
+                  <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium" id="sim-moneda-prefix">$</span>
+                    <input type="number" id="sim-meta" min="1" step="1" placeholder="10000000"
+                      class="w-full pl-7 pr-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Moneda</label>
+                  <select id="sim-moneda" onchange="simOnMonedaChange()"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    <option value="ARS">ARS — Pesos</option>
+                    <option value="USD">USD — Dólares</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Fila 2 -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Capital actual (portafolio)</label>
+                  <div class="relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium" id="sim-capital-prefix">$</span>
+                    <input type="number" id="sim-capital" min="0" step="1" placeholder="0"
+                      class="w-full pl-7 pr-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1 cursor-pointer hover:text-blue-500" onclick="simUsarPortafolio()">↑ Usar valor de mi portafolio</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha objetivo</label>
+                  <input type="date" id="sim-fecha"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                </div>
+              </div>
+
+              <!-- Fila 3 -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Rendimiento anual esperado (%)</label>
+                  <input type="number" id="sim-tna" min="0" step="0.1" placeholder="118"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  <p class="text-[10px] text-slate-400 mt-1 cursor-pointer hover:text-blue-500" onclick="simUsarInflacion()">↑ Usar inflación anual actual</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Frecuencia de aportes</label>
+                  <select id="sim-frecuencia"
+                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    <option value="mensual">Mensual</option>
+                    <option value="quincenal">Quincenal</option>
+                    <option value="semanal">Semanal</option>
+                  </select>
+                </div>
+              </div>
+
+              <button onclick="simCalcular()"
+                class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+                Calcular aporte necesario
+              </button>
+            </div>
+          </div>
+
+          <!-- Resultado simulador -->
+          <div id="sim-resultado" class="hidden space-y-4">
+
+            <!-- Aporte principal -->
+            <div class="bg-blue-700 rounded-xl p-6 text-white text-center">
+              <p class="text-sm font-medium opacity-80 mb-1" id="sim-res-frecuencia-label">Aporte mensual necesario</p>
+              <p class="text-4xl font-black tracking-tight" id="sim-res-aporte">—</p>
+              <p class="text-sm opacity-70 mt-2" id="sim-res-plazo">en — meses</p>
+            </div>
+
+            <!-- Cards resumen -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Capital inicial</p>
+                <p id="sim-res-capital" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Meta</p>
+                <p id="sim-res-meta" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Total aportado</p>
+                <p id="sim-res-total-aportado" class="text-lg font-bold text-slate-800 dark:text-white mt-1">—</p>
+              </div>
+              <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Generado por intereses</p>
+                <p id="sim-res-intereses" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1">—</p>
+              </div>
+            </div>
+
+            <!-- Progresión anual -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
+              <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Proyección anual del portafolio</h3>
+              <div class="relative h-52">
+                <canvas id="sim-chart"></canvas>
+              </div>
+            </div>
+
+            <!-- Tabla anual -->
+            <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-slate-100 dark:border-slate-800 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <th class="text-left px-4 py-3">Año</th>
+                    <th class="text-right px-4 py-3">Valor portafolio</th>
+                    <th class="text-right px-4 py-3">Aportado acumulado</th>
+                    <th class="text-right px-4 py-3">Intereses acumulados</th>
+                  </tr>
+                </thead>
+                <tbody id="sim-tabla-body"></tbody>
+              </table>
+            </div>
+
+          </div>
+        </div><!-- /tab-simulador -->
 
       </div><!-- /dashboard-section -->
     </div>

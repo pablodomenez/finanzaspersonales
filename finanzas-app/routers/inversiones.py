@@ -278,6 +278,61 @@ def delete_dividendo(div_id: int, db: Session = Depends(get_db),
     db.commit()
 
 
+# ── Referencias macro (sin auth para carga rápida) ───────────────────────────
+
+@router.get("/referencias")
+def get_referencias(current_user: models.User = Depends(get_current_user)):
+    import requests as req
+
+    result = {
+        "usd_blue": None, "usd_oficial": None, "usd_mep": None,
+        "inflacion_mensual": None, "inflacion_anualizada": None,
+        "riesgo_pais": None,
+    }
+
+    # USD desde dolarapi.com
+    try:
+        r = req.get("https://dolarapi.com/v1/dolares", timeout=8)
+        r.raise_for_status()
+        for d in r.json():
+            casa = d.get("casa", "")
+            if casa == "blue":
+                result["usd_blue"] = d.get("venta")
+            elif casa == "oficial":
+                result["usd_oficial"] = d.get("venta")
+            elif casa == "mep":
+                result["usd_mep"] = d.get("venta")
+    except Exception as e:
+        logger.warning(f"Error dolarapi referencias: {e}")
+
+    # Inflación mensual desde argentinadatos.com
+    try:
+        r = req.get("https://api.argentinadatos.com/v1/finanzas/indices/inflacion", timeout=8)
+        r.raise_for_status()
+        data = r.json()
+        if data:
+            result["inflacion_mensual"] = data[-1].get("valor")
+            last12 = data[-12:]
+            factor = 1.0
+            for item in last12:
+                factor *= (1 + item.get("valor", 0) / 100)
+            result["inflacion_anualizada"] = round((factor - 1) * 100, 1)
+    except Exception as e:
+        logger.warning(f"Error inflacion argentinadatos: {e}")
+
+    # Riesgo país
+    try:
+        r = req.get("https://api.argentinadatos.com/v1/finanzas/indices/riesgo-pais", timeout=8)
+        r.raise_for_status()
+        data = r.json()
+        if data:
+            result["riesgo_pais"] = data[-1].get("valor")
+    except Exception as e:
+        logger.warning(f"Error riesgo pais argentinadatos: {e}")
+
+    return result
+
+
 # ── Cotizaciones en tiempo real ───────────────────────────────────────────────
 
 @router.get("/cotizaciones")

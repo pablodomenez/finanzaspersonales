@@ -104,6 +104,8 @@ let editingId = null;
 let allInversiones = [];
 let distChart = null;
 let histChart = null;
+let simChart = null;
+let lastResumen = null;
 let currentTab = "activo";
 let currentHistInvId = null;
 let currentDivInvId = null;
@@ -134,9 +136,67 @@ function getUsdRate() {
   return parseFloat(localStorage.getItem("inv_usd") || "0") || 0;
 }
 
+// ── Panel macro + auto-sync de referencias ────────────────────────────────────
+
+async function fetchReferencias(syncInputs = false) {
+  const btnSync = document.getElementById("btn-sync-refs");
+  if (btnSync) btnSync.style.opacity = "0.4";
+  try {
+    const data = await apiFetch("/api/inversiones/referencias");
+    renderMacroPanel(data);
+    if (syncInputs) {
+      if (data.inflacion_anualizada !== null) {
+        document.getElementById("ref-inflacion").value = data.inflacion_anualizada;
+        localStorage.setItem("inv_inflacion", data.inflacion_anualizada);
+      }
+      if (data.usd_blue !== null) {
+        document.getElementById("ref-usd").value = data.usd_blue;
+        localStorage.setItem("inv_usd", data.usd_blue);
+      }
+      loadInversiones();
+    }
+  } catch (e) {
+    console.warn("No se pudieron cargar las referencias de mercado:", e);
+    const el = document.getElementById("macro-updated");
+    if (el) el.textContent = "No se pudo conectar con los datos del mercado.";
+  } finally {
+    if (btnSync) btnSync.style.opacity = "1";
+  }
+}
+
+function renderMacroPanel(data) {
+  const fmtPesos = (v) => v !== null && v !== undefined ? `$${Math.round(v).toLocaleString("es-AR")}` : "—";
+  const fmtPct = (v) => v !== null && v !== undefined ? `${Number(v).toFixed(1)}%` : "—";
+  const fmtPuntos = (v) => v !== null && v !== undefined ? Number(v).toLocaleString("es-AR") + " pb" : "—";
+
+  const elBlue = document.getElementById("macro-usd-blue");
+  const elOficial = document.getElementById("macro-usd-oficial");
+  const elInflacion = document.getElementById("macro-inflacion");
+  const elRiesgo = document.getElementById("macro-riesgo");
+  const elUpdated = document.getElementById("macro-updated");
+
+  if (elBlue) elBlue.textContent = fmtPesos(data.usd_blue);
+  if (elOficial) elOficial.textContent = fmtPesos(data.usd_oficial);
+  if (elInflacion) elInflacion.textContent = fmtPct(data.inflacion_mensual);
+  if (elRiesgo) elRiesgo.textContent = fmtPuntos(data.riesgo_pais);
+
+  const now = new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+  if (elUpdated) elUpdated.textContent = `Datos del mercado actualizados a las ${now}`;
+
+  // Auto-poblar refs si no hay valor guardado
+  if (!localStorage.getItem("inv_inflacion") && data.inflacion_anualizada !== null) {
+    document.getElementById("ref-inflacion").value = data.inflacion_anualizada;
+    localStorage.setItem("inv_inflacion", data.inflacion_anualizada);
+  }
+  if (!localStorage.getItem("inv_usd") && data.usd_blue !== null) {
+    document.getElementById("ref-usd").value = data.usd_blue;
+    localStorage.setItem("inv_usd", data.usd_blue);
+  }
+}
+
 // ── Main tab switching ────────────────────────────────────────────────────────
 
-const MAIN_TABS = ["portafolio", "calculadora", "cotizaciones"];
+const MAIN_TABS = ["portafolio", "calculadora", "cotizaciones", "simulador"];
 
 function setMainTab(tab) {
   MAIN_TABS.forEach((t) => {
@@ -153,6 +213,10 @@ function setMainTab(tab) {
 
 async function init() {
   loadRefs();
+  // Carga datos de mercado en paralelo sin bloquear la UI
+  fetchReferencias(false);
+  // Refresca cada 30 minutos
+  setInterval(() => fetchReferencias(false), 30 * 60 * 1000);
   try {
     const perfil = await apiFetch("/api/inversiones/perfil");
     if (!perfil) {
@@ -310,6 +374,7 @@ async function loadInversiones() {
       apiFetch("/api/inversiones/resumen"),
     ]);
     allInversiones = items;
+    lastResumen = resumen;
     renderAlertas(resumen.alertas_vencimiento || []);
     renderKPIs(resumen);
     renderArsUsdSplit(resumen);
@@ -1240,6 +1305,148 @@ function renderCriptoPanel(cripto) {
 function openValorModalConPrecio(id, precio) {
   openValorModal(id);
   document.getElementById("valor-input").value = precio;
+}
+
+// ── Simulador de cartera objetivo ─────────────────────────────────────────────
+
+function simOnMonedaChange() {
+  const moneda = document.getElementById("sim-moneda").value;
+  const prefix = moneda === "USD" ? "U$S" : "$";
+  document.getElementById("sim-moneda-prefix").textContent = prefix;
+  document.getElementById("sim-capital-prefix").textContent = prefix;
+}
+
+function simUsarPortafolio() {
+  if (!lastResumen) return;
+  const moneda = document.getElementById("sim-moneda").value;
+  const val = moneda === "USD" ? lastResumen.usd.actual : lastResumen.ars.actual;
+  document.getElementById("sim-capital").value = Math.round(val);
+}
+
+function simUsarInflacion() {
+  const inf = getInflacion();
+  if (inf > 0) document.getElementById("sim-tna").value = inf;
+}
+
+function simCalcular() {
+  const meta = parseFloat(document.getElementById("sim-meta").value);
+  const capital = parseFloat(document.getElementById("sim-capital").value) || 0;
+  const fechaStr = document.getElementById("sim-fecha").value;
+  const tnaAnual = parseFloat(document.getElementById("sim-tna").value) || 0;
+  const frecuencia = document.getElementById("sim-frecuencia").value;
+  const moneda = document.getElementById("sim-moneda").value;
+
+  if (!meta || !fechaStr) { alert("Completá la meta y la fecha objetivo."); return; }
+
+  const hoy = new Date();
+  const fechaMeta = new Date(fechaStr);
+  const mesesTotal = Math.max(1, Math.round((fechaMeta - hoy) / (1000 * 60 * 60 * 24 * 30.44)));
+
+  const periodosPorMes = frecuencia === "quincenal" ? 2 : frecuencia === "semanal" ? 4.33 : 1;
+  const totalPeriodos = Math.round(mesesTotal * periodosPorMes);
+  const tasaPeriodo = tnaAnual > 0 ? Math.pow(1 + tnaAnual / 100, 1 / (12 * periodosPorMes)) - 1 : 0;
+
+  // VF del capital actual
+  const vfCapital = capital * Math.pow(1 + tasaPeriodo, totalPeriodos);
+
+  let aporte = 0;
+  if (meta > vfCapital) {
+    if (tasaPeriodo > 0) {
+      aporte = (meta - vfCapital) * tasaPeriodo / (Math.pow(1 + tasaPeriodo, totalPeriodos) - 1);
+    } else {
+      aporte = (meta - capital) / totalPeriodos;
+    }
+  }
+
+  const totalAportado = capital + aporte * totalPeriodos;
+  const intereses = meta - totalAportado;
+
+  const fmt = moneda === "USD" ? fmtUSD : fmtARS;
+  const lblFrec = frecuencia === "quincenal" ? "quincenal" : frecuencia === "semanal" ? "semanal" : "mensual";
+
+  setText("sim-res-frecuencia-label", `Aporte ${lblFrec} necesario`);
+  setText("sim-res-aporte", fmt(aporte));
+  setText("sim-res-plazo", `en ${mesesTotal} meses (${Math.round(mesesTotal / 12 * 10) / 10} años)`);
+  setText("sim-res-capital", fmt(capital));
+  setText("sim-res-meta", fmt(meta));
+  setText("sim-res-total-aportado", fmt(totalAportado));
+  setText("sim-res-intereses", "+" + fmt(Math.max(0, intereses)));
+
+  // Proyección anual: calcular valor del portafolio año a año
+  const anios = Math.ceil(mesesTotal / 12);
+  const labels = [];
+  const valoresPortafolio = [];
+  const valoresAportado = [];
+
+  for (let a = 0; a <= anios; a++) {
+    const periodoA = Math.round(a * 12 * periodosPorMes);
+    const vf = capital * Math.pow(1 + tasaPeriodo, periodoA)
+      + (aporte > 0 && tasaPeriodo > 0
+          ? aporte * (Math.pow(1 + tasaPeriodo, periodoA) - 1) / tasaPeriodo
+          : aporte * periodoA);
+    labels.push(a === 0 ? "Hoy" : `Año ${a}`);
+    valoresPortafolio.push(Math.round(vf));
+    valoresAportado.push(Math.round(capital + aporte * periodoA));
+  }
+
+  // Tabla anual
+  const tbody = document.getElementById("sim-tabla-body");
+  tbody.innerHTML = labels.map((lbl, i) => {
+    const interesAcum = Math.max(0, valoresPortafolio[i] - valoresAportado[i]);
+    return `<tr class="border-b border-slate-50 dark:border-slate-800/50 ${i === labels.length - 1 ? "bg-blue-50 dark:bg-blue-950/30 font-semibold" : ""}">
+      <td class="px-4 py-2.5 text-slate-700 dark:text-slate-300">${lbl}</td>
+      <td class="px-4 py-2.5 text-right text-slate-800 dark:text-white">${fmt(valoresPortafolio[i])}</td>
+      <td class="px-4 py-2.5 text-right text-slate-600 dark:text-slate-400">${fmt(valoresAportado[i])}</td>
+      <td class="px-4 py-2.5 text-right text-emerald-600 dark:text-emerald-400">+${fmt(interesAcum)}</td>
+    </tr>`;
+  }).join("");
+
+  // Gráfico
+  const ctx = document.getElementById("sim-chart").getContext("2d");
+  if (simChart) simChart.destroy();
+  const isDark = document.documentElement.classList.contains("dark");
+  const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+  const textColor = isDark ? "#94a3b8" : "#64748b";
+  simChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Aportado",
+          data: valoresAportado,
+          backgroundColor: isDark ? "rgba(59,130,246,0.5)" : "rgba(59,130,246,0.4)",
+          borderRadius: 4,
+          stack: "s",
+        },
+        {
+          label: "Intereses",
+          data: valoresPortafolio.map((v, i) => Math.max(0, v - valoresAportado[i])),
+          backgroundColor: isDark ? "rgba(16,185,129,0.6)" : "rgba(16,185,129,0.5)",
+          borderRadius: 4,
+          stack: "s",
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { color: textColor, boxWidth: 12, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}`,
+          },
+        },
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { color: textColor, font: { size: 11 } } },
+        y: { stacked: true, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: (v) => fmt(v) } },
+      },
+    },
+  });
+
+  document.getElementById("sim-resultado").classList.remove("hidden");
+  document.getElementById("sim-resultado").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
