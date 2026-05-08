@@ -12,6 +12,9 @@ const CAT_ICON = {
   Alquiler: "🏠",
   Expensas: "🏢",
   Suscripcion: "📧",
+  IVA: "🧾",
+  "Ingresos Brutos": "🏛️",
+  Monotributo: "📋",
   Otros: "💡",
 };
 
@@ -440,6 +443,7 @@ function openPagarModal(id) {
   document.getElementById("pagar-periodo").textContent = `Período: ${periodoLabel}`;
   document.getElementById("pagar-monto").value = s.monto;
   document.getElementById("pagar-fecha").value = today;
+  document.getElementById("pagar-forma-pago").value = "";
   document.getElementById("pagar-notas").value = "";
   document.getElementById("pagar-error").classList.add("hidden");
   document.getElementById("modal-pagar").classList.remove("hidden");
@@ -459,6 +463,7 @@ document.getElementById("pagar-form").addEventListener("submit", async (e) => {
     monto_pagado: parseFloat(document.getElementById("pagar-monto").value),
     fecha_pago: document.getElementById("pagar-fecha").value,
     periodo: document.getElementById("pagar-periodo-value").value,
+    forma_pago: document.getElementById("pagar-forma-pago").value,
     notas: document.getElementById("pagar-notas").value.trim(),
   };
 
@@ -515,6 +520,7 @@ function renderHistorial(pagos, servicioId) {
           <th class="px-5 py-3 text-left">Período</th>
           <th class="px-5 py-3 text-left">Fecha pago</th>
           <th class="px-5 py-3 text-right">Monto</th>
+          <th class="px-5 py-3 text-left">Forma de pago</th>
           <th class="px-5 py-3 text-left">Notas</th>
           <th class="px-5 py-3"></th>
         </tr>
@@ -533,7 +539,8 @@ function renderHistorial(pagos, servicioId) {
               <td class="px-5 py-3 font-medium text-slate-700 dark:text-slate-200">${periodoLabel}</td>
               <td class="px-5 py-3 text-slate-500 dark:text-slate-400">${fechaLabel}</td>
               <td class="px-5 py-3 text-right font-semibold text-slate-800 dark:text-white">${formatCurrency(p.monto_pagado)}</td>
-              <td class="px-5 py-3 text-slate-400 text-xs italic max-w-[120px] truncate">${p.notas || "—"}</td>
+              <td class="px-5 py-3 text-slate-500 dark:text-slate-400 text-xs">${p.forma_pago || "—"}</td>
+              <td class="px-5 py-3 text-slate-400 text-xs italic max-w-[100px] truncate">${p.notas || "—"}</td>
               <td class="px-5 py-3">
                 <button onclick="deletePago(${p.id}, ${servicioId})" class="text-red-400 hover:text-red-600 dark:hover:text-red-300 transition">
                   <i data-lucide="x" class="w-3.5 h-3.5"></i>

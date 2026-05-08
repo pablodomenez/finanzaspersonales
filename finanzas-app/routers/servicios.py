@@ -38,6 +38,9 @@ CAT_ICON = {
     "Alquiler": "🏠",
     "Expensas": "🏢",
     "Suscripcion": "📧",
+    "IVA": "🧾",
+    "Ingresos Brutos": "🏛️",
+    "Monotributo": "📋",
     "Otros": "💡",
 }
 
@@ -114,6 +117,7 @@ def _serialize_pago(p: models.PagoServicio) -> dict:
         "monto_pagado": p.monto_pagado,
         "fecha_pago": p.fecha_pago,
         "periodo": p.periodo,
+        "forma_pago": getattr(p, "forma_pago", "") or "",
         "notas": p.notas,
         "created_at": p.created_at.isoformat() if p.created_at else None,
     }
@@ -162,6 +166,7 @@ class PagoCreate(BaseModel):
     monto_pagado: float = Field(gt=0)
     fecha_pago: str                   # YYYY-MM-DD
     periodo: str                      # YYYY-MM
+    forma_pago: Optional[str] = ""
     notas: Optional[str] = ""
 
 
@@ -396,6 +401,7 @@ def registrar_pago(
         monto_pagado=data.monto_pagado,
         fecha_pago=data.fecha_pago,
         periodo=data.periodo,
+        forma_pago=data.forma_pago or "",
         notas=data.notas or "",
     )
     db.add(pago)

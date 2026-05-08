@@ -216,6 +216,7 @@ class PagoServicio(Base):
     monto_pagado = Column(Float, nullable=False)
     fecha_pago = Column(String, nullable=False)   # YYYY-MM-DD
     periodo = Column(String, nullable=False)      # YYYY-MM
+    forma_pago = Column(String, default="")
     notas = Column(String, default="")
     created_at = Column(DateTime, default=datetime.utcnow)
 

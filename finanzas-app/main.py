@@ -27,6 +27,7 @@ def _migrate_db():
         "ALTER TABLE users ADD COLUMN google_id TEXT",
         "ALTER TABLE users ADD COLUMN terms_accepted_at TIMESTAMP",
         "ALTER TABLE transactions ADD COLUMN IF NOT EXISTS payment_method TEXT",
+        "ALTER TABLE pagos_servicios ADD COLUMN forma_pago TEXT DEFAULT ''",
         # nuevas tablas se crean vía create_all; columnas extra de tablas existentes van aquí
     ]
     new_categories = [
