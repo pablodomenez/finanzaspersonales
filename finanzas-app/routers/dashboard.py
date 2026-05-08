@@ -82,6 +82,16 @@ def summary(
             else:
                 trend_map[key]["expense"] = round(trend_map[key]["expense"] + t.amount, 2)
 
+    # Daily trend for selected month
+    days_in_month = calendar.monthrange(year, month)[1]
+    daily_map = {d: {"day": d, "income": 0.0, "expense": 0.0} for d in range(1, days_in_month + 1)}
+    for t in transactions:
+        day = t.date.day
+        if t.type == models.TransactionType.income:
+            daily_map[day]["income"] = round(daily_map[day]["income"] + t.amount, 2)
+        else:
+            daily_map[day]["expense"] = round(daily_map[day]["expense"] + t.amount, 2)
+
     # Últimas 5 transacciones con categoría cargada en la misma query
     recent = (
         db.query(models.Transaction)
@@ -112,6 +122,7 @@ def summary(
         "servicios_count": len(servicios_activos),
         "by_category": list(by_category.values()),
         "monthly_trend": list(trend_map.values()),
+        "daily_trend": [daily_map[d] for d in range(1, days_in_month + 1)],
         "recent_transactions": [
             {
                 "id": t.id,

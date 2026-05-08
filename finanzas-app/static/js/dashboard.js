@@ -105,10 +105,11 @@ async function loadDashboard() {
     document.getElementById("kpi-savings-change").innerHTML  = renderChangeBadge(pctChange(savings, prevSavings));
 
     // ── Line chart ──────────────────────────────────────────────────────────
-    const tLabels  = trend.map(m => MONTH_NAMES[m.month - 1] + " " + String(m.year).slice(2));
-    const iData    = trend.map(m => m.income);
-    const eData    = trend.map(m => m.expense);
-    const sData    = trend.map(m => m.income - m.expense);
+    const daily    = data.daily_trend || [];
+    const tLabels  = daily.map(d => d.day);
+    const iData    = daily.map(d => d.income);
+    const eData    = daily.map(d => d.expense);
+    const sData    = daily.map(d => d.income - d.expense);
 
     const lineCtx = document.getElementById("line-chart");
     if (lineChart) {
@@ -176,17 +177,20 @@ async function loadDashboard() {
       noExp.classList.add("hidden");
       donutCenter.classList.remove("hidden");
 
-      const labels  = data.by_category.map(c => `${c.icon} ${c.name}`);
-      const amounts = data.by_category.map(c => c.amount);
+      const sortedCats = [...data.by_category].sort((a, b) => b.amount - a.amount);
+      const labels  = sortedCats.map(c => `${c.icon} ${c.name}`);
+      const amounts = sortedCats.map(c => c.amount);
+      const colors  = CHART_PALETTE.slice(0, amounts.length);
 
       if (donutChart) {
         donutChart.data.labels = labels;
         donutChart.data.datasets[0].data = amounts;
+        donutChart.data.datasets[0].backgroundColor = colors;
         donutChart.update();
       } else {
         donutChart = new Chart(document.getElementById("donut-chart"), {
           type: "doughnut",
-          data: { labels, datasets: [{ data: amounts, backgroundColor: CHART_PALETTE, borderWidth: 0, hoverOffset: 4 }] },
+          data: { labels, datasets: [{ data: amounts, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
           options: {
             cutout: "72%",
             plugins: {
@@ -199,9 +203,8 @@ async function loadDashboard() {
       }
 
       // Category list beside donut
-      const sorted  = [...data.by_category].sort((a, b) => b.amount - a.amount);
       const catList = document.getElementById("category-list");
-      catList.innerHTML = sorted.map((c, i) => {
+      catList.innerHTML = sortedCats.map((c, i) => {
         const pct = data.total_expense > 0 ? Math.round((c.amount / data.total_expense) * 100) : 0;
         return `
           <div class="flex items-center justify-between gap-2">
@@ -217,7 +220,7 @@ async function loadDashboard() {
       }).join("");
 
       // Insight text
-      const top = sorted[0];
+      const top = sortedCats[0];
       const topPct = data.total_expense > 0 ? Math.round((top.amount / data.total_expense) * 100) : 0;
       document.getElementById("top-category-insight").textContent =
         `Tu mayor gasto es ${top.name} (${topPct}%)`;
