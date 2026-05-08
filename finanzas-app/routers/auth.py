@@ -61,7 +61,9 @@ def accept_terms(
     current_user: models.User = Depends(auth_utils.get_current_user),
     db: Session = Depends(get_db),
 ):
-    current_user.terms_accepted_at = datetime.utcnow()
+    db.query(models.User).filter(models.User.id == current_user.id).update(
+        {"terms_accepted_at": datetime.utcnow()}
+    )
     db.commit()
     return {"ok": True}
 
