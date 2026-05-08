@@ -390,6 +390,7 @@ class SharedGroup(Base):
     description = Column(String, default="")
     is_settled  = Column(Boolean, default=False)
     is_virtual  = Column(Boolean, default=False, nullable=False)
+    join_token  = Column(String, unique=True, nullable=True, index=True)
     created_at  = Column(DateTime, default=datetime.utcnow)
 
     user         = relationship("User", back_populates="shared_groups")

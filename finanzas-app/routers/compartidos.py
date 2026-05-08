@@ -88,8 +88,8 @@ def _calc_settlements(balances: list[dict]) -> list[dict]:
     return settlements
 
 
-def _serialize_group(g: models.SharedGroup) -> dict:
-    return {
+def _serialize_group(g: models.SharedGroup, include_join_token: bool = False) -> dict:
+    d = {
         "id":          g.id,
         "name":        g.name,
         "description": g.description,
@@ -99,6 +99,9 @@ def _serialize_group(g: models.SharedGroup) -> dict:
         "participant_count": len(g.participants),
         "total": round(sum(e.amount for e in g.expenses), 2),
     }
+    if include_join_token:
+        d["join_token"] = g.join_token
+    return d
 
 
 def _group_detail(g: models.SharedGroup, current_user_id: int = None) -> dict:
@@ -145,6 +148,7 @@ def _group_detail(g: models.SharedGroup, current_user_id: int = None) -> dict:
             "is_settled":  g.is_settled,
             "is_virtual":  g.is_virtual,
             "is_owner":    is_owner,
+            "join_token":  g.join_token if (is_owner and g.is_virtual) else None,
             "created_at":  g.created_at.isoformat(),
             "total":       round(total, 2),
         },
@@ -300,11 +304,13 @@ def create_virtual_group(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    join_token = secrets.token_urlsafe(20)
     g = models.SharedGroup(
         user_id=current_user.id,
         name=data.name.strip(),
         description=(data.description or "").strip(),
         is_virtual=True,
+        join_token=join_token,
     )
     db.add(g)
     db.flush()
@@ -315,7 +321,29 @@ def create_virtual_group(
 
     db.commit()
     db.refresh(g)
-    return _serialize_group(g)
+    return _serialize_group(g, include_join_token=True)
+
+
+@router.post("/join/{token}")
+def join_group(
+    token: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    g = db.query(models.SharedGroup).filter_by(join_token=token, is_virtual=True).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Enlace no válido o expirado")
+
+    existing = db.query(models.SharedGroupMember).filter_by(
+        group_id=g.id, user_id=current_user.id
+    ).first()
+    if existing:
+        return {"ok": True, "group_id": g.id, "already_member": True}
+
+    db.add(models.SharedGroupMember(group_id=g.id, user_id=current_user.id, role="member"))
+    db.add(models.SharedParticipant(group_id=g.id, name=current_user.name, user_id=current_user.id))
+    db.commit()
+    return {"ok": True, "group_id": g.id, "already_member": False}
 
 
 @router.post("/{group_id}/invite", status_code=201)

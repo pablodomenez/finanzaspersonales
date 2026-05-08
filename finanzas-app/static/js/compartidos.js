@@ -7,6 +7,9 @@ let currentGroupId = null;
 let currentGroupIsVirtual = false;
 let currentGroupIsOwner = false;
 let currentMyParticipantId = null;
+let currentJoinUrl = null;
+let _qrInstance = null;
+let _shareQrInstance = null;
 
 // ── Carga inicial ─────────────────────────────────────────────────────────────
 
@@ -151,6 +154,18 @@ function renderDetail(data) {
     btnInvite.classList.remove("hidden");
   } else {
     btnInvite.classList.add("hidden");
+  }
+
+  // Sección de enlace: solo para owner de grupos colaborativos
+  const inviteLinkSection = document.getElementById("invite-link-section");
+  if (group.is_virtual && group.is_owner && group.join_token) {
+    const url = buildJoinUrl(group.join_token);
+    currentJoinUrl = url;
+    document.getElementById("join-link-input").value = url;
+    inviteLinkSection.classList.remove("hidden");
+  } else {
+    inviteLinkSection.classList.add("hidden");
+    if (!group.is_virtual) currentJoinUrl = null;
   }
 
   // Botones settle y delete: solo para el owner
@@ -416,6 +431,8 @@ document.addEventListener("click", async (e) => {
   if (action === "close-group-modal") closeGroupModal();
   if (action === "close-expense-modal") closeExpenseModal();
   if (action === "close-invite-modal") closeInviteModal();
+  if (action === "close-qr-modal") closeQRModal();
+  if (action === "close-share-modal") closeShareModal();
 
   if (action === "remove-participant") {
     btn.closest(".participant-row").remove();
@@ -469,6 +486,17 @@ document.getElementById("btn-invite-member").addEventListener("click", () => {
   if (currentGroupId) openInviteModal();
 });
 
+document.getElementById("btn-show-qr").addEventListener("click", openQRModal);
+
+document.getElementById("btn-copy-link").addEventListener("click", (e) => {
+  if (currentJoinUrl) copyToClipboard(currentJoinUrl, document.getElementById("btn-copy-link"));
+});
+
+document.getElementById("btn-copy-share-link").addEventListener("click", (e) => {
+  const url = document.getElementById("share-link-input").value;
+  if (url) copyToClipboard(url, e.currentTarget);
+});
+
 document.getElementById("btn-settle").addEventListener("click", async () => {
   if (!currentGroupId) return;
   try {
@@ -514,10 +542,16 @@ document.getElementById("group-form").addEventListener("submit", async (e) => {
 
   try {
     if (isVirtual) {
-      await apiFetch("/api/compartidos/virtual", {
+      const created = await apiFetch("/api/compartidos/virtual", {
         method: "POST",
         body: JSON.stringify({ name, description }),
       });
+      closeGroupModal();
+      await loadGroups();
+      if (created.join_token) {
+        showShareModal(created.join_token);
+      }
+      return;
     } else {
       const participants = Array.from(document.querySelectorAll(".participant-name"))
         .map((i) => i.value.trim())
@@ -611,5 +645,83 @@ document.getElementById("invite-form").addEventListener("submit", async (e) => {
   }
 });
 
+// ── QR helpers ───────────────────────────────────────────────────────────────
+
+function buildJoinUrl(token) {
+  return `${window.location.origin}/compartidos.html?join=${token}`;
+}
+
+function renderQR(containerId, url) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = "";
+  return new QRCode(el, {
+    text: url,
+    width: 160,
+    height: 160,
+    colorDark: "#1e293b",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+}
+
+function showShareModal(joinToken) {
+  const url = buildJoinUrl(joinToken);
+  currentJoinUrl = url;
+  document.getElementById("share-link-input").value = url;
+  document.getElementById("btn-whatsapp").href =
+    `https://wa.me/?text=${encodeURIComponent("Unite a mi grupo de Gastos Compartidos: " + url)}`;
+  _shareQrInstance = renderQR("share-qr-container", url);
+  document.getElementById("modal-share-link").classList.remove("hidden");
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeShareModal() {
+  document.getElementById("modal-share-link").classList.add("hidden");
+}
+
+function openQRModal() {
+  if (!currentJoinUrl) return;
+  document.getElementById("qr-container").innerHTML = "";
+  _qrInstance = renderQR("qr-container", currentJoinUrl);
+  document.getElementById("modal-qr").classList.remove("hidden");
+}
+
+function closeQRModal() {
+  document.getElementById("modal-qr").classList.add("hidden");
+}
+
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
+    if (window.lucide) lucide.createIcons();
+    setTimeout(() => { btn.innerHTML = orig; if (window.lucide) lucide.createIcons(); }, 1500);
+  });
+}
+
+// ── Flujo join via URL (?join=TOKEN) ─────────────────────────────────────────
+
+async function handleJoinFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("join");
+  if (!token) return;
+
+  // Limpiar el parámetro de la URL sin recargar
+  window.history.replaceState({}, "", "/compartidos.html");
+
+  try {
+    const res = await apiFetch(`/api/compartidos/join/${token}`, { method: "POST" });
+    await loadGroups();
+    if (res.group_id) {
+      openDetail(res.group_id);
+    }
+    if (res.already_member) {
+      console.info("Ya eras miembro del grupo.");
+    }
+  } catch (err) {
+    alert(err.message || "El enlace de invitación no es válido.");
+  }
+}
+
 // ── Arranque ──────────────────────────────────────────────────────────────────
-loadGroups();
+loadGroups().then(() => handleJoinFromUrl());
