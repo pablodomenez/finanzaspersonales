@@ -14,6 +14,7 @@
     { id: "compartidos",  icon: "users-round",        label: "Compartidos" },
     { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
     { id: "decisiones",   icon: "sparkles",           label: "Decisiones" },
+    { id: "feedback",     icon: "message-square-heart", label: "Feedback" },
   ];
 
   const links = nav.map(({ id, icon, label, badge }) => {

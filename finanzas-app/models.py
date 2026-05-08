@@ -37,6 +37,7 @@ class User(Base):
     promociones = relationship("Promocion", back_populates="user", cascade="all, delete")
     notificaciones_promo = relationship("NotificacionPromo", back_populates="user", cascade="all, delete")
     shared_groups = relationship("SharedGroup", back_populates="user", cascade="all, delete-orphan")
+    feedbacks = relationship("Feedback", back_populates="user", cascade="all, delete")
 
 
 class Category(Base):
@@ -351,6 +352,19 @@ class NotificacionPromo(Base):
 
     promocion = relationship("Promocion", back_populates="notificaciones_promo")
     user = relationship("User", back_populates="notificaciones_promo")
+
+
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    rating = Column(Integer, nullable=False)          # 1–5
+    tema = Column(String, nullable=True)               # "general" | nombre de sección
+    mensaje = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="feedbacks")
 
 
 class SharedGroup(Base):
