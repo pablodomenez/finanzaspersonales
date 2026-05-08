@@ -78,7 +78,7 @@
         </div>
       </div>
     </div>
-    <nav class="flex-1 px-3 py-4 space-y-0.5">${links}</nav>
+    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">${links}</nav>
     <div class="px-3 py-4 border-t border-slate-700 space-y-0.5">
       <button id="theme-toggle" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 text-sm font-medium transition-colors">
         <i data-lucide="moon" class="w-4 h-4 shrink-0"></i>Cambiar tema
