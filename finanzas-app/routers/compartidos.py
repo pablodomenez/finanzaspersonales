@@ -35,6 +35,7 @@ class ExpenseCreate(BaseModel):
     description: str = Field(min_length=1)
     amount: float = Field(gt=0)
     date: Optional[datetime] = None
+    comprobante: Optional[str] = None  # base64 data URL de la imagen
 
 
 class InviteCreate(BaseModel):
@@ -162,6 +163,8 @@ def _group_detail(g: models.SharedGroup, current_user_id: int = None) -> dict:
                 "description":    e.description,
                 "amount":         e.amount,
                 "date":           e.date.isoformat(),
+                "comprobante":    bool(e.comprobante),
+                "comprobante_id": e.id if e.comprobante else None,
             }
             for e in expenses
         ],
@@ -504,11 +507,27 @@ def add_expense(
         description=data.description.strip(),
         amount=data.amount,
         date=data.date or datetime.utcnow(),
+        comprobante=data.comprobante or None,
     )
     db.add(e)
     db.commit()
     db.refresh(g)
     return _group_detail(g, current_user_id=current_user.id)
+
+
+@router.get("/expenses/{expense_id}/comprobante")
+def get_comprobante(
+    expense_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    e = db.query(models.SharedExpense).filter_by(id=expense_id).first()
+    if not e:
+        raise HTTPException(status_code=404, detail="Gasto no encontrado")
+    _assert_access(e.group_id, current_user.id, db)
+    if not e.comprobante:
+        raise HTTPException(status_code=404, detail="Este gasto no tiene comprobante")
+    return {"comprobante": e.comprobante}
 
 
 @router.delete("/expenses/{expense_id}", status_code=204)

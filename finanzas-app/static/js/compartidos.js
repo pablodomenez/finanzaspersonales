@@ -227,7 +227,6 @@ function renderDetail(data) {
     expEmpty.classList.add("hidden");
     tbody.innerHTML = expenses
       .map((e) => {
-        // Mostrar papelera si: es owner O es el participante del gasto
         const canDelete = group.is_owner || (my_participant_id && e.participant_id === my_participant_id);
         return `
       <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -235,6 +234,11 @@ function renderDetail(data) {
         <td class="px-4 py-3 text-slate-600 dark:text-slate-300">${esc(e.description)}</td>
         <td class="px-4 py-3 text-right font-semibold text-slate-800 dark:text-white">${formatCurrency(e.amount)}</td>
         <td class="px-4 py-3 text-center text-slate-400 text-xs">${fmtDate(e.date)}</td>
+        <td class="px-2 py-3 text-center">
+          ${e.comprobante ? `<button data-action="view-comprobante" data-id="${e.id}" title="Ver comprobante" class="p-1 rounded text-blue-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition">
+            <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+          </button>` : ""}
+        </td>
         <td class="px-2 py-3 text-center">
           ${canDelete ? `<button data-action="delete-expense" data-id="${e.id}" class="p-1 rounded text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -371,11 +375,20 @@ function openExpenseModal() {
   document.getElementById("e-amount").value = "";
   document.getElementById("e-date").value = "";
   document.getElementById("expense-error").classList.add("hidden");
+  clearComprobante();
   document.getElementById("modal-expense").classList.remove("hidden");
 }
 
 function closeExpenseModal() {
   document.getElementById("modal-expense").classList.add("hidden");
+  clearComprobante();
+}
+
+function clearComprobante() {
+  document.getElementById("e-comprobante").value = "";
+  document.getElementById("e-comprobante-name").textContent = "Adjuntar imagen o foto del ticket";
+  document.getElementById("e-comprobante-preview").classList.add("hidden");
+  document.getElementById("e-comprobante-img").src = "";
 }
 
 // ── Modal: Invitar usuario ────────────────────────────────────────────────────
@@ -433,9 +446,14 @@ document.addEventListener("click", async (e) => {
   if (action === "close-invite-modal") closeInviteModal();
   if (action === "close-qr-modal") closeQRModal();
   if (action === "close-share-modal") closeShareModal();
+  if (action === "close-comprobante-modal") closeComprobanteModal();
 
   if (action === "remove-participant") {
     btn.closest(".participant-row").remove();
+  }
+
+  if (action === "view-comprobante") {
+    openComprobanteModal(Number(btn.dataset.id));
   }
 
   if (action === "delete-expense") {
@@ -590,8 +608,10 @@ document.getElementById("expense-form").addEventListener("submit", async (e) => 
   const amount = parseFloat(document.getElementById("e-amount").value);
   const dateVal = document.getElementById("e-date").value;
   const date = dateVal ? new Date(dateVal).toISOString() : undefined;
+  const comprobanteImg = document.getElementById("e-comprobante-img").src;
+  const comprobante = comprobanteImg && comprobanteImg.startsWith("data:") ? comprobanteImg : undefined;
 
-  const body = { description, amount, ...(date && { date }) };
+  const body = { description, amount, ...(date && { date }), ...(comprobante && { comprobante }) };
 
   // En grupos personales incluir participant_id; en colaborativos el backend lo auto-atribuye
   if (!currentGroupIsVirtual) {
@@ -722,6 +742,77 @@ async function handleJoinFromUrl() {
     alert(err.message || "El enlace de invitación no es válido.");
   }
 }
+
+// ── Comprobante: modal de vista ───────────────────────────────────────────────
+
+function openComprobanteModal(expenseId) {
+  const loading = document.getElementById("comprobante-loading");
+  const img = document.getElementById("comprobante-full-img");
+  const dl = document.getElementById("comprobante-download");
+  loading.classList.remove("hidden");
+  img.classList.add("hidden");
+  dl.classList.add("hidden");
+  document.getElementById("modal-comprobante").classList.remove("hidden");
+
+  apiFetch(`/api/compartidos/expenses/${expenseId}/comprobante`)
+    .then((res) => {
+      img.src = res.comprobante;
+      dl.href = res.comprobante;
+      loading.classList.add("hidden");
+      img.classList.remove("hidden");
+      dl.classList.remove("hidden");
+      if (window.lucide) lucide.createIcons();
+    })
+    .catch(() => {
+      loading.textContent = "No se pudo cargar el comprobante.";
+    });
+}
+
+function closeComprobanteModal() {
+  document.getElementById("modal-comprobante").classList.add("hidden");
+  document.getElementById("comprobante-full-img").src = "";
+}
+
+// ── Comprobante: file input ───────────────────────────────────────────────────
+
+function compressImage(file, maxPx = 1200, quality = 0.75) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxPx || height > maxPx) {
+          if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+          else { width = Math.round(width * maxPx / height); height = maxPx; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById("e-comprobante").addEventListener("change", async (ev) => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    alert("La imagen no puede superar los 10 MB.");
+    clearComprobante();
+    return;
+  }
+  const dataUrl = await compressImage(file);
+  document.getElementById("e-comprobante-name").textContent = file.name;
+  document.getElementById("e-comprobante-img").src = dataUrl;
+  document.getElementById("e-comprobante-preview").classList.remove("hidden");
+});
+
+document.getElementById("e-comprobante-remove").addEventListener("click", clearComprobante);
 
 // ── Arranque ──────────────────────────────────────────────────────────────────
 loadGroups().then(() => handleJoinFromUrl());

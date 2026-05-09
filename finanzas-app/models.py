@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Boolean, Text
 from sqlalchemy.orm import relationship
 from database import Base
 import enum
@@ -452,6 +452,7 @@ class SharedExpense(Base):
     amount         = Column(Float, nullable=False)
     date           = Column(DateTime, default=datetime.utcnow)
     created_at     = Column(DateTime, default=datetime.utcnow)
+    comprobante    = Column(Text, nullable=True)
 
     group       = relationship("SharedGroup", back_populates="expenses")
     participant = relationship("SharedParticipant", back_populates="expenses")

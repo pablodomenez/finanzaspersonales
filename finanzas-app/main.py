@@ -37,6 +37,7 @@ def _migrate_db():
         "ALTER TABLE card_expenses ADD COLUMN end_year INTEGER",
         "ALTER TABLE shared_groups ADD COLUMN IF NOT EXISTS join_token TEXT",
         "ALTER TABLE shared_participants ADD COLUMN IF NOT EXISTS user_id INTEGER",
+        "ALTER TABLE shared_expenses ADD COLUMN IF NOT EXISTS comprobante TEXT",
     ]
     new_categories = [
         (15, "Mascotas",          "🐾", "expense"),
