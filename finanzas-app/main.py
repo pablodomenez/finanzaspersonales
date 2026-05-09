@@ -154,10 +154,11 @@ def seed_categories():
     from database import SessionLocal
     db = SessionLocal()
     try:
-        if db.query(models.Category).count() == 0:
-            for c in DEFAULT_CATEGORIES:
+        existing_ids = {r.id for r in db.query(models.Category.id).all()}
+        for c in DEFAULT_CATEGORIES:
+            if c["id"] not in existing_ids:
                 db.add(models.Category(id=c["id"], name=c["name"], icon=c["icon"], type=c["type"]))
-            db.commit()
+        db.commit()
     finally:
         db.close()
 
