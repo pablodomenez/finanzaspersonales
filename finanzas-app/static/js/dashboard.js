@@ -551,14 +551,12 @@ async function loadCotizaciones() {
   const updEl = document.getElementById("cotiz-updated");
   if (!grid) return;
 
-  const SHOW = ["oficial", "blue", "bolsa", "contadoconliqui", "tarjeta", "cripto"];
+  const SHOW = ["oficial", "blue", "tarjeta", "cripto"];
   const COLORS = {
-    oficial:          "text-blue-600 dark:text-blue-400",
-    blue:             "text-emerald-600 dark:text-emerald-400",
-    bolsa:            "text-violet-600 dark:text-violet-400",
-    contadoconliqui:  "text-amber-600 dark:text-amber-400",
-    tarjeta:          "text-pink-600 dark:text-pink-400",
-    cripto:           "text-orange-600 dark:text-orange-400",
+    oficial: "text-blue-600 dark:text-blue-400",
+    blue:    "text-emerald-600 dark:text-emerald-400",
+    tarjeta: "text-pink-600 dark:text-pink-400",
+    cripto:  "text-orange-600 dark:text-orange-400",
   };
 
   try {
@@ -598,4 +596,46 @@ async function loadCotizaciones() {
 
 loadCotizaciones();
 
+// ── Precios crypto (CoinGecko, sin auth) ─────────────────────────────────────
+async function loadCrypto() {
+  const grid    = document.getElementById("crypto-grid");
+  const updEl   = document.getElementById("crypto-updated");
+  if (!grid) return;
+
+  const COINS = [
+    { id: "bitcoin",  symbol: "BTC", color: "text-orange-500 dark:text-orange-400" },
+    { id: "ethereum", symbol: "ETH", color: "text-violet-500 dark:text-violet-400" },
+    { id: "binancecoin", symbol: "BNB", color: "text-amber-500 dark:text-amber-400" },
+  ];
+  const ids = COINS.map(c => c.id).join(",");
+
+  try {
+    const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+    const data = await res.json();
+
+    grid.innerHTML = COINS.map(c => {
+      const info   = data[c.id];
+      const price  = info ? `$${Number(info.usd).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "—";
+      const change = info?.usd_24h_change;
+      const changeHtml = change != null
+        ? `<span class="${change >= 0 ? "text-emerald-500" : "text-red-500"} text-xs">${change >= 0 ? "+" : ""}${change.toFixed(1)}%</span>`
+        : "";
+      return `
+        <div class="bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-2 flex flex-col gap-0.5 min-w-0">
+          <span class="text-xs text-gray-400 dark:text-slate-500">${c.symbol}</span>
+          <span class="text-sm font-bold ${c.color} truncate">${price}</span>
+          ${changeHtml}
+        </div>`;
+    }).join("");
+
+    if (updEl) {
+      updEl.textContent = `Act. ${new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}`;
+    }
+  } catch (_) {
+    grid.innerHTML = '<div class="col-span-full text-xs text-gray-400">No se pudo obtener precios.</div>';
+  }
+  lucide.createIcons();
+}
+
+loadCrypto();
 
