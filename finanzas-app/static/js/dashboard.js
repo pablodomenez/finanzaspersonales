@@ -107,9 +107,9 @@ async function loadDashboard() {
     // ── Line chart ──────────────────────────────────────────────────────────
     const daily    = data.daily_trend || [];
     const tLabels  = daily.map(d => d.day);
-    const iData    = daily.map(d => d.income);
-    const eData    = daily.map(d => d.expense);
-    const sData    = daily.map(d => d.income - d.expense);
+    const iData    = daily.reduce((acc, d) => { acc.push((acc.at(-1) ?? 0) + d.income);  return acc; }, []);
+    const eData    = daily.reduce((acc, d) => { acc.push((acc.at(-1) ?? 0) + d.expense); return acc; }, []);
+    const sData    = iData.map((v, i) => v - eData[i]);
 
     const lineCtx = document.getElementById("line-chart");
     if (lineChart) {
