@@ -5,8 +5,9 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-from database import get_db
+from database import get_db, is_postgres
 import models
 
 SECRET_KEY = os.getenv("SECRET_KEY", "").lstrip('﻿').strip()
@@ -55,4 +56,12 @@ def get_current_user(
     user = db.query(models.User).filter(models.User.id == int(user_id)).first()
     if user is None:
         raise credentials_exception
+
+    # Activar RLS a nivel base de datos para esta sesión (solo PostgreSQL)
+    if is_postgres:
+        try:
+            db.execute(text("SET LOCAL app.current_user_id = :uid"), {"uid": str(user.id)})
+        except Exception:
+            pass
+
     return user

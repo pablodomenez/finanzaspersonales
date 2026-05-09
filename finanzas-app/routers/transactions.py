@@ -2,12 +2,13 @@ import csv
 import io
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import extract
 from pydantic import BaseModel, Field
 from database import get_db
 from auth import get_current_user
+from limiter import limiter
 import models
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
@@ -118,7 +119,9 @@ MAX_IMPORT_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
 @router.post("/import", status_code=200)
+@limiter.limit("10/minute")
 async def import_transactions(
+    request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),

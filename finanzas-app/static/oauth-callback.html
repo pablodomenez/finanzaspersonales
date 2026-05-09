@@ -14,19 +14,25 @@
   </div>
   <script src="/js/api.js"></script>
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-    const name = params.get("name");
-    const picture = params.get("picture");
-    const termsAccepted = params.get("terms_accepted");
-    if (token) {
-      setSession(token, name || "", termsAccepted);
-      if (picture) localStorage.setItem("google_picture", picture);
-      else localStorage.removeItem("google_picture");
-      window.location.replace(termsAccepted === "true" ? "/dashboard.html" : "/terms.html");
-    } else {
-      window.location.replace("/login.html?error=google_token");
-    }
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (!code) {
+        window.location.replace("/login.html?error=google_token");
+        return;
+      }
+      try {
+        const res = await fetch(`/api/auth/google/exchange?code=${encodeURIComponent(code)}`);
+        if (!res.ok) throw new Error("exchange_failed");
+        const data = await res.json();
+        setSession(data.access_token, data.user_name || "", data.terms_accepted ? "true" : "false");
+        if (data.picture) localStorage.setItem("google_picture", data.picture);
+        else localStorage.removeItem("google_picture");
+        window.location.replace(data.terms_accepted ? "/dashboard.html" : "/terms.html");
+      } catch {
+        window.location.replace("/login.html?error=google_token");
+      }
+    })();
   </script>
 </body>
 </html>

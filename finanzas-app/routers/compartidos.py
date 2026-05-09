@@ -1,12 +1,13 @@
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from pydantic import BaseModel, Field
 from database import get_db
 from auth import get_current_user
+from limiter import limiter
 import models
 
 router = APIRouter(prefix="/api/compartidos", tags=["compartidos"])
@@ -302,7 +303,9 @@ def create_group(
 
 
 @router.post("/virtual", status_code=201)
+@limiter.limit("10/minute")
 def create_virtual_group(
+    request: Request,
     data: VirtualGroupCreate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
@@ -328,7 +331,9 @@ def create_virtual_group(
 
 
 @router.post("/join/{token}")
+@limiter.limit("20/minute")
 def join_group(
+    request: Request,
     token: str,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
