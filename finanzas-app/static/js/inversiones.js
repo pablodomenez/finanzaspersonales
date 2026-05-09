@@ -205,6 +205,11 @@ function setMainTab(tab) {
       ? "px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition"
       : "px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
   });
+  const banner = document.getElementById("binance-tab-banner");
+  if (banner) {
+    if (tab === "cotizaciones") { banner.classList.remove("hidden"); banner.classList.add("flex"); }
+    else { banner.classList.add("hidden"); banner.classList.remove("flex"); }
+  }
   if (tab === "cotizaciones" && !cotizacionesData) fetchTodosCotizaciones();
   if (window.lucide) lucide.createIcons();
 }

@@ -90,11 +90,23 @@
       <div id="dashboard-section" class="hidden">
 
         <!-- Tabs principales -->
-        <div class="flex gap-1 mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 w-fit flex-wrap">
-          <button id="main-tab-portafolio" onclick="setMainTab('portafolio')" class="px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition">Portafolio</button>
-          <button id="main-tab-calculadora" onclick="setMainTab('calculadora')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Calculadora PF</button>
-          <button id="main-tab-cotizaciones" onclick="setMainTab('cotizaciones')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cotizaciones</button>
-          <button id="main-tab-simulador" onclick="setMainTab('simulador')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">🎯 Meta</button>
+        <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div class="flex gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1 flex-wrap">
+            <button id="main-tab-portafolio" onclick="setMainTab('portafolio')" class="px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition">Portafolio</button>
+            <button id="main-tab-calculadora" onclick="setMainTab('calculadora')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Calculadora PF</button>
+            <button id="main-tab-cotizaciones" onclick="setMainTab('cotizaciones')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cotizaciones</button>
+            <button id="main-tab-simulador" onclick="setMainTab('simulador')" class="px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">🎯 Meta</button>
+          </div>
+          <!-- Binance banner — visible solo en tab cotizaciones -->
+          <a id="binance-tab-banner" href="https://www.binance.com/join?ref=PABLODOMENEZ" target="_blank" rel="noopener noreferrer"
+            class="hidden items-center gap-3 bg-gradient-to-r from-amber-400/10 to-yellow-300/10 border border-amber-400/40 dark:border-amber-500/30 rounded-lg px-5 py-2.5 group hover:border-amber-400/70 transition-all">
+            <div class="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 font-bold text-base">₿</div>
+            <div class="leading-tight">
+              <p class="text-sm font-bold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition whitespace-nowrap">Operá en Binance</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Registrate y accedé a beneficios exclusivos</p>
+            </div>
+            <span class="ml-2 text-sm font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">Registrarse →</span>
+          </a>
         </div>
 
         <!-- ── TAB PORTAFOLIO ─────────────────────────────────────────────── -->
@@ -348,23 +360,11 @@
 
           <!-- Header con refresh -->
           <div class="flex items-center justify-between mb-5 gap-4">
-            <p id="cotiz-status" class="text-xs text-slate-400 flex-1">Presioná actualizar para cargar los precios</p>
-            <div class="flex items-center gap-3 flex-shrink-0">
-              <!-- Binance compact banner -->
-              <a href="https://www.binance.com/join?ref=PABLODOMENEZ" target="_blank" rel="noopener noreferrer"
-                class="hidden sm:flex items-center gap-3 bg-gradient-to-r from-amber-400/10 to-yellow-300/10 border border-amber-400/40 dark:border-amber-500/30 rounded-lg px-4 py-2 group hover:border-amber-400/70 transition-all">
-                <div class="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 text-sm">₿</div>
-                <div class="leading-tight">
-                  <p class="text-xs font-bold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition whitespace-nowrap">Operá en Binance</p>
-                  <p class="text-[10px] text-slate-500 dark:text-slate-400 whitespace-nowrap">Registrate y accedé a beneficios</p>
-                </div>
-                <span class="text-xs font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">Registrarse →</span>
-              </a>
-              <button id="btn-refresh-cotiz" onclick="fetchTodosCotizaciones()"
-                class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white transition">
-                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar precios
-              </button>
-            </div>
+            <p id="cotiz-status" class="text-xs text-slate-400">Presioná actualizar para cargar los precios</p>
+            <button id="btn-refresh-cotiz" onclick="fetchTodosCotizaciones()"
+              class="flex-shrink-0 flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white transition">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar precios
+            </button>
           </div>
 
           <!-- Dólar -->
