@@ -153,8 +153,15 @@ async def import_transactions(
             if not header_row or all(c is None for c in header_row):
                 raise HTTPException(status_code=400, detail="El Excel está vacío o no tiene encabezados")
             fieldnames = [str(c).strip() if c is not None else "" for c in header_row]
+            def _cell_to_str(v):
+                if v is None:
+                    return ""
+                if isinstance(v, datetime):
+                    return v.strftime("%d/%m/%Y")
+                return str(v).strip()
+
             excel_rows = [
-                {fieldnames[i]: (str(v).strip() if v is not None else "") for i, v in enumerate(row)}
+                {fieldnames[i]: _cell_to_str(v) for i, v in enumerate(row)}
                 for row in rows_iter
             ]
             wb.close()
@@ -221,9 +228,9 @@ async def import_transactions(
 
     def parse_tipo(s: str) -> models.TransactionType:
         s = s.strip().lower()
-        if s in ("gasto", "expense", "g", "e", "débito", "debito", "egreso"):
+        if s in ("gasto", "expense", "g", "e", "débito", "debito", "egreso", "salida"):
             return models.TransactionType.expense
-        if s in ("ingreso", "income", "i", "crédito", "credito"):
+        if s in ("ingreso", "income", "i", "crédito", "credito", "entrada"):
             return models.TransactionType.income
         raise ValueError(f"Tipo no reconocido: {s}")
 
