@@ -47,40 +47,46 @@ function renderIndices() {
       ? `<span class="text-xs font-bold ${cls}">${val > 0 ? "+" : ""}${val.toFixed(2)}%</span>`
       : `<span class="text-xs text-slate-400">N/D</span>`;
 
-  grid.innerHTML = `
-    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">ICL</span>
-        <span class="text-xs text-slate-500">${icl ? icl.fecha_dato || "" : ""}</span>
-      </div>
-      <p class="text-xs text-slate-500 mb-2">Índice de Contratos de Locación (BCRA)</p>
-      <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300">
-        <div class="flex justify-between"><span>Acumulado 3m</span>${badge(icl?.acumulado_3m, "text-blue-600 dark:text-blue-400")}</div>
-        <div class="flex justify-between"><span>Acumulado 4m</span>${badge(icl?.acumulado_4m, "text-blue-600 dark:text-blue-400")}</div>
-        <div class="flex justify-between"><span>Acumulado 6m</span>${badge(icl?.acumulado_6m, "text-blue-600 dark:text-blue-400")}</div>
-      </div>
-    </div>
-    <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">IPC</span>
-        <span class="text-xs text-slate-500">${ipc ? ipc.fecha_dato || "" : ""}</span>
-      </div>
-      <p class="text-xs text-slate-500 mb-2">Índice de Precios al Consumidor (INDEC)</p>
-      <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300">
-        <div class="flex justify-between"><span>Variación anual</span>${badge(ipc?.anual, "text-emerald-600 dark:text-emerald-400")}</div>
-      </div>
-    </div>
-    <div class="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-4">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-bold text-violet-700 dark:text-violet-300 uppercase tracking-wider">CVS</span>
-        <span class="text-xs text-slate-500">${cvs ? cvs.fecha_dato || "" : ""}</span>
-      </div>
-      <p class="text-xs text-slate-500 mb-2">Índice de Salarios (INDEC)</p>
-      <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300">
-        <div class="flex justify-between"><span>Último valor</span>${cvs ? `<span class="text-xs font-bold text-violet-600 dark:text-violet-400">${cvs.valor.toFixed(2)}</span>` : `<span class="text-xs text-slate-400">N/D</span>`}</div>
-      </div>
-    </div>
-  `;
+  const indiceCard = (titulo, fuente, data, colorCls) => {
+    const filas = [
+      ["Acum. 3 meses", data?.acumulado_3m],
+      ["Acum. 4 meses", data?.acumulado_4m],
+      ["Acum. 6 meses", data?.acumulado_6m],
+    ].map(([label, val]) => `
+      <div class="flex justify-between">
+        <span>${label}</span>
+        ${val != null
+          ? `<span class="font-bold ${colorCls}">${val > 0 ? "+" : ""}${val.toFixed(2)}%</span>`
+          : `<span class="text-slate-400">N/D</span>`}
+      </div>`).join("");
+
+    const bgMap = {
+      "text-blue-600 dark:text-blue-400": "bg-blue-50 dark:bg-blue-900/20",
+      "text-emerald-600 dark:text-emerald-400": "bg-emerald-50 dark:bg-emerald-900/20",
+      "text-violet-600 dark:text-violet-400": "bg-violet-50 dark:bg-violet-900/20",
+    };
+    const titleMap = {
+      "text-blue-600 dark:text-blue-400": "text-blue-700 dark:text-blue-300",
+      "text-emerald-600 dark:text-emerald-400": "text-emerald-700 dark:text-emerald-300",
+      "text-violet-600 dark:text-violet-400": "text-violet-700 dark:text-violet-300",
+    };
+
+    return `
+      <div class="${bgMap[colorCls]} rounded-xl p-4">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold ${titleMap[colorCls]} uppercase tracking-wider">${titulo}</span>
+          <span class="text-xs text-slate-500">${data?.fecha_dato || ""}</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-2">${fuente}</p>
+        <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300">${filas}</div>
+      </div>`;
+  };
+
+  grid.innerHTML =
+    indiceCard("ICL", "Índice de Contratos de Locación · BCRA", icl, "text-blue-600 dark:text-blue-400") +
+    indiceCard("IPC", "Índice de Precios al Consumidor · INDEC", ipc, "text-emerald-600 dark:text-emerald-400") +
+    indiceCard("CVS", "Índice de Salarios · INDEC", cvs, "text-violet-600 dark:text-violet-400");
+  document.getElementById("indices-loading")?.remove();
   document.getElementById("indices-fecha").textContent = `Actualizado: ${_indices.fecha || ""}`;
   lucide.createIcons();
 }
@@ -262,6 +268,19 @@ function updateContraparteLabel() {
 }
 
 document.getElementById("a-rol").addEventListener("change", updateContraparteLabel);
+
+function autoCalcularProximaAct() {
+  const fechaInicio = document.getElementById("a-fecha-inicio").value;
+  const meses = parseInt(document.getElementById("a-periodo").value) || 3;
+  if (!fechaInicio) return;
+  // Sumar N meses a la fecha de inicio (usar mediodía para evitar drift de timezone)
+  const d = new Date(fechaInicio + "T12:00:00");
+  d.setMonth(d.getMonth() + meses);
+  document.getElementById("a-proxima-act").value = d.toISOString().slice(0, 10);
+}
+
+document.getElementById("a-fecha-inicio").addEventListener("change", autoCalcularProximaAct);
+document.getElementById("a-periodo").addEventListener("change", autoCalcularProximaAct);
 
 document.getElementById("alquiler-form").addEventListener("submit", async (e) => {
   e.preventDefault();

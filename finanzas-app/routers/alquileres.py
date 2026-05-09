@@ -21,93 +21,105 @@ _indices_cache: dict = {"data": None, "ts": 0.0}
 _INDICES_TTL = 6 * 3600
 
 
+def _fecha_n_meses_atras(ref: date, meses: int) -> date:
+    """Retorna la fecha exacta N meses antes de `ref`."""
+    mes = ref.month - meses
+    year = ref.year + (mes - 1) // 12
+    mes = ((mes - 1) % 12) + 1
+    ultimo = (date(year, mes % 12 + 1, 1) - timedelta(days=1)).day if mes < 12 else 31
+    return date(year, mes, min(ref.day, ultimo))
+
+
 def _fetch_indices_fresh() -> dict:
     today = date.today()
     result = {"ICL": None, "IPC": None, "CVS": None, "fecha": today.isoformat()}
 
-    # ICL — BCRA variable 40
+    # ── ICL — BCRA variable 40 (índice diario de valor absoluto) ─────────────
+    # Pedimos 7 meses de historia para cubrir todos los períodos de actualización.
+    # El acumulado se calcula como: (valor_hoy / valor_fecha_exacta_Nm_atras - 1) * 100
     try:
-        desde = (today - timedelta(days=30)).isoformat()
+        desde = _fecha_n_meses_atras(today, 7).isoformat()
         resp = requests.get(
             f"https://api.bcra.gob.ar/estadisticas/v2.0/datosvariable/40/{desde}/{today.isoformat()}",
-            timeout=8,
+            timeout=10,
             headers={"Accept": "application/json"},
         )
         if resp.status_code == 200:
-            datos = resp.json().get("results", [])
+            datos = sorted(resp.json().get("results", []), key=lambda x: x["fecha"])
             if datos:
-                # Tomar los dos últimos valores para calcular variación mensual
-                datos_sorted = sorted(datos, key=lambda x: x.get("fecha", ""))
-                if len(datos_sorted) >= 2:
-                    ultimo = datos_sorted[-1]["valor"]
-                    penultimo = datos_sorted[-2]["valor"]
-                    result["ICL"] = {
-                        "valor_actual": round(float(ultimo), 4),
-                        "valor_anterior": round(float(penultimo), 4),
-                        "variacion_diaria": round((float(ultimo) / float(penultimo) - 1) * 100, 4),
-                        "fecha_dato": datos_sorted[-1].get("fecha", ""),
-                    }
+                val_hoy = float(datos[-1]["valor"])
+                fecha_dato = datos[-1]["fecha"]
+
+                def _icl_acumulado(meses: int):
+                    target = _fecha_n_meses_atras(date.fromisoformat(fecha_dato), meses).isoformat()
+                    # Primer dato con fecha <= target
+                    candidatos = [d for d in datos if d["fecha"] <= target]
+                    if not candidatos:
+                        return None
+                    return round((val_hoy / float(candidatos[-1]["valor"]) - 1) * 100, 2)
+
+                result["ICL"] = {
+                    "valor_actual": round(val_hoy, 4),
+                    "fecha_dato": fecha_dato,
+                    "acumulado_3m": _icl_acumulado(3),
+                    "acumulado_4m": _icl_acumulado(4),
+                    "acumulado_6m": _icl_acumulado(6),
+                }
     except Exception as e:
         print(f"[alquileres] Error ICL: {e}")
 
-    # ICL acumulado trimestral/cuatrimestral/semestral — BCRA
-    try:
-        # Buscar datos de los últimos 6 meses para cálculos acumulados
-        desde6 = (today - timedelta(days=185)).isoformat()
-        resp2 = requests.get(
-            f"https://api.bcra.gob.ar/estadisticas/v2.0/datosvariable/40/{desde6}/{today.isoformat()}",
-            timeout=8,
-            headers={"Accept": "application/json"},
-        )
-        if resp2.status_code == 200 and result["ICL"]:
-            datos2 = sorted(resp2.json().get("results", []), key=lambda x: x.get("fecha", ""))
-            if datos2:
-                val_hoy = float(datos2[-1]["valor"])
-                # Variación ~3 meses atrás
-                idx_3m = max(0, len(datos2) - 91)
-                val_3m = float(datos2[idx_3m]["valor"])
-                # Variación ~4 meses atrás
-                idx_4m = max(0, len(datos2) - 122)
-                val_4m = float(datos2[idx_4m]["valor"])
-                # Variación ~6 meses atrás
-                idx_6m = 0
-                val_6m = float(datos2[idx_6m]["valor"])
-                result["ICL"]["acumulado_3m"] = round((val_hoy / val_3m - 1) * 100, 2)
-                result["ICL"]["acumulado_4m"] = round((val_hoy / val_4m - 1) * 100, 2)
-                result["ICL"]["acumulado_6m"] = round((val_hoy / val_6m - 1) * 100, 2)
-    except Exception as e:
-        print(f"[alquileres] Error ICL acumulado: {e}")
-
-    # IPC — argentinadatos.com
+    # ── IPC — INDEC vía argentinadatos.com (variación mensual %) ─────────────
+    # El endpoint devuelve la variación de cada mes. El acumulado para N meses
+    # se calcula componiendo: (1+v1/100)*(1+v2/100)*...*-1
     try:
         resp_ipc = requests.get(
-            "https://api.argentinadatos.com/v1/indec/ipc/anual",
-            timeout=8,
+            "https://api.argentinadatos.com/v1/indec/ipc",
+            timeout=10,
         )
         if resp_ipc.status_code == 200:
             datos_ipc = resp_ipc.json()
             if datos_ipc:
-                ultimo_ipc = datos_ipc[-1]
+                def _ipc_acumulado(meses: int):
+                    ultimos = datos_ipc[-meses:]
+                    if len(ultimos) < meses:
+                        return None
+                    acc = 1.0
+                    for d in ultimos:
+                        acc *= (1 + float(d.get("valor", 0)) / 100)
+                    return round((acc - 1) * 100, 2)
+
                 result["IPC"] = {
-                    "anual": round(float(ultimo_ipc.get("valor", 0)), 2),
-                    "fecha_dato": ultimo_ipc.get("fecha", ""),
+                    "fecha_dato": datos_ipc[-1].get("fecha", ""),
+                    "acumulado_3m": _ipc_acumulado(3),
+                    "acumulado_4m": _ipc_acumulado(4),
+                    "acumulado_6m": _ipc_acumulado(6),
                 }
     except Exception as e:
         print(f"[alquileres] Error IPC: {e}")
 
-    # CVS (Índice de Salarios) — argentinadatos.com
+    # ── CVS — INDEC vía argentinadatos.com (valor absoluto del índice) ────────
+    # Similar al ICL: acumulado = (valor_actual / valor_Nm_atras - 1) * 100
     try:
         resp_cvs = requests.get(
             "https://api.argentinadatos.com/v1/indec/salarios",
-            timeout=8,
+            timeout=10,
         )
         if resp_cvs.status_code == 200:
             datos_cvs = resp_cvs.json()
             if datos_cvs:
-                ultimo_cvs = datos_cvs[-1]
+                def _cvs_acumulado(meses: int):
+                    if len(datos_cvs) <= meses:
+                        return None
+                    val_ultimo = float(datos_cvs[-1].get("valor", 0))
+                    val_ref = float(datos_cvs[-(meses + 1)].get("valor", 1) or 1)
+                    return round((val_ultimo / val_ref - 1) * 100, 2)
+
                 result["CVS"] = {
-                    "valor": round(float(ultimo_cvs.get("valor", 0)), 2),
-                    "fecha_dato": ultimo_cvs.get("fecha", ""),
+                    "valor_actual": round(float(datos_cvs[-1].get("valor", 0)), 2),
+                    "fecha_dato": datos_cvs[-1].get("fecha", ""),
+                    "acumulado_3m": _cvs_acumulado(3),
+                    "acumulado_4m": _cvs_acumulado(4),
+                    "acumulado_6m": _cvs_acumulado(6),
                 }
     except Exception as e:
         print(f"[alquileres] Error CVS: {e}")
@@ -283,12 +295,13 @@ def _calcular_porcentaje_con_indice(alquiler: models.Alquiler) -> Optional[float
 
     indices = get_indices_cached()
     meses = alquiler.periodo_actualizacion_meses or 3
+    key = {3: "acumulado_3m", 4: "acumulado_4m", 6: "acumulado_6m"}.get(meses)
+    if not key:
+        return None
 
-    if alquiler.indice_actualizacion == "ICL" and indices.get("ICL"):
-        icl = indices["ICL"]
-        key = {3: "acumulado_3m", 4: "acumulado_4m", 6: "acumulado_6m"}.get(meses)
-        if key and icl.get(key) is not None:
-            return icl[key]
+    indice_data = indices.get(alquiler.indice_actualizacion)
+    if indice_data and indice_data.get(key) is not None:
+        return indice_data[key]
     return None
 
 
@@ -602,24 +615,16 @@ def proyeccion(
         "proyecciones": {},
     }
 
-    # ICL
-    if indices.get("ICL"):
-        key = {3: "acumulado_3m", 4: "acumulado_4m", 6: "acumulado_6m"}.get(meses, "acumulado_3m")
-        pct = indices["ICL"].get(key)
-        if pct is not None:
-            resultado["proyecciones"]["ICL"] = {
+    key = {3: "acumulado_3m", 4: "acumulado_4m", 6: "acumulado_6m"}.get(meses, "acumulado_3m")
+
+    for nombre_indice in ("ICL", "IPC", "CVS"):
+        datos = indices.get(nombre_indice)
+        if datos and datos.get(key) is not None:
+            pct = datos[key]
+            resultado["proyecciones"][nombre_indice] = {
                 "porcentaje": round(pct, 2),
                 "valor_proyectado": round(a.valor_actual * (1 + pct / 100), 2),
             }
-
-    # IPC (anual → prorrateado al período)
-    if indices.get("IPC") and indices["IPC"].get("anual"):
-        pct_anual = indices["IPC"]["anual"]
-        pct_periodo = ((1 + pct_anual / 100) ** (meses / 12) - 1) * 100
-        resultado["proyecciones"]["IPC"] = {
-            "porcentaje": round(pct_periodo, 2),
-            "valor_proyectado": round(a.valor_actual * (1 + pct_periodo / 100), 2),
-        }
 
     # Porcentaje fijo del contrato
     if a.indice_actualizacion == "fijo" and a.porcentaje_fijo:
