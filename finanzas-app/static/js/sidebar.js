@@ -18,6 +18,7 @@
     { id: "debts",        icon: "users",              label: "Deudas" },
     { id: "goals",        icon: "target",             label: "Objetivos" },
     { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
+    { id: "alquileres",   icon: "home",               label: "Alquileres", badge: "alquiler" },
     { id: "servicios",    icon: "zap",                label: "Servicios", badge: true },
     { id: "promociones",  icon: "tag",                label: "Promociones", badge: "promo" },
     { id: "compartidos",  icon: "users-round",        label: "Compartidos" },
@@ -36,6 +37,8 @@
       badgeHtml = `<span id="notif-badge" class="hidden ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
     } else if (badge === "promo") {
       badgeHtml = `<span id="promo-badge" class="hidden ml-auto bg-amber-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
+    } else if (badge === "alquiler") {
+      badgeHtml = `<span id="alquiler-badge" class="hidden ml-auto bg-orange-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
     }
     return `<a href="/${id}.html" class="${cls}"><i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>${label}${badgeHtml}</a>`;
   }).join("");
@@ -131,6 +134,18 @@
         const promoNotifs = await apiFetch("/api/promociones/notificaciones");
         const unread = promoNotifs.filter((n) => !n.leida).length;
         const badge = document.getElementById("promo-badge");
+        if (badge && unread > 0) {
+          badge.textContent = unread > 9 ? "9+" : String(unread);
+          badge.classList.remove("hidden");
+        }
+      } catch (_) {}
+      try {
+        await apiFetch("/api/alquileres/check-alertas", { method: "POST" });
+      } catch (_) {}
+      try {
+        const alqNotifs = await apiFetch("/api/alquileres/notificaciones");
+        const unread = alqNotifs.filter((n) => !n.leida).length;
+        const badge = document.getElementById("alquiler-badge");
         if (badge && unread > 0) {
           badge.textContent = unread > 9 ? "9+" : String(unread);
           badge.classList.remove("hidden");

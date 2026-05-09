@@ -111,6 +111,53 @@ def send_group_invite(to: str, invitee_name: str, inviter_name: str, group_name:
     return send_email(to, f"{inviter_name} te invitó a un grupo — Finanzas Personales", _base_template(content))
 
 
+def send_alquiler_reminder(to: str, name: str, nombre_alquiler: str, tipo: str, dias: int, monto: float, fecha_ref: str) -> bool:
+    if tipo == "actualizacion":
+        if dias == 0:
+            cuando = "hoy"
+        elif dias == 1:
+            cuando = "mañana"
+        else:
+            cuando = f"en {dias} días ({fecha_ref})"
+        subject = f"📈 Actualización de alquiler: {nombre_alquiler}"
+        content = f"""
+<p>Hola <strong>{name}</strong>,</p>
+<p>Tu alquiler <strong>"{nombre_alquiler}"</strong> tiene una actualización de precio programada:</p>
+<div class="alert">📈 La actualización se realiza <strong>{cuando}</strong>.</div>
+<p>Valor actual: <strong>${monto:,.2f}</strong></p>
+<a href="{APP_URL}/alquileres.html" class="btn">Ver alquileres</a>
+"""
+    elif tipo == "fin_contrato":
+        if dias == 0:
+            cuando = "hoy"
+        else:
+            cuando = f"en {dias} días ({fecha_ref})"
+        subject = f"📋 Vencimiento de contrato: {nombre_alquiler}"
+        content = f"""
+<p>Hola <strong>{name}</strong>,</p>
+<p>El contrato de alquiler <strong>"{nombre_alquiler}"</strong> vence <strong>{cuando}</strong>.</p>
+<div class="alert">📋 Acordate de renovar o gestionar el vencimiento del contrato.</div>
+<p>Monto actual: <strong>${monto:,.2f}</strong></p>
+<a href="{APP_URL}/alquileres.html" class="btn">Ver alquileres</a>
+"""
+    elif tipo == "pago_pendiente":
+        urgency_class = "danger" if dias > 0 else "alert"
+        if dias == 0:
+            msg = f"🏠 El pago de <strong>{nombre_alquiler}</strong> vence hoy."
+        else:
+            msg = f"⚠️ El pago de <strong>{nombre_alquiler}</strong> lleva <strong>{dias} días</strong> de atraso."
+        subject = f"{'🚨 Pago atrasado' if dias > 0 else '⏰ Pago de alquiler hoy'}: {nombre_alquiler}"
+        content = f"""
+<p>Hola <strong>{name}</strong>,</p>
+<div class="alert {urgency_class}">{msg}</div>
+<p>Monto: <strong>${monto:,.2f}</strong></p>
+<a href="{APP_URL}/alquileres.html" class="btn">Ver alquileres</a>
+"""
+    else:
+        return False
+    return send_email(to, subject, _base_template(content))
+
+
 def send_debt_reminder(to: str, name: str, person_name: str, amount: float, debt_type: str, days: int, due_date: str) -> bool:
     direction = "le debés a" if debt_type == "owe" else "te debe"
     urgency_class = "danger" if days <= 0 else "alert"

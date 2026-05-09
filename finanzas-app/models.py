@@ -39,6 +39,8 @@ class User(Base):
     shared_groups = relationship("SharedGroup", back_populates="user", cascade="all, delete-orphan")
     shared_group_memberships = relationship("SharedGroupMember", back_populates="user", cascade="all, delete-orphan")
     feedbacks = relationship("Feedback", back_populates="user", cascade="all, delete")
+    alquileres = relationship("Alquiler", back_populates="user", cascade="all, delete")
+    notificaciones_alquileres = relationship("NotificacionAlquiler", back_populates="user", cascade="all, delete")
 
 
 class Category(Base):
@@ -456,3 +458,98 @@ class SharedExpense(Base):
 
     group       = relationship("SharedGroup", back_populates="expenses")
     participant = relationship("SharedParticipant", back_populates="expenses")
+
+
+class Alquiler(Base):
+    __tablename__ = "alquileres"
+
+    id                       = Column(Integer, primary_key=True, index=True)
+    user_id                  = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    nombre                   = Column(String, nullable=False)          # ej: "Dpto Palermo"
+    direccion                = Column(String, default="")
+    contraparte_nombre       = Column(String, default="")              # inquilino (propietario) o propietario (inquilino)
+    rol                      = Column(String, default="inquilino")     # "inquilino" | "propietario"
+    valor_actual             = Column(Float, nullable=False)
+    moneda                   = Column(String, default="ARS")           # ARS | USD
+    fecha_inicio             = Column(String, nullable=False)          # YYYY-MM-DD
+    fecha_fin_contrato       = Column(String, nullable=True)           # YYYY-MM-DD (null = indeterminado)
+    dia_pago                 = Column(Integer, default=1)              # día del mes (1-28)
+    indice_actualizacion     = Column(String, default="ICL")          # ICL | IPC | CVS | fijo
+    porcentaje_fijo          = Column(Float, nullable=True)            # solo si indice = fijo
+    periodo_actualizacion_meses = Column(Integer, default=3)          # cada cuántos meses
+    proxima_actualizacion    = Column(String, nullable=True)           # YYYY-MM-DD
+    valor_inmueble           = Column(Float, nullable=True)            # para cálculo de ROI
+    notas                    = Column(String, default="")
+    activo                   = Column(Boolean, default=True)
+    created_at               = Column(DateTime, default=datetime.utcnow)
+
+    user            = relationship("User", back_populates="alquileres")
+    pagos           = relationship("PagoAlquiler", back_populates="alquiler", cascade="all, delete-orphan")
+    actualizaciones = relationship("ActualizacionAlquiler", back_populates="alquiler", cascade="all, delete-orphan")
+    gastos          = relationship("GastoAlquiler", back_populates="alquiler", cascade="all, delete-orphan")
+    notificaciones  = relationship("NotificacionAlquiler", back_populates="alquiler", cascade="all, delete-orphan")
+
+
+class PagoAlquiler(Base):
+    __tablename__ = "pagos_alquileres"
+
+    id             = Column(Integer, primary_key=True, index=True)
+    alquiler_id    = Column(Integer, ForeignKey("alquileres.id"), nullable=False, index=True)
+    periodo        = Column(String, nullable=False)    # YYYY-MM
+    monto_esperado = Column(Float, nullable=False)
+    monto_pagado   = Column(Float, nullable=True)
+    fecha_pago     = Column(String, nullable=True)     # YYYY-MM-DD
+    estado         = Column(String, default="pendiente")  # pagado | pendiente | atrasado
+    comprobante    = Column(Text, nullable=True)       # base64
+    notas          = Column(String, default="")
+    created_at     = Column(DateTime, default=datetime.utcnow)
+
+    alquiler = relationship("Alquiler", back_populates="pagos")
+
+
+class ActualizacionAlquiler(Base):
+    __tablename__ = "actualizaciones_alquileres"
+
+    id                  = Column(Integer, primary_key=True, index=True)
+    alquiler_id         = Column(Integer, ForeignKey("alquileres.id"), nullable=False, index=True)
+    fecha               = Column(String, nullable=False)    # YYYY-MM-DD
+    valor_anterior      = Column(Float, nullable=False)
+    valor_nuevo         = Column(Float, nullable=False)
+    indice_usado        = Column(String, nullable=False)    # ICL | IPC | CVS | fijo
+    porcentaje_aplicado = Column(Float, nullable=False)
+    notas               = Column(String, default="")
+    created_at          = Column(DateTime, default=datetime.utcnow)
+
+    alquiler = relationship("Alquiler", back_populates="actualizaciones")
+
+
+class GastoAlquiler(Base):
+    __tablename__ = "gastos_alquileres"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    alquiler_id = Column(Integer, ForeignKey("alquileres.id"), nullable=False, index=True)
+    descripcion = Column(String, nullable=False)
+    monto       = Column(Float, nullable=False)
+    fecha       = Column(String, nullable=False)    # YYYY-MM-DD
+    tipo        = Column(String, default="otro")    # expensa | impuesto | seguro | mantenimiento | otro
+    periodo     = Column(String, nullable=True)     # YYYY-MM (opcional)
+    notas       = Column(String, default="")
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    alquiler = relationship("Alquiler", back_populates="gastos")
+
+
+class NotificacionAlquiler(Base):
+    __tablename__ = "notificaciones_alquileres"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    alquiler_id = Column(Integer, ForeignKey("alquileres.id"), nullable=False, index=True)
+    mensaje     = Column(String, nullable=False)
+    tipo        = Column(String, default="general")  # actualizacion | fin_contrato | pago_pendiente
+    leida       = Column(Boolean, default=False)
+    ref         = Column(String, nullable=False)     # clave única para evitar duplicados
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    alquiler = relationship("Alquiler", back_populates="notificaciones")
+    user     = relationship("User", back_populates="notificaciones_alquileres")

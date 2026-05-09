@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from limiter import limiter
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
 try:
@@ -72,10 +72,11 @@ async def lifespan(app: FastAPI):
     if not os.getenv("VERCEL"):
         task_svc = asyncio.create_task(servicios.check_vencimientos_loop())
         task_promo = asyncio.create_task(promociones.check_promo_loop())
+        task_alq = asyncio.create_task(alquileres.check_alquileres_loop())
     else:
-        task_svc = task_promo = None
+        task_svc = task_promo = task_alq = None
     yield
-    for task in [task_svc, task_promo]:
+    for task in [task_svc, task_promo, task_alq]:
         if task:
             task.cancel()
             try:
@@ -116,6 +117,7 @@ app.include_router(decisiones.router)
 app.include_router(google_auth.router)
 app.include_router(feedback.router)
 app.include_router(cotizaciones.router)
+app.include_router(alquileres.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter

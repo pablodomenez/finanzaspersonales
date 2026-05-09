@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanzasApp — Alquileres</title>
+  <script src="/js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-20 border-r border-slate-800 -translate-x-full md:translate-x-0 transition-transform duration-300"></aside>
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-10 hidden md:hidden" onclick="closeSidebar()"></div>
+
+  <main class="md:ml-64 min-h-screen flex flex-col">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10">
+      <button class="md:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0" onclick="openSidebar()" aria-label="Abrir menú">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="flex-1 flex items-center justify-between">
+        <div>
+          <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Alquileres</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gestioná tus contratos, pagos e índices de actualización</p>
+        </div>
+        <button onclick="openAlquilerModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          + Nuevo alquiler
+        </button>
+      </div>
+    </header>
+
+    <div class="p-4 md:p-8 flex-1">
+
+      <!-- Panel de índices vigentes -->
+      <div id="indices-panel" class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-5 mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <i data-lucide="trending-up" class="w-4 h-4 text-blue-500"></i>Índices vigentes
+          </h2>
+          <span id="indices-fecha" class="text-xs text-slate-400"></span>
+        </div>
+        <div id="indices-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="text-center text-slate-400 text-sm col-span-3" id="indices-loading">Cargando índices...</div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-blue-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Activos</p>
+            <p id="kpi-activos" class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">contratos vigentes</p>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-emerald-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Flujo mensual</p>
+            <p id="kpi-mensual" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">total en ARS</p>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-amber-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Próx. actualización</p>
+            <p id="kpi-proxima" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">días restantes</p>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-violet-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pagos pendientes</p>
+            <p id="kpi-pendientes" class="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">este mes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de alquileres -->
+      <div id="alquileres-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="text-center text-slate-400 py-12 col-span-2" id="alquileres-empty" style="display:none">
+          <i data-lucide="home" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+          <p class="font-medium">No tenés alquileres cargados</p>
+          <p class="text-sm mt-1">Hacé clic en "Nuevo alquiler" para empezar</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL: Nuevo / Editar alquiler
+  ══════════════════════════════════════════════ -->
+  <div id="alquiler-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <h2 id="alquiler-modal-title" class="text-lg font-semibold text-slate-800 dark:text-white">Nuevo alquiler</h2>
+        <button onclick="closeAlquilerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="alquiler-form" class="px-6 py-5 space-y-4">
+        <input type="hidden" id="edit-alquiler-id" value="">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nombre del alquiler *</label>
+            <input type="text" id="a-nombre" placeholder="ej: Dpto Palermo" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Dirección</label>
+            <input type="text" id="a-direccion" placeholder="Av. Corrientes 1234, CABA" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Rol</label>
+            <select id="a-rol" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="inquilino">Soy inquilino</option>
+              <option value="propietario">Soy propietario</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" id="a-contraparte-label">Nombre del propietario</label>
+            <input type="text" id="a-contraparte" placeholder="Juan Pérez" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Valor actual *</label>
+            <input type="number" id="a-valor" placeholder="150000" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Moneda</label>
+            <select id="a-moneda" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="ARS">ARS $</option>
+              <option value="USD">USD U$S</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha inicio contrato *</label>
+            <input type="date" id="a-fecha-inicio" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha fin contrato</label>
+            <input type="date" id="a-fecha-fin" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Día de pago</label>
+            <input type="number" id="a-dia-pago" value="1" min="1" max="28" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Índice de actualización</label>
+            <select id="a-indice" onchange="togglePorcentajeFijo()" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="ICL">ICL (BCRA)</option>
+              <option value="IPC">IPC (INDEC)</option>
+              <option value="CVS">CVS / Salarios</option>
+              <option value="fijo">Porcentaje fijo</option>
+            </select>
+          </div>
+          <div id="porcentaje-fijo-row" style="display:none">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Porcentaje fijo %</label>
+            <input type="number" id="a-porcentaje-fijo" placeholder="10.5" step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Período de actualización</label>
+            <select id="a-periodo" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="3">Trimestral (3 meses)</option>
+              <option value="4">Cuatrimestral (4 meses)</option>
+              <option value="6">Semestral (6 meses)</option>
+              <option value="12">Anual (12 meses)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Próxima actualización</label>
+            <input type="date" id="a-proxima-act" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div id="valor-inmueble-row">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Valor del inmueble <span class="text-slate-400">(para ROI)</span></label>
+            <input type="number" id="a-valor-inmueble" placeholder="Opcional" step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
+            <textarea id="a-notas" rows="2" placeholder="Observaciones del contrato..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+          </div>
+        </div>
+        <div id="alquiler-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeAlquilerModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL: Registrar pago
+  ══════════════════════════════════════════════ -->
+  <div id="pago-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Registrar pago</h2>
+        <button onclick="closePagoModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="pago-form" class="px-6 py-5 space-y-4">
+        <input type="hidden" id="pago-alquiler-id" value="">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Período (YYYY-MM) *</label>
+            <input type="month" id="p-periodo" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Estado</label>
+            <select id="p-estado" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="pagado">Pagado</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="atrasado">Atrasado</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Monto esperado *</label>
+            <input type="number" id="p-monto-esperado" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Monto pagado</label>
+            <input type="number" id="p-monto-pagado" step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha de pago</label>
+            <input type="date" id="p-fecha" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Comprobante</label>
+            <input type="file" id="p-comprobante" accept="image/*,.pdf" class="w-full text-sm text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-600 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer">
+            <div id="p-comprobante-preview" class="hidden mt-2 text-xs text-slate-500">✓ Archivo cargado</div>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
+            <input type="text" id="p-notas" placeholder="Transferencia banco..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+        </div>
+        <div id="pago-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closePagoModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition">Registrar pago</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL: Registrar actualización de precio
+  ══════════════════════════════════════════════ -->
+  <div id="actualizacion-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+      <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Actualizar precio</h2>
+        <button onclick="closeActualizacionModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="px-6 py-5 space-y-4">
+        <input type="hidden" id="act-alquiler-id" value="">
+        <!-- Proyección -->
+        <div id="act-proyeccion" class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 space-y-2 text-sm"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha de actualización</label>
+            <input type="date" id="act-fecha" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Índice usado</label>
+            <select id="act-indice" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="ICL">ICL</option>
+              <option value="IPC">IPC</option>
+              <option value="CVS">CVS</option>
+              <option value="fijo">Fijo</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Porcentaje aplicado % *</label>
+            <input type="number" id="act-porcentaje" required step="0.01" oninput="recalcularNuevoValor()" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nuevo valor *</label>
+            <input type="number" id="act-valor-nuevo" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-600 dark:text-blue-400">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
+            <input type="text" id="act-notas" placeholder="Aplicada según resolución BCRA..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+        </div>
+        <div id="act-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeActualizacionModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+          <button type="button" onclick="guardarActualizacion()" class="flex-1 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition">Aplicar actualización</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL: Detalle del alquiler (historial)
+  ══════════════════════════════════════════════ -->
+  <div id="detalle-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
+        <h2 id="detalle-title" class="text-lg font-semibold text-slate-800 dark:text-white"></h2>
+        <button onclick="closeDetalleModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="px-6 py-5">
+        <!-- Tabs -->
+        <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1 mb-5">
+          <button onclick="switchTab('pagos')" id="tab-pagos" class="tab-btn flex-1 text-xs font-medium px-3 py-1.5 rounded-md transition">Pagos</button>
+          <button onclick="switchTab('actualizaciones')" id="tab-actualizaciones" class="tab-btn flex-1 text-xs font-medium px-3 py-1.5 rounded-md transition">Actualizaciones</button>
+          <button onclick="switchTab('gastos')" id="tab-gastos" class="tab-btn flex-1 text-xs font-medium px-3 py-1.5 rounded-md transition">Gastos</button>
+          <button onclick="switchTab('roi')" id="tab-roi" class="tab-btn flex-1 text-xs font-medium px-3 py-1.5 rounded-md transition">ROI</button>
+        </div>
+
+        <!-- Tab pagos -->
+        <div id="panel-pagos" class="tab-panel">
+          <div class="flex justify-between items-center mb-3">
+            <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Historial de pagos</p>
+            <button id="btn-nuevo-pago" onclick="" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium transition">+ Registrar pago</button>
+          </div>
+          <div id="pagos-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Tab actualizaciones -->
+        <div id="panel-actualizaciones" class="tab-panel hidden">
+          <div class="flex justify-between items-center mb-3">
+            <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Historial de actualizaciones</p>
+            <button id="btn-nueva-actualizacion" onclick="" class="text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-medium transition">+ Actualizar precio</button>
+          </div>
+          <div id="actualizaciones-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Tab gastos -->
+        <div id="panel-gastos" class="tab-panel hidden">
+          <div class="flex justify-between items-center mb-3">
+            <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Gastos asociados</p>
+            <button id="btn-nuevo-gasto" onclick="" class="text-xs bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg font-medium transition">+ Agregar gasto</button>
+          </div>
+          <div id="gastos-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Tab ROI -->
+        <div id="panel-roi" class="tab-panel hidden">
+          <div id="roi-content" class="space-y-4"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL: Gasto asociado
+  ══════════════════════════════════════════════ -->
+  <div id="gasto-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+      <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Agregar gasto</h2>
+        <button onclick="closeGastoModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="gasto-form" class="px-6 py-5 space-y-4">
+        <input type="hidden" id="gasto-alquiler-id" value="">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Descripción *</label>
+            <input type="text" id="g-descripcion" required placeholder="Expensas enero" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Tipo</label>
+            <select id="g-tipo" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="expensa">Expensa</option>
+              <option value="impuesto">Impuesto / ABL</option>
+              <option value="seguro">Seguro</option>
+              <option value="mantenimiento">Mantenimiento</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Monto *</label>
+            <input type="number" id="g-monto" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha *</label>
+            <input type="date" id="g-fecha" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Período</label>
+            <input type="month" id="g-periodo" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
+            <input type="text" id="g-notas" placeholder="" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+        </div>
+        <div id="gasto-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeGastoModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm delete -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+      <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="trash-2" class="w-6 h-6 text-red-500"></i>
+      </div>
+      <p id="confirm-msg" class="text-slate-700 dark:text-slate-300 text-sm mb-5">¿Eliminar?</p>
+      <div class="flex gap-3">
+        <button onclick="document.getElementById('confirm-modal').classList.add('hidden')" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+        <button id="confirm-ok" class="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/common.js?v=1"></script>
+  <script src="/js/alquileres.js?v=1"></script>
+</body>
+</html>
