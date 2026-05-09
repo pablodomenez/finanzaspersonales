@@ -205,7 +205,7 @@ function setMainTab(tab) {
       ? "px-5 py-2 rounded-md text-sm font-semibold bg-blue-700 text-white transition"
       : "px-5 py-2 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
   });
-  if (tab === "cotizaciones" && !cotizacionesData) fetchCotizaciones();
+  if (tab === "cotizaciones" && !cotizacionesData) fetchTodosCotizaciones();
   if (window.lucide) lucide.createIcons();
 }
 
@@ -1180,25 +1180,124 @@ document.getElementById("btn-export").addEventListener("click", async (e) => {
 
 // ── Cotizaciones ──────────────────────────────────────────────────────────────
 
-async function fetchCotizaciones() {
+let _mercadoAutoRefreshId = null;
+
+async function fetchTodosCotizaciones() {
   const btn = document.getElementById("btn-refresh-cotiz");
   const statusEl = document.getElementById("cotiz-status");
   btn.disabled = true;
   btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Actualizando...';
   if (window.lucide) lucide.createIcons();
   statusEl.textContent = "Consultando fuentes externas...";
+
+  await Promise.allSettled([fetchCotizaciones(), fetchMercado()]);
+
+  const now = new Date();
+  statusEl.textContent = `Última actualización: ${now.toLocaleTimeString("es-AR")}`;
+  btn.disabled = false;
+  btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar precios';
+  if (window.lucide) lucide.createIcons();
+
+  // Auto-refresh cada 5 minutos mientras el tab está abierto
+  clearInterval(_mercadoAutoRefreshId);
+  _mercadoAutoRefreshId = setInterval(() => {
+    const tabVisible = !document.getElementById("tab-cotizaciones").classList.contains("hidden");
+    if (tabVisible) fetchTodosCotizaciones();
+  }, 5 * 60 * 1000);
+}
+
+async function fetchCotizaciones() {
   try {
     cotizacionesData = await apiFetch("/api/inversiones/cotizaciones");
     renderCotizaciones(cotizacionesData);
-    const now = new Date();
-    statusEl.textContent = `Última actualización: ${now.toLocaleTimeString("es-AR")}`;
   } catch (e) {
-    statusEl.textContent = "Error al cargar cotizaciones. Intentá de nuevo.";
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i> Actualizar precios';
-    if (window.lucide) lucide.createIcons();
+    document.getElementById("cotiz-status").textContent = "Error al cargar cotizaciones del portafolio.";
   }
+}
+
+async function fetchMercado() {
+  try {
+    const data = await apiFetch("/api/inversiones/mercado");
+    renderMercadoCedears(data.cedears || []);
+    renderMercadoAcciones(data.acciones || []);
+    renderMercadoCripto(data.cripto || []);
+    if ((data.errores || []).includes("yfinance_no_instalado")) {
+      document.getElementById("cotiz-status").textContent +=
+        " · yfinance no instalado — ejecutá: pip install yfinance";
+    }
+  } catch (e) {
+    ["cotiz-cedears-loading", "cotiz-merval-loading", "cotiz-cripto-mkt-loading"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "No se pudo cargar. Intentá de nuevo.";
+    });
+  }
+}
+
+function _renderBolsaTable(items, tbodyId, loadingId, tableId) {
+  const loading = document.getElementById(loadingId);
+  const table = document.getElementById(tableId);
+  const tbody = document.getElementById(tbodyId);
+  if (!items.length) {
+    loading.textContent = "Sin datos disponibles.";
+    loading.classList.remove("hidden");
+    table.classList.add("hidden");
+    return;
+  }
+  tbody.innerHTML = items.map((a) => {
+    const precioTxt = a.precio != null
+      ? `<span class="font-bold text-slate-800 dark:text-white">${a.precio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`
+      : '<span class="text-slate-400 text-xs">Sin datos</span>';
+    const moneda = a.currency || "—";
+    return `<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
+      <td class="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 text-sm">${a.nombre}</td>
+      <td class="px-4 py-2.5 font-mono text-xs text-slate-500 dark:text-slate-400">${a.ticker}</td>
+      <td class="px-4 py-2.5 text-right text-sm">${precioTxt}</td>
+      <td class="px-4 py-2.5 text-right text-xs text-slate-400">${moneda}</td>
+    </tr>`;
+  }).join("");
+  loading.classList.add("hidden");
+  table.classList.remove("hidden");
+}
+
+function renderMercadoCedears(items) {
+  _renderBolsaTable(items, "cotiz-cedears-tbody", "cotiz-cedears-loading", "cotiz-cedears-table");
+}
+
+function renderMercadoAcciones(items) {
+  _renderBolsaTable(items, "cotiz-merval-tbody", "cotiz-merval-loading", "cotiz-merval-table");
+}
+
+function renderMercadoCripto(items) {
+  const loading = document.getElementById("cotiz-cripto-mkt-loading");
+  const table = document.getElementById("cotiz-cripto-mkt-table");
+  const tbody = document.getElementById("cotiz-cripto-mkt-tbody");
+  if (!items.length) {
+    loading.textContent = "Sin datos disponibles.";
+    loading.classList.remove("hidden");
+    table.classList.add("hidden");
+    return;
+  }
+  const CRIPTO_ICON = { BTC: "₿", ETH: "Ξ", USDT: "💲", SOL: "◎", BNB: "🟡", XRP: "✕", DOGE: "🐕", ADA: "₳" };
+  tbody.innerHTML = items.map((c) => {
+    const icon = CRIPTO_ICON[c.simbolo] || "🪙";
+    const usdTxt = c.precio_usd != null
+      ? `<span class="font-bold text-slate-800 dark:text-white">${fmtUSD(c.precio_usd)}</span>`
+      : '<span class="text-slate-400">—</span>';
+    const arsTxt = c.precio_ars != null
+      ? `<span class="font-bold text-slate-800 dark:text-white">${fmtARS(c.precio_ars)}</span>`
+      : '<span class="text-slate-400">—</span>';
+    return `<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
+      <td class="px-4 py-2.5 text-sm">
+        <span class="mr-1.5">${icon}</span>
+        <span class="font-medium text-slate-700 dark:text-slate-200">${c.nombre}</span>
+      </td>
+      <td class="px-4 py-2.5 font-mono text-xs font-bold text-slate-500 dark:text-slate-400">${c.simbolo}</td>
+      <td class="px-4 py-2.5 text-right text-sm">${usdTxt}</td>
+      <td class="px-4 py-2.5 text-right text-sm">${arsTxt}</td>
+    </tr>`;
+  }).join("");
+  loading.classList.add("hidden");
+  table.classList.remove("hidden");
 }
 
 function renderCotizaciones(data) {

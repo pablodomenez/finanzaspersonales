@@ -1,5 +1,6 @@
 import io
 import csv
+import time
 import logging
 from datetime import date, datetime
 from typing import Optional
@@ -12,6 +13,52 @@ from auth import get_current_user
 import models
 
 logger = logging.getLogger(__name__)
+
+# ── Listas predefinidas para cuadros de mercado ───────────────────────────────
+
+CEDEARS_PREDEFINIDOS = [
+    {"ticker": "AAPL.BA",  "nombre": "Apple"},
+    {"ticker": "MSFT.BA",  "nombre": "Microsoft"},
+    {"ticker": "NVDA.BA",  "nombre": "NVIDIA"},
+    {"ticker": "AMZN.BA",  "nombre": "Amazon"},
+    {"ticker": "GOOGL.BA", "nombre": "Alphabet"},
+    {"ticker": "META.BA",  "nombre": "Meta"},
+    {"ticker": "TSLA.BA",  "nombre": "Tesla"},
+    {"ticker": "MELI.BA",  "nombre": "MercadoLibre"},
+    {"ticker": "NFLX.BA",  "nombre": "Netflix"},
+    {"ticker": "BABA.BA",  "nombre": "Alibaba"},
+    {"ticker": "KO.BA",    "nombre": "Coca-Cola"},
+    {"ticker": "DIS.BA",   "nombre": "Disney"},
+]
+
+ACCIONES_PREDEFINIDAS = [
+    {"ticker": "GGAL.BA",  "nombre": "Grupo Galicia"},
+    {"ticker": "BMA.BA",   "nombre": "Banco Macro"},
+    {"ticker": "YPFD.BA",  "nombre": "YPF"},
+    {"ticker": "PAMP.BA",  "nombre": "Pampa Energía"},
+    {"ticker": "TECO2.BA", "nombre": "Telecom"},
+    {"ticker": "ALUA.BA",  "nombre": "Aluar"},
+    {"ticker": "TXAR.BA",  "nombre": "Ternium"},
+    {"ticker": "BBAR.BA",  "nombre": "BBVA Argentina"},
+    {"ticker": "SUPV.BA",  "nombre": "Supervielle"},
+    {"ticker": "LOMA.BA",  "nombre": "Loma Negra"},
+    {"ticker": "CEPU.BA",  "nombre": "Central Puerto"},
+    {"ticker": "VALO.BA",  "nombre": "Grupo Financiero Valores"},
+]
+
+CRIPTO_PREDEFINIDAS = [
+    {"id": "bitcoin",      "simbolo": "BTC",  "nombre": "Bitcoin"},
+    {"id": "ethereum",     "simbolo": "ETH",  "nombre": "Ethereum"},
+    {"id": "tether",       "simbolo": "USDT", "nombre": "Tether"},
+    {"id": "solana",       "simbolo": "SOL",  "nombre": "Solana"},
+    {"id": "binancecoin",  "simbolo": "BNB",  "nombre": "BNB"},
+    {"id": "ripple",       "simbolo": "XRP",  "nombre": "XRP"},
+    {"id": "dogecoin",     "simbolo": "DOGE", "nombre": "Dogecoin"},
+    {"id": "cardano",      "simbolo": "ADA",  "nombre": "Cardano"},
+]
+
+_mercado_cache: dict = {"ts": 0.0, "data": None}
+_MERCADO_TTL = 300  # 5 minutos
 
 router = APIRouter(prefix="/api/inversiones", tags=["inversiones"])
 
@@ -330,6 +377,58 @@ def get_referencias(current_user: models.User = Depends(get_current_user)):
     except Exception as e:
         logger.warning(f"Error riesgo pais argentinadatos: {e}")
 
+    return result
+
+
+# ── Cotizaciones de mercado (listas predefinidas) ─────────────────────────────
+
+@router.get("/mercado")
+def get_mercado(current_user: models.User = Depends(get_current_user)):
+    import requests as req
+    global _mercado_cache
+
+    now = time.time()
+    if _mercado_cache["data"] and (now - _mercado_cache["ts"]) < _MERCADO_TTL:
+        return _mercado_cache["data"]
+
+    result: dict = {"cedears": [], "acciones": [], "cripto": [], "errores": [], "ts": int(now)}
+
+    # 1. CEDEARs y acciones argentinas via yfinance
+    try:
+        import yfinance as yf
+        for lst, key in [(CEDEARS_PREDEFINIDOS, "cedears"), (ACCIONES_PREDEFINIDAS, "acciones")]:
+            for item in lst:
+                try:
+                    fi = yf.Ticker(item["ticker"]).fast_info
+                    price = fi.last_price
+                    currency = getattr(fi, "currency", None)
+                    result[key].append({**item, "precio": round(float(price), 2), "currency": currency})
+                except Exception:
+                    result[key].append({**item, "precio": None, "currency": None})
+    except ImportError:
+        result["errores"].append("yfinance_no_instalado")
+    except Exception as e:
+        logger.warning(f"Error yfinance mercado: {e}")
+        result["errores"].append("bolsa")
+
+    # 2. Crypto via CoinGecko
+    try:
+        ids_str = ",".join(c["id"] for c in CRIPTO_PREDEFINIDAS)
+        r = req.get(
+            f"https://api.coingecko.com/api/v3/simple/price?ids={ids_str}&vs_currencies=usd,ars",
+            timeout=8,
+            headers={"Accept": "application/json"},
+        )
+        r.raise_for_status()
+        prices = r.json()
+        for c in CRIPTO_PREDEFINIDAS:
+            p = prices.get(c["id"], {})
+            result["cripto"].append({**c, "precio_usd": p.get("usd"), "precio_ars": p.get("ars")})
+    except Exception as e:
+        logger.warning(f"Error CoinGecko mercado: {e}")
+        result["errores"].append("cripto")
+
+    _mercado_cache = {"ts": now, "data": result}
     return result
 
 
