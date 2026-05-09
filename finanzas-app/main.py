@@ -140,6 +140,7 @@ DEFAULT_CATEGORIES = [
     {"id": 14, "name": "Otros gastos",      "icon": "📦", "type": "expense"},
     {"id": 15, "name": "Mascotas",          "icon": "🐾", "type": "expense"},
     {"id": 16, "name": "Tarjeta de crédito","icon": "💳", "type": "expense"},
+    {"id": 17, "name": "Combustible",      "icon": "⛽", "type": "expense"},
 ]
 
 @cats_router.get("")

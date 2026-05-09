@@ -171,7 +171,8 @@ async def import_transactions(
         {"id": 9, "name": "Educación"}, {"id": 10, "name": "Entretenimiento"},
         {"id": 11, "name": "Ropa"}, {"id": 12, "name": "Ahorro"},
         {"id": 13, "name": "Servicios"}, {"id": 14, "name": "Otros gastos"},
-        {"id": 15, "name": "Mascotas"}, {"id": 1, "name": "Sueldo"},
+        {"id": 15, "name": "Mascotas"}, {"id": 17, "name": "Combustible"},
+        {"id": 1, "name": "Sueldo"},
         {"id": 2, "name": "Freelance"}, {"id": 3, "name": "Inversiones"},
         {"id": 4, "name": "Otros ingresos"},
     ]}
