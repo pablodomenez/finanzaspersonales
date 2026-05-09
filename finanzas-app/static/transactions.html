@@ -142,7 +142,7 @@
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-lg border border-slate-200 dark:border-slate-700">
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
         <div>
-          <h2 class="text-base font-semibold text-slate-800 dark:text-white">Importar transacciones desde CSV</h2>
+          <h2 class="text-base font-semibold text-slate-800 dark:text-white">Importar transacciones</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Columnas requeridas: fecha, descripcion, monto, tipo</p>
         </div>
         <button onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-lg leading-none">✕</button>
@@ -157,20 +157,22 @@
           ondragleave="this.classList.remove('border-blue-500','bg-blue-50','dark:bg-blue-900/10')"
           ondrop="handleDrop(event)">
           <i data-lucide="file-up" class="w-8 h-8 mx-auto mb-2 text-slate-400"></i>
-          <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Arrastrá tu archivo CSV o hacé clic para seleccionar</p>
+          <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Arrastrá tu archivo o hacé clic para seleccionar</p>
+          <p class="text-xs text-slate-400">CSV, Excel (.xlsx, .xls)</p>
           <p id="drop-filename" class="text-xs text-slate-400 mt-1">Ningún archivo seleccionado</p>
-          <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="handleFileSelect(event)" />
+          <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" class="hidden" onchange="handleFileSelect(event)" />
         </div>
 
         <!-- Guía de formato -->
         <details class="text-xs text-slate-500 dark:text-slate-400">
-          <summary class="cursor-pointer font-medium text-blue-600 dark:text-blue-400 hover:underline">Ver formato esperado del CSV</summary>
+          <summary class="cursor-pointer font-medium text-blue-600 dark:text-blue-400 hover:underline">Ver formato esperado</summary>
           <div class="mt-2 space-y-1 pl-1">
             <p><strong>Columnas requeridas:</strong> fecha, monto, tipo</p>
             <p><strong>Columnas opcionales:</strong> descripcion, categoria, forma_pago</p>
             <p><strong>tipo:</strong> gasto / ingreso (o expense / income)</p>
             <p><strong>fecha:</strong> DD/MM/YYYY o YYYY-MM-DD</p>
-            <p><strong>Separador:</strong> coma (,) o punto y coma (;)</p>
+            <p><strong>CSV — Separador:</strong> coma (,) o punto y coma (;)</p>
+            <p><strong>Excel:</strong> la primera fila debe tener los nombres de columna</p>
             <div class="mt-2 bg-slate-100 dark:bg-slate-800 rounded p-2 font-mono text-xs overflow-x-auto">
               fecha;descripcion;monto;tipo<br>
               15/05/2025;Supermercado;12500;gasto<br>

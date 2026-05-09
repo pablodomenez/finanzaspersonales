@@ -14,3 +14,4 @@ requests==2.32.3
 yfinance==0.2.51
 slowapi==0.1.9
 limits==3.13.0
+openpyxl==3.1.5

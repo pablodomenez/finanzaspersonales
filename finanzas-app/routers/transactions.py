@@ -1,6 +1,7 @@
 import csv
 import io
 from datetime import datetime
+import openpyxl
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
@@ -134,25 +135,54 @@ async def import_transactions(
     tipo acepta: gasto/expense/g/e   o   ingreso/income/i
     fecha acepta: DD/MM/YYYY, YYYY-MM-DD, DD-MM-YYYY
     """
-    if not file.filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="El archivo debe ser un CSV")
+    fname = file.filename.lower()
+    is_excel = fname.endswith(".xlsx") or fname.endswith(".xls")
+    if not fname.endswith(".csv") and not is_excel:
+        raise HTTPException(status_code=400, detail="El archivo debe ser un CSV o Excel (.xlsx, .xls)")
 
     content = await file.read(MAX_IMPORT_SIZE + 1)
     if len(content) > MAX_IMPORT_SIZE:
         raise HTTPException(status_code=413, detail="El archivo no puede superar 5 MB")
-    try:
-        text = content.decode("utf-8-sig")  # utf-8-sig maneja el BOM de Excel
-    except UnicodeDecodeError:
+
+    if is_excel:
         try:
-            text = content.decode("latin-1")
-        except Exception:
-            raise HTTPException(status_code=400, detail="No se pudo leer el archivo. Asegurate de guardarlo en UTF-8 o Latin-1.")
+            wb = openpyxl.load_workbook(io.BytesIO(content), read_only=True, data_only=True)
+            ws = wb.active
+            rows_iter = ws.iter_rows(values_only=True)
+            header_row = next(rows_iter, None)
+            if not header_row or all(c is None for c in header_row):
+                raise HTTPException(status_code=400, detail="El Excel está vacío o no tiene encabezados")
+            fieldnames = [str(c).strip() if c is not None else "" for c in header_row]
+            excel_rows = [
+                {fieldnames[i]: (str(v).strip() if v is not None else "") for i, v in enumerate(row)}
+                for row in rows_iter
+            ]
+            wb.close()
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"No se pudo leer el Excel: {e}")
 
-    # Detectar delimitador
-    sample = text[:2000]
-    delimiter = ";" if sample.count(";") > sample.count(",") else ","
+        class _ExcelReader:
+            def __init__(self, names, data):
+                self.fieldnames = names
+                self._data = data
+            def __iter__(self):
+                return iter(self._data)
 
-    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+        reader = _ExcelReader(fieldnames, excel_rows)
+    else:
+        try:
+            text = content.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            try:
+                text = content.decode("latin-1")
+            except Exception:
+                raise HTTPException(status_code=400, detail="No se pudo leer el archivo. Asegurate de guardarlo en UTF-8 o Latin-1.")
+
+        sample = text[:2000]
+        delimiter = ";" if sample.count(";") > sample.count(",") else ","
+        reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
 
     # Normalizar nombres de columnas
     def normalize(s: str) -> str:
@@ -197,8 +227,8 @@ async def import_transactions(
             return models.TransactionType.income
         raise ValueError(f"Tipo no reconocido: {s}")
 
-    if reader.fieldnames is None:
-        raise HTTPException(status_code=400, detail="El CSV está vacío o no tiene encabezados")
+    if not reader.fieldnames:
+        raise HTTPException(status_code=400, detail="El archivo está vacío o no tiene encabezados")
 
     norm_fields = {normalize(f): f for f in reader.fieldnames if f}
 

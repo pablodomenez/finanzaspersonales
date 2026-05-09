@@ -166,7 +166,7 @@ window.openModal = openNewModal;
 
 Promise.all([loadCategories(), loadTransactions()]);
 
-// ── Importar CSV ──────────────────────────────────────────────────────────────
+// ── Importar CSV / Excel ───────────────────────────────────────────────────────
 let _csvFile = null;
 
 window.openImportModal = function () {
@@ -197,8 +197,9 @@ window.handleDrop = function (event) {
 };
 
 function _setImportFile(file) {
-  if (!file.name.toLowerCase().endsWith(".csv")) {
-    alert("El archivo debe ser un CSV (.csv)");
+  const name = file.name.toLowerCase();
+  if (!name.endsWith(".csv") && !name.endsWith(".xlsx") && !name.endsWith(".xls")) {
+    alert("El archivo debe ser CSV o Excel (.csv, .xlsx, .xls)");
     return;
   }
   _csvFile = file;
