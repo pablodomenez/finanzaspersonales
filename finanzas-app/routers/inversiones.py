@@ -28,7 +28,7 @@ CEDEARS_PREDEFINIDOS = [
     {"ticker": "NFLX.BA",  "nombre": "Netflix"},
     {"ticker": "BABA.BA",  "nombre": "Alibaba"},
     {"ticker": "KO.BA",    "nombre": "Coca-Cola"},
-    {"ticker": "DIS.BA",   "nombre": "Disney"},
+    {"ticker": "V.BA",     "nombre": "Visa"},
 ]
 
 ACCIONES_PREDEFINIDAS = [
@@ -55,6 +55,42 @@ CRIPTO_PREDEFINIDAS = [
     {"id": "ripple",       "simbolo": "XRP",  "nombre": "XRP"},
     {"id": "dogecoin",     "simbolo": "DOGE", "nombre": "Dogecoin"},
     {"id": "cardano",      "simbolo": "ADA",  "nombre": "Cardano"},
+]
+
+INDICES_US = [
+    {"ticker": "^GSPC",  "simbolo": "SPX",  "nombre": "S&P 500"           },
+    {"ticker": "^NDX",   "simbolo": "NDX",  "nombre": "Nasdaq 100"        },
+    {"ticker": "^DJI",   "simbolo": "DJIA", "nombre": "Dow Jones"         },
+    {"ticker": "^RUT",   "simbolo": "RUT",  "nombre": "Russell 2000"      },
+    {"ticker": "^VIX",   "simbolo": "VIX",  "nombre": "VIX (Volatilidad)" },
+]
+
+ETFS_CEDEAR = [
+    {"ticker": "SPY.BA",  "simbolo": "SPY",  "nombre": "SPDR S&P 500 (SPY)"     },
+    {"ticker": "QQQ.BA",  "simbolo": "QQQ",  "nombre": "Nasdaq 100 ETF (QQQ)"   },
+    {"ticker": "IWM.BA",  "simbolo": "IWM",  "nombre": "Russell 2000 ETF (IWM)" },
+    {"ticker": "GLD.BA",  "simbolo": "GLD",  "nombre": "Oro ETF (GLD)"          },
+    {"ticker": "XLF.BA",  "simbolo": "XLF",  "nombre": "Sector Financiero (XLF)"},
+    {"ticker": "ARKK.BA", "simbolo": "ARKK", "nombre": "ARK Innovation (ARKK)"  },
+]
+
+COMMODITIES = [
+    {"ticker": "GC=F",  "simbolo": "GC", "nombre": "Oro",            "unidad": "USD/oz",     "currency": "USD"},
+    {"ticker": "SI=F",  "simbolo": "SI", "nombre": "Plata",          "unidad": "USD/oz",     "currency": "USD"},
+    {"ticker": "CL=F",  "simbolo": "CL", "nombre": "Petróleo WTI",  "unidad": "USD/barril", "currency": "USD"},
+    {"ticker": "BZ=F",  "simbolo": "BZ", "nombre": "Petróleo Brent", "unidad": "USD/barril", "currency": "USD"},
+    {"ticker": "ZS=F",  "simbolo": "ZS", "nombre": "Soja",           "unidad": "USD/bu",     "currency": "USX"},
+    {"ticker": "ZW=F",  "simbolo": "ZW", "nombre": "Trigo",          "unidad": "USD/bu",     "currency": "USX"},
+    {"ticker": "ZC=F",  "simbolo": "ZC", "nombre": "Maíz",           "unidad": "USD/bu",     "currency": "USX"},
+]
+
+INDICES_GLOBALES = [
+    {"ticker": "^GDAXI",    "simbolo": "DAX",  "nombre": "DAX (Alemania)",    "currency": "EUR"},
+    {"ticker": "^FTSE",     "simbolo": "FTSE", "nombre": "FTSE 100 (UK)",     "currency": "GBP"},
+    {"ticker": "^STOXX50E", "simbolo": "SX5E", "nombre": "Euro Stoxx 50",     "currency": "EUR"},
+    {"ticker": "^N225",     "simbolo": "N225", "nombre": "Nikkei 225 (Japón)","currency": "JPY"},
+    {"ticker": "^HSI",      "simbolo": "HSI",  "nombre": "Hang Seng (HK)",    "currency": "HKD"},
+    {"ticker": "^BVSP",     "simbolo": "IBOV", "nombre": "Bovespa (Brasil)",  "currency": "BRL"},
 ]
 
 _mercado_cache: dict = {"ts": 0.0, "data": None}
@@ -385,33 +421,68 @@ def get_referencias(current_user: models.User = Depends(get_current_user)):
 @router.get("/mercado")
 def get_mercado(current_user: models.User = Depends(get_current_user)):
     import requests as req
+    import concurrent.futures
     global _mercado_cache
 
     now = time.time()
     if _mercado_cache["data"] and (now - _mercado_cache["ts"]) < _MERCADO_TTL:
         return _mercado_cache["data"]
 
-    result: dict = {"cedears": [], "acciones": [], "cripto": [], "errores": [], "ts": int(now)}
+    result: dict = {
+        "cedears": [], "acciones": [], "cripto": [],
+        "indices_us": [], "etfs_cedear": [], "commodities": [], "globales": [],
+        "errores": [], "ts": int(now),
+    }
 
-    # 1. CEDEARs y acciones argentinas via yfinance
+    # Tabla unificada: (sección, item, moneda_forzada)
+    # moneda_forzada=None significa usar la del item["currency"]
+    tasks = (
+        [("cedears",     item, "ARS")              for item in CEDEARS_PREDEFINIDOS] +
+        [("acciones",    item, "ARS")              for item in ACCIONES_PREDEFINIDAS] +
+        [("indices_us",  item, "USD")              for item in INDICES_US] +
+        [("etfs_cedear", item, "ARS")              for item in ETFS_CEDEAR] +
+        [("commodities", item, item["currency"])   for item in COMMODITIES] +
+        [("globales",    item, item["currency"])   for item in INDICES_GLOBALES]
+    )
+
     try:
         import yfinance as yf
-        for lst, key in [(CEDEARS_PREDEFINIDOS, "cedears"), (ACCIONES_PREDEFINIDAS, "acciones")]:
-            for item in lst:
+
+        def _get_price(ticker: str):
+            fi = yf.Ticker(ticker).fast_info
+            return float(fi.last_price), getattr(fi, "currency", "USD") or "USD"
+
+        prices: dict = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as pool:
+            fut_map = {pool.submit(_get_price, item["ticker"]): item["ticker"]
+                       for _, item, _ in tasks}
+            for fut in concurrent.futures.as_completed(fut_map, timeout=25):
+                t = fut_map[fut]
                 try:
-                    fi = yf.Ticker(item["ticker"]).fast_info
-                    price = fi.last_price
-                    currency = getattr(fi, "currency", None)
-                    result[key].append({**item, "precio": round(float(price), 2), "currency": currency})
+                    prices[t] = fut.result()
                 except Exception:
-                    result[key].append({**item, "precio": None, "currency": None})
+                    prices[t] = (None, None)
+
+        for section, item, forced_cur in tasks:
+            ticker = item["ticker"]
+            price, _ = prices.get(ticker, (None, None))
+            cur = forced_cur
+            if cur == "USX":
+                price = price / 100 if price is not None else None
+                cur = "USD"
+            display_cur = item.get("unidad", cur)
+            entry = {k: v for k, v in item.items() if k not in ("unidad", "currency")}
+            entry["precio"] = round(price, 2) if price is not None else None
+            entry["currency"] = display_cur
+            result[section].append(entry)
+
     except ImportError:
         result["errores"].append("yfinance_no_instalado")
     except Exception as e:
         logger.warning(f"Error yfinance mercado: {e}")
         result["errores"].append("bolsa")
 
-    # 2. Crypto via CoinGecko
+    # Crypto via CoinGecko
     try:
         ids_str = ",".join(c["id"] for c in CRIPTO_PREDEFINIDAS)
         r = req.get(
@@ -420,9 +491,9 @@ def get_mercado(current_user: models.User = Depends(get_current_user)):
             headers={"Accept": "application/json"},
         )
         r.raise_for_status()
-        prices = r.json()
+        prices_c = r.json()
         for c in CRIPTO_PREDEFINIDAS:
-            p = prices.get(c["id"], {})
+            p = prices_c.get(c["id"], {})
             result["cripto"].append({**c, "precio_usd": p.get("usd"), "precio_ars": p.get("ars")})
     except Exception as e:
         logger.warning(f"Error CoinGecko mercado: {e}")

@@ -1223,15 +1223,23 @@ async function fetchCotizaciones() {
 async function fetchMercado() {
   try {
     const data = await apiFetch("/api/inversiones/mercado");
+    renderMercadoIndicesUS(data.indices_us || []);
+    renderMercadoEtfsCedear(data.etfs_cedear || []);
     renderMercadoCedears(data.cedears || []);
     renderMercadoAcciones(data.acciones || []);
+    renderMercadoCommodities(data.commodities || []);
+    renderMercadoGlobales(data.globales || []);
     renderMercadoCripto(data.cripto || []);
     if ((data.errores || []).includes("yfinance_no_instalado")) {
       document.getElementById("cotiz-status").textContent +=
         " · yfinance no instalado — ejecutá: pip install yfinance";
     }
   } catch (e) {
-    ["cotiz-cedears-loading", "cotiz-merval-loading", "cotiz-cripto-mkt-loading"].forEach((id) => {
+    [
+      "cotiz-indices-us-loading", "cotiz-etfs-cedear-loading",
+      "cotiz-cedears-loading", "cotiz-merval-loading",
+      "cotiz-commodities-loading", "cotiz-globales-loading", "cotiz-cripto-mkt-loading",
+    ].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.textContent = "No se pudo cargar. Intentá de nuevo.";
     });
@@ -1253,9 +1261,10 @@ function _renderBolsaTable(items, tbodyId, loadingId, tableId) {
       ? `<span class="font-bold text-slate-800 dark:text-white">${a.precio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`
       : '<span class="text-slate-400 text-xs">Sin datos</span>';
     const moneda = a.currency || "—";
+    const tickerDisplay = a.simbolo || a.ticker;
     return `<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
       <td class="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 text-sm">${a.nombre}</td>
-      <td class="px-4 py-2.5 font-mono text-xs text-slate-500 dark:text-slate-400">${a.ticker}</td>
+      <td class="px-4 py-2.5 font-mono text-xs text-slate-500 dark:text-slate-400">${tickerDisplay}</td>
       <td class="px-4 py-2.5 text-right text-sm">${precioTxt}</td>
       <td class="px-4 py-2.5 text-right text-xs text-slate-400">${moneda}</td>
     </tr>`;
@@ -1264,12 +1273,28 @@ function _renderBolsaTable(items, tbodyId, loadingId, tableId) {
   table.classList.remove("hidden");
 }
 
+function renderMercadoIndicesUS(items) {
+  _renderBolsaTable(items, "cotiz-indices-us-tbody", "cotiz-indices-us-loading", "cotiz-indices-us-table");
+}
+
+function renderMercadoEtfsCedear(items) {
+  _renderBolsaTable(items, "cotiz-etfs-cedear-tbody", "cotiz-etfs-cedear-loading", "cotiz-etfs-cedear-table");
+}
+
 function renderMercadoCedears(items) {
   _renderBolsaTable(items, "cotiz-cedears-tbody", "cotiz-cedears-loading", "cotiz-cedears-table");
 }
 
 function renderMercadoAcciones(items) {
   _renderBolsaTable(items, "cotiz-merval-tbody", "cotiz-merval-loading", "cotiz-merval-table");
+}
+
+function renderMercadoCommodities(items) {
+  _renderBolsaTable(items, "cotiz-commodities-tbody", "cotiz-commodities-loading", "cotiz-commodities-table");
+}
+
+function renderMercadoGlobales(items) {
+  _renderBolsaTable(items, "cotiz-globales-tbody", "cotiz-globales-loading", "cotiz-globales-table");
 }
 
 function renderMercadoCripto(items) {
