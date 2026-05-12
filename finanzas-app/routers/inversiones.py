@@ -450,7 +450,11 @@ def get_mercado(current_user: models.User = Depends(get_current_user)):
 
         def _get_price(ticker: str):
             fi = yf.Ticker(ticker).fast_info
-            return float(fi.last_price), getattr(fi, "currency", "USD") or "USD"
+            price = float(fi.last_price)
+            prev = getattr(fi, "previous_close", None)
+            prev = float(prev) if prev is not None else None
+            currency = getattr(fi, "currency", "USD") or "USD"
+            return price, prev, currency
 
         prices: dict = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as pool:
@@ -461,19 +465,22 @@ def get_mercado(current_user: models.User = Depends(get_current_user)):
                 try:
                     prices[t] = fut.result()
                 except Exception:
-                    prices[t] = (None, None)
+                    prices[t] = (None, None, None)
 
         for section, item, forced_cur in tasks:
             ticker = item["ticker"]
-            price, _ = prices.get(ticker, (None, None))
+            price, prev, _ = prices.get(ticker, (None, None, None))
             cur = forced_cur
             if cur == "USX":
                 price = price / 100 if price is not None else None
+                prev = prev / 100 if prev is not None else None
                 cur = "USD"
+            variacion = round((price - prev) / prev * 100, 2) if price and prev else None
             display_cur = item.get("unidad", cur)
             entry = {k: v for k, v in item.items() if k not in ("unidad", "currency")}
             entry["precio"] = round(price, 2) if price is not None else None
             entry["currency"] = display_cur
+            entry["variacion"] = variacion
             result[section].append(entry)
 
     except ImportError:

@@ -1246,6 +1246,19 @@ async function fetchMercado() {
   }
 }
 
+function _fmtVariacion(v) {
+  if (v == null) return '<span class="text-slate-300 dark:text-slate-600 text-xs">—</span>';
+  const pos = v >= 0;
+  const arrow = pos ? "▲" : "▼";
+  const color = pos
+    ? "text-emerald-600 dark:text-emerald-400"
+    : "text-red-500 dark:text-red-400";
+  const bg = pos
+    ? "bg-emerald-50 dark:bg-emerald-900/20"
+    : "bg-red-50 dark:bg-red-900/20";
+  return `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-semibold ${color} ${bg}">${arrow} ${Math.abs(v).toFixed(2)}%</span>`;
+}
+
 function _renderBolsaTable(items, tbodyId, loadingId, tableId) {
   const loading = document.getElementById(loadingId);
   const table = document.getElementById(tableId);
@@ -1266,6 +1279,7 @@ function _renderBolsaTable(items, tbodyId, loadingId, tableId) {
       <td class="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 text-sm">${a.nombre}</td>
       <td class="px-4 py-2.5 font-mono text-xs text-slate-500 dark:text-slate-400">${tickerDisplay}</td>
       <td class="px-4 py-2.5 text-right text-sm">${precioTxt}</td>
+      <td class="px-4 py-2.5 text-right">${_fmtVariacion(a.variacion)}</td>
       <td class="px-4 py-2.5 text-right text-xs text-slate-400">${moneda}</td>
     </tr>`;
   }).join("");
