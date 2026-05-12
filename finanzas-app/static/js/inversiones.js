@@ -1276,11 +1276,11 @@ function _renderBolsaTable(items, tbodyId, loadingId, tableId) {
     const moneda = a.currency || "—";
     const tickerDisplay = a.simbolo || a.ticker;
     return `<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
-      <td class="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 text-sm">${a.nombre}</td>
-      <td class="px-4 py-2.5 font-mono text-xs text-slate-500 dark:text-slate-400">${tickerDisplay}</td>
-      <td class="px-4 py-2.5 text-right text-sm">${precioTxt}</td>
-      <td class="px-4 py-2.5 text-right">${_fmtVariacion(a.variacion)}</td>
-      <td class="px-4 py-2.5 text-right text-xs text-slate-400">${moneda}</td>
+      <td class="px-2 sm:px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200 text-sm">${a.nombre}</td>
+      <td class="px-2 sm:px-4 py-2.5 font-mono text-xs text-slate-500 dark:text-slate-400">${tickerDisplay}</td>
+      <td class="px-2 sm:px-4 py-2.5 text-right text-sm">${precioTxt}</td>
+      <td class="px-2 sm:px-4 py-2.5 text-right">${_fmtVariacion(a.variacion)}</td>
+      <td class="px-2 sm:px-4 py-2.5 text-right text-xs text-slate-400 hidden sm:table-cell">${moneda}</td>
     </tr>`;
   }).join("");
   loading.classList.add("hidden");
