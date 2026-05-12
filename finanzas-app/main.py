@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from limiter import limiter
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
 try:
@@ -139,6 +139,7 @@ app.include_router(google_auth.router)
 app.include_router(feedback.router)
 app.include_router(cotizaciones.router)
 app.include_router(alquileres.router)
+app.include_router(notificaciones.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter

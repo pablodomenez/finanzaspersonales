@@ -152,6 +152,10 @@
         }
       } catch (_) {}
       try {
+        const countData = await apiFetch("/api/notificaciones/count");
+        if (typeof _updateNotifBadge === "function") _updateNotifBadge((countData && countData.total) || 0);
+      } catch (_) {}
+      try {
         const googlePic = localStorage.getItem("google_picture");
         const profile = await apiFetch("/api/profile");
         const iconEl = document.getElementById("sidebar-profile-icon");

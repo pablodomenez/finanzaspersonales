@@ -101,10 +101,10 @@ const _HELP_FAQ = [
       class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
       <i data-lucide="search" class="w-4 h-4"></i>
     </button>
-    <button id="_notif-btn" onclick="toggleGlobalNotif()" title="Alertas"
-      class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors relative">
+    <button id="_notif-btn" onclick="toggleGlobalNotif()" title="Notificaciones"
+      class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors relative overflow-visible">
       <i data-lucide="bell" class="w-4 h-4"></i>
-      <span id="_notif-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 bg-violet-500 rounded-full"></span>
+      <span id="_notif-dot" class="hidden absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none pointer-events-none"></span>
     </button>
     <button id="_help-btn" onclick="openGlobalHelp()" title="Ayuda"
       class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
@@ -148,10 +148,10 @@ const _HELP_FAQ = [
     <div id="_notif-panel" class="hidden fixed z-40 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl w-80" style="top:68px;right:16px;">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-semibold text-gray-900 dark:text-white">Alertas</span>
-          <span id="_notif-count" class="hidden text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-full font-semibold"></span>
+          <span class="text-sm font-semibold text-gray-900 dark:text-white">Notificaciones</span>
+          <span id="_notif-count" class="hidden text-xs bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full font-semibold"></span>
         </div>
-        <button onclick="_markNotifRead()" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">Marcar leído</button>
+        <button onclick="_markNotifRead()" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">Marcar leídas</button>
       </div>
       <div id="_notif-list" class="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800">
         <p class="text-xs text-gray-400 text-center py-8">Cargando alertas...</p>
@@ -312,40 +312,45 @@ function _closeNotif() {
 async function _loadNotifDot() {
   if (!getToken()) return;
   try {
-    const [servicios, budgets] = await Promise.all([
-      apiFetch("/api/servicios").catch(() => []),
-      apiFetch("/api/budgets").catch(() => []),
-    ]);
-    const hasAlert =
-      (servicios || []).some(s => s.dias_restantes !== null && s.dias_restantes <= 3) ||
-      (budgets  || []).some(b => b.percentage >= 80);
-    const dot = document.getElementById("_notif-dot");
-    if (dot) dot.classList.toggle("hidden", !hasAlert);
+    const data = await apiFetch("/api/notificaciones/count").catch(() => ({ total: 0 }));
+    _updateNotifBadge((data && data.total) || 0);
   } catch (_) {}
+}
+
+function _updateNotifBadge(count) {
+  const dot = document.getElementById("_notif-dot");
+  if (!dot) return;
+  if (count > 0) {
+    dot.textContent = count > 99 ? "99+" : String(count);
+    dot.classList.remove("hidden");
+  } else {
+    dot.classList.add("hidden");
+  }
 }
 
 async function _buildNotifs() {
   const list    = document.getElementById("_notif-list");
   const countEl = document.getElementById("_notif-count");
   if (!list) return;
+  list.innerHTML = '<p class="text-xs text-gray-400 text-center py-8">Cargando...</p>';
 
-  const lastRead = +(localStorage.getItem("_notif_read") || 0);
-  const now      = Date.now();
-  const alerts   = [];
+  const now    = Date.now();
+  const alerts = [];   // computed alerts (servicios, presupuestos, deudas)
+  let dbNotifs = [];   // stored DB notifications (promo, alquiler, servicios background)
 
+  // ── Computed alerts ────────────────────────────────────────────────────────
   try {
     const servicios = await apiFetch("/api/servicios").catch(() => []);
     (servicios || []).forEach(s => {
       if (s.dias_restantes === null || s.dias_restantes === undefined) return;
       const d = s.dias_restantes;
-      if (d <= 7) {
+      if (d <= 7)
         alerts.push({
           type: d <= 3 ? "red" : "amber", icon: "calendar",
           title: s.nombre,
           desc: d < 0 ? "Servicio vencido" : d === 0 ? "Vence hoy" : d === 1 ? "Vence mañana" : `Vence en ${d} días`,
-          url: "/servicios.html", ts: now - (7 - d) * 86400000,
+          url: "/servicios.html",
         });
-      }
     });
   } catch (_) {}
 
@@ -353,11 +358,11 @@ async function _buildNotifs() {
     const budgets = await apiFetch("/api/budgets").catch(() => []);
     (budgets || []).forEach(b => {
       if (b.percentage >= 100)
-        alerts.push({ type: "red", icon: "wallet", title: `Presupuesto ${b.category.name}`,
-          desc: `Límite superado (${b.percentage}% usado)`, url: "/budgets.html", ts: now });
+        alerts.push({ type: "red",   icon: "wallet", title: `Presupuesto ${b.category.name}`,
+          desc: `Límite superado (${b.percentage}% usado)`, url: "/budgets.html" });
       else if (b.percentage >= 80)
         alerts.push({ type: "amber", icon: "wallet", title: `Presupuesto ${b.category.name}`,
-          desc: `Cerca del límite (${b.percentage}% usado)`, url: "/budgets.html", ts: now - 3600000 });
+          desc: `Cerca del límite (${b.percentage}% usado)`, url: "/budgets.html" });
     });
   } catch (_) {}
 
@@ -373,54 +378,110 @@ async function _buildNotifs() {
           type: diff <= 0 ? "red" : "amber", icon: "credit-card",
           title: `Deuda con ${d.person_name}`,
           desc: diff < 0 ? `Vencida hace ${Math.abs(diff)} días` : diff === 0 ? "Vence hoy" : `Vence en ${diff} días`,
-          url: "/debts.html", ts: now - Math.max(0, diff) * 86400000,
+          url: "/debts.html",
         });
     });
   } catch (_) {}
 
-  if (alerts.length === 0) {
+  // ── DB notifications (unread only) ─────────────────────────────────────────
+  try {
+    const all = await apiFetch("/api/notificaciones").catch(() => []);
+    dbNotifs = (all || []).filter(n => !n.leida);
+  } catch (_) {}
+
+  const total = alerts.length + dbNotifs.length;
+
+  if (total === 0) {
     list.innerHTML = `
       <div class="flex flex-col items-center py-8 gap-2 text-gray-400 dark:text-slate-500">
         <i data-lucide="check-circle" class="w-8 h-8 opacity-50"></i>
-        <p class="text-xs">Todo al día, sin alertas pendientes</p>
+        <p class="text-xs">Todo al día, sin notificaciones pendientes</p>
       </div>`;
     if (countEl) countEl.classList.add("hidden");
     if (window.lucide) lucide.createIcons();
     return;
   }
 
-  if (countEl) { countEl.textContent = alerts.length; countEl.classList.remove("hidden"); }
+  if (countEl) { countEl.textContent = total; countEl.classList.remove("hidden"); }
 
   const colorMap = {
-    red:   { bg: "bg-red-100 dark:bg-red-900/30",   text: "text-red-600 dark:text-red-400" },
-    amber: { bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-600 dark:text-amber-400" },
+    red:    { bg: "bg-red-100 dark:bg-red-900/30",    text: "text-red-600 dark:text-red-400" },
+    amber:  { bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-600 dark:text-amber-400" },
+    blue:   { bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600 dark:text-blue-400" },
+    orange: { bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-600 dark:text-orange-400" },
   };
 
-  list.innerHTML = alerts.map(a => {
-    const c = colorMap[a.type] || colorMap.amber;
-    const isNew = a.ts > lastRead;
-    return `
-      <a href="${a.url}" onclick="_closeNotif()" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer block">
-        <div class="w-8 h-8 rounded-full ${c.bg} ${c.text} flex items-center justify-center flex-shrink-0 mt-0.5">
-          <i data-lucide="${a.icon}" class="w-4 h-4"></i>
-        </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center justify-between gap-2">
-            <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${_esc(a.title)}</p>
-            ${isNew ? '<span class="w-2 h-2 bg-violet-500 rounded-full flex-shrink-0"></span>' : ''}
-          </div>
-          <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">${_esc(a.desc)}</p>
-        </div>
-      </a>`;
-  }).join("");
+  let html = "";
 
+  // DB notifications section
+  if (dbNotifs.length > 0) {
+    html += `<p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-4 pt-3 pb-1">Del sistema</p>`;
+    html += dbNotifs.map(n => {
+      const c = colorMap[n.color] || colorMap.amber;
+      return `
+        <a href="${_esc(n.url)}" onclick="_markOneRead('${n.tipo}',${n.id}); _closeNotif();"
+           class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer block">
+          <div class="w-8 h-8 rounded-full ${c.bg} ${c.text} flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i data-lucide="${_esc(n.icon)}" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${_esc(n.mensaje)}</p>
+              <span class="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">${_fmtNotifDate(n.created_at)}</p>
+          </div>
+        </a>`;
+    }).join("");
+  }
+
+  // Computed alerts section
+  if (alerts.length > 0) {
+    if (dbNotifs.length > 0)
+      html += `<p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-4 pt-3 pb-1">Alertas activas</p>`;
+    html += alerts.map(a => {
+      const c = colorMap[a.type] || colorMap.amber;
+      return `
+        <a href="${a.url}" onclick="_closeNotif()" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer block">
+          <div class="w-8 h-8 rounded-full ${c.bg} ${c.text} flex items-center justify-center flex-shrink-0 mt-0.5">
+            <i data-lucide="${a.icon}" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${_esc(a.title)}</p>
+            <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">${_esc(a.desc)}</p>
+          </div>
+        </a>`;
+    }).join("");
+  }
+
+  list.innerHTML = html;
   if (window.lucide) lucide.createIcons();
 }
 
-function _markNotifRead() {
-  localStorage.setItem("_notif_read", Date.now().toString());
-  const dot = document.getElementById("_notif-dot");
-  if (dot) dot.classList.add("hidden");
+function _fmtNotifDate(iso) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = Math.round((now - d) / 60000);
+    if (diff < 60)   return `Hace ${diff} min`;
+    if (diff < 1440) return `Hace ${Math.round(diff / 60)} h`;
+    return d.toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+  } catch (_) { return ""; }
+}
+
+async function _markOneRead(tipo, id) {
+  try {
+    await apiFetch(`/api/notificaciones/${tipo}/${id}/leer`, { method: "PATCH" });
+    _loadNotifDot();
+  } catch (_) {}
+}
+
+async function _markNotifRead() {
+  try {
+    await apiFetch("/api/notificaciones/leer-todas", { method: "PATCH" });
+  } catch (_) {}
+  _updateNotifBadge(0);
   _buildNotifs();
 }
 
