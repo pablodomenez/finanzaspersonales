@@ -1,0 +1,39 @@
+{
+  "name": "FinanzasApp — by PabloFinance",
+  "short_name": "FinanzasApp",
+  "description": "Tu app de finanzas personales: gastos, inversiones, metas y más.",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "es",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nueva transacción",
+      "url": "/transactions.html",
+      "description": "Registrar un ingreso o gasto"
+    },
+    {
+      "name": "Dashboard",
+      "url": "/dashboard.html",
+      "description": "Ver resumen financiero"
+    }
+  ]
+}

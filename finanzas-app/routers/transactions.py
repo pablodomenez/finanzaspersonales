@@ -50,6 +50,7 @@ def list_transactions(
     month: Optional[int] = None,
     year: Optional[int] = None,
     type: Optional[models.TransactionType] = None,
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -68,6 +69,9 @@ def list_transactions(
         q = q.filter(extract("year", models.Transaction.date) == year)
     if type:
         q = q.filter(models.Transaction.type == type)
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        q = q.filter(models.Transaction.description.ilike(term))
     return [_serialize(t) for t in q.order_by(models.Transaction.date.desc()).all()]
 
 

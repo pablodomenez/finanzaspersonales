@@ -26,8 +26,10 @@ async function loadTransactions() {
   const month = document.getElementById("month-select").value;
   const year = yearSelect.value;
   const type = document.getElementById("type-filter").value;
+  const search = document.getElementById("search-filter")?.value?.trim() || "";
   const params = new URLSearchParams({ month, year });
   if (type) params.set("type", type);
+  if (search) params.set("search", search);
 
   const tbody = document.getElementById("transactions-body");
   tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Cargando...</td></tr>';
@@ -160,6 +162,24 @@ document.getElementById("transaction-form").addEventListener("submit", async (e)
 ["month-select", "year-select", "type-filter"].forEach(id => {
   document.getElementById(id).addEventListener("change", loadTransactions);
 });
+
+// Búsqueda con debounce
+let _searchTimer = null;
+document.getElementById("search-filter").addEventListener("input", (e) => {
+  const clearBtn = document.getElementById("search-clear");
+  if (clearBtn) clearBtn.classList.toggle("hidden", !e.target.value);
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(loadTransactions, 350);
+});
+
+function clearSearch() {
+  const inp = document.getElementById("search-filter");
+  if (inp) inp.value = "";
+  const clearBtn = document.getElementById("search-clear");
+  if (clearBtn) clearBtn.classList.add("hidden");
+  loadTransactions();
+}
+window.clearSearch = clearSearch;
 
 // Exponer openNewModal como openModal para el onclick del HTML
 window.openModal = openNewModal;
