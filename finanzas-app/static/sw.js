@@ -26,6 +26,8 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
+  // Solo manejar requests del mismo origen
+  if (url.origin !== self.location.origin) return;
   // API calls: red siempre, nunca caché
   if (url.pathname.startsWith("/api/")) return;
   // Assets estáticos: caché primero, red como fallback

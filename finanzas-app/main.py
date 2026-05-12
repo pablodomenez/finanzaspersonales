@@ -116,7 +116,7 @@ async def security_headers(request: Request, call_next):
         "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: https:; "
-        "connect-src 'self'; "
+        "connect-src 'self' https://api.coingecko.com; "
         "frame-ancestors 'none';"
     )
     return response
