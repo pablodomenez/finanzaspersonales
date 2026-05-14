@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from limiter import limiter
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones, prestamos
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
 try:
@@ -38,6 +38,11 @@ def _migrate_db():
         "ALTER TABLE shared_groups ADD COLUMN IF NOT EXISTS join_token TEXT",
         "ALTER TABLE shared_participants ADD COLUMN IF NOT EXISTS user_id INTEGER",
         "ALTER TABLE shared_expenses ADD COLUMN IF NOT EXISTS comprobante TEXT",
+        "ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS cargos_mensuales REAL DEFAULT 0",
+        "ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS numero_operacion TEXT DEFAULT ''",
+        "ALTER TABLE pagos_prestamos ADD COLUMN IF NOT EXISTS cargos REAL DEFAULT 0",
+        "ALTER TABLE pagos_prestamos ADD COLUMN IF NOT EXISTS capital_uva REAL",
+        "ALTER TABLE pagos_prestamos ADD COLUMN IF NOT EXISTS interes_uva REAL",
     ]
     new_categories = [
         (15, "Mascotas",          "🐾", "expense"),
@@ -140,6 +145,7 @@ app.include_router(feedback.router)
 app.include_router(cotizaciones.router)
 app.include_router(alquileres.router)
 app.include_router(notificaciones.router)
+app.include_router(prestamos.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter

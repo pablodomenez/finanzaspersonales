@@ -21,6 +21,7 @@
     { id: "alquileres",   icon: "home",               label: "Alquileres", badge: "alquiler" },
     { id: "servicios",    icon: "zap",                label: "Servicios", badge: true },
     { id: "promociones",  icon: "tag",                label: "Promociones", badge: "promo" },
+    { id: "prestamos",    icon: "landmark",            label: "Préstamos" },
     { id: "compartidos",  icon: "users-round",        label: "Compartidos" },
     { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
     { id: "decisiones",   icon: "sparkles",           label: "Decisiones" },

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <title>FinanzasApp — Préstamos</title>
+  <script src="/js/theme.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config = { darkMode: "class" };</script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-20 border-r border-slate-800 -translate-x-full md:translate-x-0 transition-transform duration-300"></aside>
+
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-10 hidden md:hidden" onclick="closeSidebar()"></div>
+
+  <main class="md:ml-64 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10">
+      <button class="md:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0" onclick="openSidebar()" aria-label="Abrir menú">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="flex-1 flex items-center justify-between gap-4">
+        <div>
+          <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Préstamos</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Seguimiento de créditos y cuotas</p>
+        </div>
+        <button onclick="openNuevoModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          + Nuevo préstamo
+        </button>
+      </div>
+    </header>
+
+    <div class="p-4 md:p-8 flex-1">
+
+      <!-- KPIs globales -->
+      <div class="grid grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-red-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Deuda total</p>
+            <p id="kpi-deuda" class="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">saldo pendiente</p>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-amber-500"></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cuotas atrasadas</p>
+            <p id="kpi-atrasadas" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">—</p>
+            <p class="text-xs text-slate-400 mt-0.5">pendientes de pago</p>
+          </div>
+        </div>
+        <div class="col-span-2 xl:col-span-1 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
+          <div class="w-1 self-stretch rounded-full bg-blue-500"></div>
+          <div class="w-full">
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Próximas cuotas</p>
+            <div id="kpi-proximas" class="space-y-1 text-sm text-slate-700 dark:text-slate-300">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selector de préstamo activo -->
+      <div id="selector-container" class="hidden mb-6">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ver préstamo:</span>
+          <div id="selector-tabs" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+
+      <!-- Lista de préstamos (vista resumen) -->
+      <div id="lista-prestamos" class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8"></div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+        <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+          <i data-lucide="landmark" class="w-8 h-8 text-slate-400"></i>
+        </div>
+        <p class="text-slate-500 dark:text-slate-400 font-medium">No tenés préstamos registrados</p>
+        <p class="text-sm text-slate-400 mt-1">Agregá tu primer préstamo o crédito hipotecario</p>
+        <button onclick="openNuevoModal()" class="mt-4 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
+          + Nuevo préstamo
+        </button>
+      </div>
+
+      <!-- Tabla de cuotas (se muestra al seleccionar un préstamo) -->
+      <div id="cuotas-section" class="hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-3 p-4 md:p-6 border-b border-slate-200 dark:border-slate-700">
+            <h2 id="cuotas-titulo" class="font-semibold text-slate-800 dark:text-white text-base">Cuotas</h2>
+            <div class="flex gap-2">
+              <button data-filtro="todas" onclick="filtrarCuotas('todas')" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition active-filtro">Todas</button>
+              <button data-filtro="pendiente" onclick="filtrarCuotas('pendiente')" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition">Pendientes</button>
+              <button data-filtro="atrasado" onclick="filtrarCuotas('atrasado')" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition">Atrasadas</button>
+              <button data-filtro="pagado" onclick="filtrarCuotas('pagado')" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition">Pagadas</button>
+            </div>
+          </div>
+
+          <!-- Tabla desktop -->
+          <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50 dark:bg-slate-800 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <tr>
+                  <th class="px-4 py-3 text-left w-12">N°</th>
+                  <th class="px-4 py-3 text-left">Vencimiento</th>
+                  <th class="px-4 py-3 text-right">Capital</th>
+                  <th class="px-4 py-3 text-right">Interés</th>
+                  <th class="px-4 py-3 text-right">Seguro</th>
+                  <th class="px-4 py-3 text-right font-semibold">Total</th>
+                  <th class="px-4 py-3 text-right">Saldo restante</th>
+                  <th class="px-4 py-3 text-center">Estado</th>
+                  <th class="px-4 py-3 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-cuotas" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+
+          <!-- Lista mobile -->
+          <div id="lista-cuotas-mobile" class="md:hidden divide-y divide-slate-100 dark:divide-slate-800"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── Modal: Nuevo Préstamo ─────────────────────────────────────────── -->
+  <div id="modal-nuevo" class="hidden fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 bg-black/60 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg">
+      <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+        <h3 class="font-semibold text-slate-800 dark:text-white text-lg">Nuevo préstamo</h3>
+        <button onclick="closeNuevoModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-nuevo" onsubmit="submitNuevo(event)" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nombre del préstamo *</label>
+            <input id="f-nombre" type="text" required placeholder="ej: Hipoteca BNA" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Tipo</label>
+            <select id="f-tipo" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="hipotecario">Hipotecario</option>
+              <option value="personal" selected>Personal</option>
+              <option value="vehiculo">Vehículo / Prendario</option>
+              <option value="uva">UVA</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Entidad / Banco</label>
+            <input id="f-entidad" type="text" placeholder="ej: Banco Nación" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">N° de operación <span class="font-normal text-slate-400">(referencia del banco, ej: Op n° 33232499)</span></label>
+            <input id="f-nro-op" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Monto original *</label>
+            <input id="f-monto" type="number" required min="0.01" step="0.01" placeholder="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Moneda</label>
+            <select id="f-moneda" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="ARS" selected>ARS</option>
+              <option value="USD">USD</option>
+              <option value="UVA">UVA</option>
+            </select>
+          </div>
+          <!-- Banner UVA (se muestra solo cuando tipo=UVA o moneda=UVA) -->
+          <div id="uva-banner" class="col-span-2 hidden rounded-lg bg-cyan-50 dark:bg-cyan-950 border border-cyan-200 dark:border-cyan-800 p-3"></div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TNA % <span class="font-normal text-slate-400">(tasa nominal anual)</span></label>
+            <input id="f-tna" type="number" min="0" step="0.01" placeholder="0" value="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Sistema amortización</label>
+            <select id="f-sistema" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="frances" selected>Francés (cuota fija)</option>
+              <option value="aleman">Alemán (capital fijo)</option>
+              <option value="cuota_fija">Cuota fija sin interés</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cantidad de cuotas *</label>
+            <input id="f-cuotas" type="number" required min="1" max="600" placeholder="ej: 240" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Fecha 1° cuota *</label>
+            <input id="f-fecha" type="date" required class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              Comenzar a registrar desde la cuota N°
+              <span class="font-normal text-slate-400">(si ya venías pagando)</span>
+            </label>
+            <div class="flex items-center gap-3">
+              <input id="f-cuota-desde" type="number" min="1" value="1" class="w-28 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <p id="cuota-desde-hint" class="text-xs text-slate-400 flex-1"></p>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Día de pago</label>
+            <input id="f-dia" type="number" min="1" max="28" placeholder="10" value="10" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cargos mensuales <span class="font-normal text-slate-400">(seguros de vida/incendio + gastos administrativos)</span></label>
+            <input id="f-cargos" type="number" min="0" step="0.01" placeholder="0" value="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div class="col-span-2">
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Notas</label>
+            <textarea id="f-notas" rows="2" placeholder="Observaciones opcionales..." class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- Preview cuota estimada -->
+        <div id="preview-cuota" class="hidden rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-3 text-sm">
+          <p class="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-1">Estimación cuota</p>
+          <p id="preview-text" class="text-blue-800 dark:text-blue-300 font-medium"></p>
+        </div>
+
+        <div id="error-nuevo" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3"></div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" onclick="closeNuevoModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" id="btn-nuevo-submit" class="flex-1 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition disabled:opacity-50">Crear préstamo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Modal: Confirmar pago ─────────────────────────────────────────── -->
+  <div id="modal-pagar" class="hidden fixed inset-0 z-50 flex items-start justify-center p-4 pt-10 bg-black/60 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+      <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
+        <div>
+          <h3 class="font-semibold text-slate-800 dark:text-white">Registrar pago</h3>
+          <p id="pagar-subtitulo" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></p>
+        </div>
+        <button onclick="closePagarModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <!-- Fecha -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Fecha de pago</label>
+          <input id="pagar-fecha" type="date" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <!-- Desglose de montos reales -->
+        <div class="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <button type="button" onclick="toggleDesglose()" class="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            <span>Montos reales del banco <span class="font-normal text-slate-500">(opcional)</span></span>
+            <i id="desglose-chevron" data-lucide="chevron-down" class="w-4 h-4 transition-transform"></i>
+          </button>
+          <div id="desglose-body" class="hidden p-4 space-y-3">
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Ingresá los valores exactos del extracto bancario. Si los dejás vacíos se usan los montos calculados al crear el préstamo.
+            </p>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Capital (ARS)</label>
+                <input id="pagar-capital" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcularTotal()" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Intereses (ARS)</label>
+                <input id="pagar-interes" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcularTotal()" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cargos (ARS)</label>
+                <input id="pagar-cargos" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcularTotal()" />
+              </div>
+              <div class="flex flex-col justify-end">
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Total resultante</p>
+                <p id="pagar-total-calc" class="text-sm font-bold text-slate-800 dark:text-white">—</p>
+              </div>
+            </div>
+
+            <!-- Campos UVA (se muestran solo para préstamos UVA) -->
+            <div id="pagar-uva-fields" class="hidden pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+              <p class="text-xs font-semibold text-cyan-700 dark:text-cyan-400">Valores en UVA (del extracto bancario)</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Capital (UVA)</label>
+                  <input id="pagar-capital-uva" type="number" min="0" step="0.0001" placeholder="ej: 51.84" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Intereses (UVA)</label>
+                  <input id="pagar-interes-uva" type="number" min="0" step="0.0001" placeholder="ej: 136.89" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notas -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Notas</label>
+          <input id="pagar-notas" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div id="error-pagar" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3"></div>
+        <div class="flex gap-3">
+          <button onclick="closePagarModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+          <button onclick="confirmarPago()" class="flex-1 py-2.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold transition">Confirmar pago</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Editar préstamo ────────────────────────────────────────── -->
+  <div id="modal-editar" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
+      <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
+        <h3 class="font-semibold text-slate-800 dark:text-white">Editar préstamo</h3>
+        <button onclick="closeEditarModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-editar" onsubmit="submitEditar(event)" class="p-5 space-y-4">
+        <input type="hidden" id="e-id" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nombre</label>
+          <input id="e-nombre" type="text" required class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Entidad</label>
+          <input id="e-entidad" type="text" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">N° de operación <span class="font-normal text-slate-400">(referencia del banco)</span></label>
+          <input id="e-nro-op" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Día de pago</label>
+            <input id="e-dia" type="number" min="1" max="28" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cargos mensuales</label>
+            <input id="e-cargos" type="number" min="0" step="0.01" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Notas</label>
+          <textarea id="e-notas" rows="2" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+        </div>
+        <div id="error-editar" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3"></div>
+        <div class="flex gap-3 pt-1">
+          <button type="button" onclick="closeEditarModal()" class="flex-1 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/prestamos.js"></script>
+</body>
+</html>

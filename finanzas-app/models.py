@@ -41,6 +41,7 @@ class User(Base):
     feedbacks = relationship("Feedback", back_populates="user", cascade="all, delete")
     alquileres = relationship("Alquiler", back_populates="user", cascade="all, delete")
     notificaciones_alquileres = relationship("NotificacionAlquiler", back_populates="user", cascade="all, delete")
+    prestamos = relationship("Prestamo", back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -537,6 +538,54 @@ class GastoAlquiler(Base):
     created_at  = Column(DateTime, default=datetime.utcnow)
 
     alquiler = relationship("Alquiler", back_populates="gastos")
+
+
+class Prestamo(Base):
+    __tablename__ = "prestamos"
+
+    id                    = Column(Integer, primary_key=True, index=True)
+    user_id               = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    nombre                = Column(String, nullable=False)           # "Hipoteca BNA"
+    tipo                  = Column(String, default="personal")       # hipotecario|personal|vehiculo|prendario|uva|otro
+    entidad               = Column(String, default="")               # banco o acreedor
+    monto_original        = Column(Float, nullable=False)
+    moneda                = Column(String, default="ARS")            # ARS|USD|UVA
+    tasa_nominal_anual    = Column(Float, default=0.0)               # TNA %
+    sistema_amortizacion  = Column(String, default="frances")        # frances|aleman|cuota_fija
+    cuotas_totales        = Column(Integer, nullable=False)
+    fecha_inicio          = Column(String, nullable=False)           # YYYY-MM-DD (primera cuota)
+    dia_pago              = Column(Integer, default=10)              # día del mes 1-28
+    cargos_mensuales      = Column(Float, default=0.0)               # seguros + gastos administrativos
+    numero_operacion      = Column(String, default="")               # referencia del banco (Op n° ...)
+    notas                 = Column(String, default="")
+    activo                = Column(Boolean, default=True)
+    created_at            = Column(DateTime, default=datetime.utcnow)
+
+    user  = relationship("User", back_populates="prestamos")
+    pagos = relationship("PagoPrestamo", back_populates="prestamo", cascade="all, delete-orphan")
+
+
+class PagoPrestamo(Base):
+    __tablename__ = "pagos_prestamos"
+
+    id                = Column(Integer, primary_key=True, index=True)
+    prestamo_id       = Column(Integer, ForeignKey("prestamos.id"), nullable=False, index=True)
+    user_id           = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    numero_cuota      = Column(Integer, nullable=False)
+    fecha_vencimiento = Column(String, nullable=False)   # YYYY-MM-DD
+    fecha_pago        = Column(String, nullable=True)    # YYYY-MM-DD (null si no pagada)
+    monto_total       = Column(Float, nullable=False)    # capital + interes + cargos
+    capital           = Column(Float, default=0.0)
+    interes           = Column(Float, default=0.0)
+    cargos            = Column(Float, default=0.0)       # seguros + gastos administrativos
+    capital_uva       = Column(Float, nullable=True)     # valor en UVA (solo préstamos UVA)
+    interes_uva       = Column(Float, nullable=True)     # valor en UVA (solo préstamos UVA)
+    saldo_pendiente   = Column(Float, default=0.0)       # saldo restante tras esta cuota
+    estado            = Column(String, default="pendiente")  # pagado|pendiente|atrasado
+    notas             = Column(String, default="")
+    created_at        = Column(DateTime, default=datetime.utcnow)
+
+    prestamo = relationship("Prestamo", back_populates="pagos")
 
 
 class NotificacionAlquiler(Base):
