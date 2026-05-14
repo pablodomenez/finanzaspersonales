@@ -51,8 +51,8 @@ async function loadTransactions() {
       debito_automatico: "🔄 Débito auto.",
       cheque: "📄 Cheque",
     };
-    tbody.innerHTML = data.map(t => `
-      <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition">
+    tbody.innerHTML = data.map((t, i) => `
+      <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition anim-row-in" style="animation-delay:${Math.min(i, 15) * 28}ms">
         <td class="px-6 py-4 text-gray-800 dark:text-gray-200">
           <span class="mr-1">${t.category.icon}</span>${t.category.name}
         </td>
@@ -81,7 +81,7 @@ document.getElementById("transactions-body").addEventListener("click", (e) => {
   if (!btn) return;
   const id = parseInt(btn.dataset.id);
   if (btn.dataset.action === "edit") editTransaction(transactionMap[id]);
-  if (btn.dataset.action === "delete") deleteTransaction(id);
+  if (btn.dataset.action === "delete") deleteTransaction(id, btn.closest("tr"));
 });
 
 function openNewModal() {
@@ -115,11 +115,18 @@ function closeModal() {
   document.getElementById("modal").classList.add("hidden");
 }
 
-async function deleteTransaction(id) {
+async function deleteTransaction(id, rowEl) {
   if (!confirm("¿Eliminar esta transacción?")) return;
   try {
-    await apiFetch(`/api/transactions/${id}`, { method: "DELETE" });
-    loadTransactions();
+    if (rowEl) {
+      animateRowOut(rowEl, async () => {
+        await apiFetch(`/api/transactions/${id}`, { method: "DELETE" });
+        loadTransactions();
+      });
+    } else {
+      await apiFetch(`/api/transactions/${id}`, { method: "DELETE" });
+      loadTransactions();
+    }
   } catch (err) {
     alert(err.message);
   }

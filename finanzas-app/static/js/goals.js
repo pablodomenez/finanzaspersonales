@@ -37,6 +37,10 @@ async function loadGoals() {
       return;
     }
     grid.innerHTML = goals.map(g => renderGoalCard(g)).join("");
+    staggerFadeIn('#goals-grid > div', 60);
+    grid.querySelectorAll('[data-bar-pct]').forEach(bar => {
+      animateProgressBar(bar, parseFloat(bar.dataset.barPct));
+    });
   } catch (err) {
     grid.innerHTML = `<p class="text-red-400 text-sm col-span-3">${err.message}</p>`;
   }
@@ -76,7 +80,7 @@ function renderGoalCard(g) {
         <span class="text-slate-400">de ${formatCurrency(g.target_amount)}</span>
       </div>
       <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 mb-2">
-        <div class="h-2 rounded-full transition-all ${barColor}" style="width: ${pct}%"></div>
+        <div class="h-2 rounded-full ${barColor}" data-bar-pct="${pct}" style="width:0%"></div>
       </div>
       <div class="flex justify-between items-center mb-2">
         <span class="text-xs font-bold text-blue-600 dark:text-blue-400">${pct}%</span>

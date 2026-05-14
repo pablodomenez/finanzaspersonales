@@ -90,10 +90,11 @@ async function loadDashboard() {
     const elExpense  = document.getElementById("kpi-expense");
     const elSavings  = document.getElementById("kpi-savings");
 
-    elBalance.textContent  = formatCurrency(data.balance);
-    elIncome.textContent   = formatCurrency(data.total_income);
-    elExpense.textContent  = formatCurrency(data.total_expense);
-    elSavings.textContent  = formatCurrency(savings);
+    staggerFadeIn('#tour-kpis > div', 60);
+    animateCounter(elBalance, data.balance,        formatCurrency);
+    animateCounter(elIncome,  data.total_income,   formatCurrency);
+    animateCounter(elExpense, data.total_expense,  formatCurrency);
+    animateCounter(elSavings, savings,             formatCurrency);
 
     setKpiColor(elBalance, data.balance);
     setKpiColor(elIncome,  data.total_income);
@@ -468,11 +469,14 @@ async function loadBudgets() {
             <span class="text-xs text-gray-500 dark:text-slate-400 flex-shrink-0 ml-2">${formatCurrency(b.spent)} / ${formatCurrency(b.limit_amount)}</span>
           </div>
           <div class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
-            <div class="${barColor} h-1.5 rounded-full progress-bar" style="width:${Math.min(pct, 100)}%"></div>
+            <div class="${barColor} h-1.5 rounded-full" data-bar-pct="${Math.min(pct, 100)}" style="width:0%"></div>
           </div>
           <p class="text-right text-xs ${pctColor} mt-0.5">${pct}%</p>
         </div>`;
     }).join("");
+    el.querySelectorAll('[data-bar-pct]').forEach(bar => {
+      animateProgressBar(bar, parseFloat(bar.dataset.barPct));
+    });
   } catch (_) {}
 }
 
@@ -526,11 +530,14 @@ async function loadCalendar() {
             </div>
             <p class="text-xs text-gray-400 mt-0.5">${venceLabel}</p>
             <div class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1 mt-1.5">
-              <div class="${barColor} h-1 rounded-full progress-bar" style="width:${pct}%"></div>
+              <div class="${barColor} h-1 rounded-full" data-bar-pct="${pct}" style="width:0%"></div>
             </div>
           </div>
         </div>`;
     }).join("");
+    el.querySelectorAll('[data-bar-pct]').forEach(bar => {
+      animateProgressBar(bar, parseFloat(bar.dataset.barPct));
+    });
   } catch (_) {}
 }
 

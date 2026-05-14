@@ -44,6 +44,10 @@ async function loadBudgets() {
       return;
     }
     grid.innerHTML = data.map(b => renderBudgetCard(b)).join("");
+    staggerFadeIn('#budgets-grid > div', 60);
+    grid.querySelectorAll('[data-bar-pct]').forEach(bar => {
+      animateProgressBar(bar, parseFloat(bar.dataset.barPct));
+    });
   } catch (err) {
     grid.innerHTML = `<p class="text-red-400 text-sm col-span-3">${err.message}</p>`;
   }
@@ -70,7 +74,7 @@ function renderBudgetCard(b) {
         <span class="text-gray-400">de ${formatCurrency(b.limit_amount)}</span>
       </div>
       <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-2">
-        <div class="h-2 rounded-full transition-all ${color}" style="width: ${pct}%"></div>
+        <div class="h-2 rounded-full ${color}" data-bar-pct="${pct}" style="width:0%"></div>
       </div>
       <div class="flex justify-between items-center">
         ${label}
