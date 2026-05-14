@@ -79,14 +79,12 @@ async function mostrarBannerUva() {
 }
 
 async function fetchUvaDirecto() {
-    const hoy = new Date().toISOString().slice(0, 10);
-    const desde = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
-    const url = `https://api.bcra.gob.ar/estadisticas/v2.0/datosvariable/4/${desde}/${hoy}`;
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('BCRA error');
-    const resultados = (await resp.json()).results || [];
-    if (!resultados.length) throw new Error('Sin datos');
-    const ultimo = resultados[resultados.length - 1];
+    // argentinadatos.com soporta CORS y es accesible desde el browser
+    const resp = await fetch('https://api.argentinadatos.com/v1/finanzas/indices/uva');
+    if (!resp.ok) throw new Error('argentinadatos error');
+    const data = await resp.json();
+    if (!Array.isArray(data) || !data.length) throw new Error('Sin datos');
+    const ultimo = data[data.length - 1];
     return { valor: parseFloat(ultimo.valor), fecha: ultimo.fecha };
 }
 

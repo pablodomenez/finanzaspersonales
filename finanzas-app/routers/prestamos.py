@@ -244,7 +244,21 @@ def get_uva():
         _uva_cache["ts"] = now
         return _uva_cache
     except Exception as e:
-        print(f"[uva] Error BCRA: {e}")
+        print(f"[uva] Error BCRA: {e}, intentando argentinadatos…")
+
+    try:
+        resp2 = requests.get("https://api.argentinadatos.com/v1/finanzas/indices/uva", timeout=5)
+        resp2.raise_for_status()
+        data = resp2.json()
+        if not data:
+            raise ValueError("Sin datos")
+        ultimo = data[-1]
+        _uva_cache["valor"] = round(float(ultimo["valor"]), 4)
+        _uva_cache["fecha"] = ultimo["fecha"]
+        _uva_cache["ts"] = now
+        return _uva_cache
+    except Exception as e2:
+        print(f"[uva] Error argentinadatos: {e2}")
         if _uva_cache["valor"]:
             return _uva_cache
         raise HTTPException(status_code=503, detail="No se pudo obtener la cotización UVA")
