@@ -64,13 +64,30 @@ async function mostrarBannerUva() {
         </div>`;
 
     try {
-        const data = await apiFetch('/api/prestamos/uva');
+        let data;
+        try {
+            data = await apiFetch('/api/prestamos/uva');
+        } catch (_) {
+            data = await fetchUvaDirecto();
+        }
         uvaActual = { valor: data.valor, fecha: data.fecha };
         actualizarTextoBannerUva();
         actualizarPreview();
     } catch (_) {
         banner.innerHTML = `<p class="text-xs text-red-600 dark:text-red-400">No se pudo obtener la cotización UVA en este momento.</p>`;
     }
+}
+
+async function fetchUvaDirecto() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const desde = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+    const url = `https://api.bcra.gob.ar/estadisticas/v2.0/datosvariable/4/${desde}/${hoy}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('BCRA error');
+    const resultados = (await resp.json()).results || [];
+    if (!resultados.length) throw new Error('Sin datos');
+    const ultimo = resultados[resultados.length - 1];
+    return { valor: parseFloat(ultimo.valor), fecha: ultimo.fecha };
 }
 
 function actualizarTextoBannerUva() {
@@ -159,7 +176,8 @@ function renderizarPrestamos() {
 
     const hayUva = prestamos.some(p => p.tipo === 'uva' || p.moneda === 'UVA');
     if (hayUva && !uvaActual) {
-        apiFetch('/api/prestamos/uva').then(data => {
+        const fetchUva = () => apiFetch('/api/prestamos/uva').catch(() => fetchUvaDirecto());
+        fetchUva().then(data => {
             uvaActual = { valor: data.valor, fecha: data.fecha };
             renderizarPrestamos();
         }).catch(() => {});
