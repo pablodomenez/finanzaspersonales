@@ -435,8 +435,10 @@
             password: pwdInput.value,
           }),
         });
-        setSession(data.access_token, data.user_name, data.terms_accepted);
-        window.location.href = data.terms_accepted ? "/dashboard.html" : "/terms.html";
+        setSession(data.access_token, data.user_name, data.terms_accepted, data.onboarding_done, data.refresh_token);
+        if (!data.terms_accepted) { window.location.href = "/terms.html"; return; }
+        if (!data.onboarding_done && data.refresh_token) { window.location.href = "/onboarding.html"; return; }
+        window.location.href = "/dashboard.html";
       } catch (err) {
         errEl.textContent = err.message;
         errEl.classList.remove("hidden");

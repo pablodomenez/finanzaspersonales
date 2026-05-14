@@ -25,9 +25,11 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user_name: str
     terms_accepted: bool
+    onboarding_done: bool = True
 
 
 @router.post("/register", response_model=TokenResponse)
@@ -43,8 +45,15 @@ def register(request: Request, data: RegisterRequest, db: Session = Depends(get_
     db.add(user)
     db.commit()
     db.refresh(user)
-    token = auth_utils.create_access_token({"sub": str(user.id)})
-    return TokenResponse(access_token=token, user_name=user.name, terms_accepted=False)
+    access = auth_utils.create_access_token({"sub": str(user.id)})
+    refresh = auth_utils.create_refresh_token(user.id)
+    return TokenResponse(
+        access_token=access,
+        refresh_token=refresh,
+        user_name=user.name,
+        terms_accepted=False,
+        onboarding_done=False,
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -53,11 +62,27 @@ def login(request: Request, data: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == data.email).first()
     if not user or not auth_utils.verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
-    token = auth_utils.create_access_token({"sub": str(user.id)})
+    if user.totp_enabled:
+        # Devolver flag para que el frontend solicite el código TOTP
+        pending_token = auth_utils.create_access_token(
+            {"sub": str(user.id), "pending_2fa": True},
+            expires_delta=__import__("datetime").timedelta(minutes=5),
+        )
+        return TokenResponse(
+            access_token=pending_token,
+            refresh_token="",
+            user_name=user.name,
+            terms_accepted=(user.terms_accepted_at is not None),
+            onboarding_done=bool(user.onboarding_done),
+        )
+    access = auth_utils.create_access_token({"sub": str(user.id)})
+    refresh = auth_utils.create_refresh_token(user.id)
     return TokenResponse(
-        access_token=token,
+        access_token=access,
+        refresh_token=refresh,
         user_name=user.name,
         terms_accepted=(user.terms_accepted_at is not None),
+        onboarding_done=bool(user.onboarding_done),
     )
 
 
@@ -80,7 +105,36 @@ def me(current_user: models.User = Depends(auth_utils.get_current_user)):
         "name": current_user.name,
         "email": current_user.email,
         "terms_accepted": current_user.terms_accepted_at is not None,
+        "onboarding_done": bool(current_user.onboarding_done),
+        "totp_enabled": bool(current_user.totp_enabled),
     }
+
+
+@router.post("/complete-onboarding", status_code=200)
+def complete_onboarding(
+    current_user: models.User = Depends(auth_utils.get_current_user),
+    db: Session = Depends(get_db),
+):
+    db.query(models.User).filter(models.User.id == current_user.id).update({"onboarding_done": True})
+    db.commit()
+    return {"ok": True}
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+@router.post("/refresh")
+def refresh_token(data: RefreshRequest, db: Session = Depends(get_db)):
+    user_id = auth_utils.decode_refresh_token(data.refresh_token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Refresh token inválido o expirado")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuario no encontrado")
+    access = auth_utils.create_access_token({"sub": str(user.id)})
+    refresh = auth_utils.create_refresh_token(user.id)
+    return {"access_token": access, "refresh_token": refresh, "token_type": "bearer"}
 
 
 class ForgotPasswordRequest(BaseModel):

@@ -265,6 +265,33 @@
 
       </div>
 
+      <!-- ── Patrimonio Neto + Proyecciones ── -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- Patrimonio Neto -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Patrimonio Neto</h3>
+            <i data-lucide="landmark" class="w-4 h-4 text-violet-500"></i>
+          </div>
+          <div id="networth-content">
+            <p class="text-xs text-gray-400">Calculando...</p>
+          </div>
+        </div>
+
+        <!-- Proyecciones -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Proyección próximos meses</h3>
+            <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
+          </div>
+          <div class="h-40">
+            <canvas id="proyecciones-chart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
       <!-- ── Score + Tip Row ── -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 

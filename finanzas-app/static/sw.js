@@ -1,4 +1,4 @@
-const CACHE = "finanzas-v2";
+const CACHE = "finanzas-v3";
 const STATIC_ASSETS = [
   "/dashboard.html", "/transactions.html", "/budgets.html", "/goals.html",
   "/debts.html", "/cards.html", "/inversiones.html", "/reports.html",
@@ -24,6 +24,27 @@ self.addEventListener("activate", (e) => {
     )
   );
   self.clients.claim();
+});
+
+// ── Web Push ──────────────────────────────────────────────────────────────────
+self.addEventListener("push", (e) => {
+  let data = { title: "FinanzasApp", body: "Tenés una nueva notificación", url: "/dashboard.html" };
+  try { data = { ...data, ...e.data.json() }; } catch (_) {}
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: data.url },
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = e.notification.data?.url || "/dashboard.html";
+  e.waitUntil(clients.openWindow(url));
 });
 
 self.addEventListener("fetch", (e) => {

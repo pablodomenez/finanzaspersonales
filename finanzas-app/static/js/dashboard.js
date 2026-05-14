@@ -19,6 +19,7 @@ const TIPS = [
 
 let lineChart = null;
 let donutChart = null;
+let proyeccionesChart = null;
 
 // ── Greeting ──────────────────────────────────────────────────────────────────
 (function setGreeting() {
@@ -533,10 +534,86 @@ async function loadCalendar() {
   } catch (_) {}
 }
 
+// ── Net Worth ─────────────────────────────────────────────────────────────────
+async function loadNetWorth() {
+  const el = document.getElementById("networth-content");
+  if (!el) return;
+  try {
+    const d = await apiFetch("/api/dashboard/networth");
+    const nw = d.patrimonio_neto;
+    const color = nw >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400";
+    el.innerHTML = `
+      <p class="text-3xl font-bold ${color} mb-4">${formatCurrency(nw)}</p>
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
+          <p class="text-gray-400 mb-1">Activos</p>
+          <p class="font-bold text-emerald-600 dark:text-emerald-400">${formatCurrency(d.activos)}</p>
+          <p class="text-gray-400 mt-1.5">Inversiones: ${formatCurrency(d.detalle.inversiones)}</p>
+          <p class="text-gray-400">Metas: ${formatCurrency(d.detalle.metas_ahorro)}</p>
+          <p class="text-gray-400">A cobrar: ${formatCurrency(d.detalle.deudas_a_cobrar)}</p>
+        </div>
+        <div class="bg-red-50 dark:bg-red-900/20 rounded-xl p-3">
+          <p class="text-gray-400 mb-1">Pasivos</p>
+          <p class="font-bold text-red-500 dark:text-red-400">${formatCurrency(d.pasivos)}</p>
+          <p class="text-gray-400 mt-1.5">Deudas: ${formatCurrency(d.detalle.deudas_a_pagar)}</p>
+          <p class="text-gray-400">Préstamos: ${formatCurrency(d.detalle.prestamos_pendientes)}</p>
+        </div>
+      </div>`;
+  } catch (_) {
+    el.innerHTML = '<p class="text-xs text-gray-400">No se pudo calcular</p>';
+  }
+}
+
+// ── Proyecciones ──────────────────────────────────────────────────────────────
+async function loadProyecciones() {
+  const ctx = document.getElementById("proyecciones-chart");
+  if (!ctx) return;
+  try {
+    const d = await apiFetch("/api/dashboard/proyecciones?months=6");
+    const proj = d.proyecciones || [];
+    const labels = proj.map(p => `${MONTH_NAMES[p.month - 1]} ${String(p.year).slice(-2)}`);
+    const incomes   = proj.map(p => p.income);
+    const expenses  = proj.map(p => p.expense);
+    const balances  = proj.map(p => p.balance);
+
+    if (proyeccionesChart) {
+      proyeccionesChart.data.labels = labels;
+      proyeccionesChart.data.datasets[0].data = incomes;
+      proyeccionesChart.data.datasets[1].data = expenses;
+      proyeccionesChart.data.datasets[2].data = balances;
+      proyeccionesChart.update();
+    } else {
+      proyeccionesChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label: "Ingresos", data: incomes, backgroundColor: "rgba(16,185,129,0.6)", borderRadius: 4 },
+            { label: "Gastos",   data: expenses, backgroundColor: "rgba(239,68,68,0.6)", borderRadius: 4 },
+            { label: "Balance",  data: balances, type: "line", borderColor: "#6366f1",
+              backgroundColor: "rgba(99,102,241,0.1)", tension: 0.4, fill: true,
+              pointRadius: 3, borderWidth: 2 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false,
+            callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 9 }, color: "#9ca3af" } },
+            y: { beginAtZero: true, ticks: { font: { size: 9 }, color: "#9ca3af",
+              callback: v => "$" + (Math.abs(v) >= 1000 ? (v/1000).toFixed(0)+"k" : v) } },
+          },
+        },
+      });
+    }
+  } catch (_) {}
+}
+
 // ── Orchestration ─────────────────────────────────────────────────────────────
 async function loadAll() {
   await loadDashboard();
-  await Promise.all([loadBudgets(), loadCalendar()]);
+  await Promise.all([loadBudgets(), loadCalendar(), loadNetWorth(), loadProyecciones()]);
   lucide.createIcons();
 }
 

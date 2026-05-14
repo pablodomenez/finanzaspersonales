@@ -1,22 +1,45 @@
 import asyncio
+import logging
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from limiter import limiter
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones, prestamos
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones, prestamos, push, twofa
 import models  # SQLAlchemy declarative models must be imported to register table definitions
+
+# ── Sentry ──────────────────────────────────────────────────────────────────────
+_sentry_dsn = os.getenv("SENTRY_DSN", "")
+if _sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        integrations=[FastApiIntegration(), SqlalchemyIntegration()],
+        traces_sample_rate=0.2,
+        environment=os.getenv("ENVIRONMENT", "production"),
+    )
+
+# ── Logging estructurado ────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format='{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":"%(message)s"}',
+    datefmt="%Y-%m-%dT%H:%M:%S",
+)
+logger = logging.getLogger("finanzas")
 
 try:
     Base.metadata.create_all(bind=engine)
 except Exception as e:
-    print(f"DB init error: {e}")
+    logger.error("DB init error: %s", e)
 
 
 def _migrate_db():
@@ -48,8 +71,13 @@ def _migrate_db():
         (15, "Mascotas",          "🐾", "expense"),
         (16, "Tarjeta de crédito","💳", "expense"),
     ]
+    extra_columns = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled INTEGER DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_done INTEGER DEFAULT 0",
+    ]
     with engine.connect() as conn:
-        for sql in new_columns:
+        for sql in new_columns + extra_columns:
             try:
                 conn.execute(text(sql))
                 conn.commit()
@@ -68,7 +96,7 @@ def _migrate_db():
 try:
     _migrate_db()
 except Exception as e:
-    print(f"Migration error: {e}")
+    logger.error("Migration error: %s", e)
 
 
 @asynccontextmanager
@@ -90,11 +118,32 @@ async def lifespan(app: FastAPI):
                 pass
 
 
-app = FastAPI(title="FinanzasApp", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="FinanzasApp",
+    version="2.0.0",
+    lifespan=lifespan,
+    openapi_tags=[
+        {"name": "auth", "description": "Autenticación y sesiones"},
+        {"name": "2fa", "description": "Autenticación de dos factores (TOTP)"},
+        {"name": "transactions", "description": "Transacciones de ingresos y gastos"},
+        {"name": "dashboard", "description": "Resumen financiero y KPIs"},
+        {"name": "budgets", "description": "Presupuestos por categoría"},
+        {"name": "goals", "description": "Metas de ahorro"},
+        {"name": "debts", "description": "Deudas"},
+        {"name": "cards", "description": "Tarjetas de crédito y cuotas"},
+        {"name": "reports", "description": "Reportes y exportaciones"},
+        {"name": "inversiones", "description": "Portfolio de inversiones"},
+        {"name": "servicios", "description": "Servicios recurrentes"},
+        {"name": "prestamos", "description": "Préstamos y amortización"},
+        {"name": "alquileres", "description": "Alquileres y actualizaciones"},
+        {"name": "push", "description": "Notificaciones push (Web Push API)"},
+    ],
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 _allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000").lstrip('﻿').strip().split(",")
 app.add_middleware(
@@ -104,6 +153,21 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
+
+
+@app.middleware("http")
+async def request_logging(request: Request, call_next):
+    import time
+    start = time.time()
+    response: Response = await call_next(request)
+    duration = round((time.time() - start) * 1000, 1)
+    if not request.url.path.startswith("/api/"):
+        return response
+    logger.info(
+        '{"method":"%s","path":"%s","status":%d,"ms":%s}',
+        request.method, request.url.path, response.status_code, duration,
+    )
+    return response
 
 
 @app.middleware("http")
@@ -146,6 +210,8 @@ app.include_router(cotizaciones.router)
 app.include_router(alquileres.router)
 app.include_router(notificaciones.router)
 app.include_router(prestamos.router)
+app.include_router(push.router)
+app.include_router(twofa.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter

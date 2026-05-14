@@ -51,9 +51,15 @@ def list_transactions(
     year: Optional[int] = None,
     type: Optional[models.TransactionType] = None,
     search: Optional[str] = None,
+    page: int = 1,
+    limit: int = 100,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
+    limit = min(max(limit, 1), 500)
+    page  = max(page, 1)
+    offset = (page - 1) * limit
+
     q = (
         db.query(models.Transaction)
         .options(joinedload(models.Transaction.category))
@@ -72,7 +78,21 @@ def list_transactions(
     if search and search.strip():
         term = f"%{search.strip()}%"
         q = q.filter(models.Transaction.description.ilike(term))
-    return [_serialize(t) for t in q.order_by(models.Transaction.date.desc()).all()]
+
+    total = q.count()
+    items = q.order_by(models.Transaction.date.desc()).offset(offset).limit(limit).all()
+
+    # Retrocompatibilidad: si no se usa paginación (page=1, limit=100 default), devuelve lista directa
+    if page == 1 and limit == 100 and not search:
+        return [_serialize(t) for t in items]
+
+    return {
+        "items": [_serialize(t) for t in items],
+        "total": total,
+        "page": page,
+        "pages": max(1, -(-total // limit)),  # ceil division
+        "limit": limit,
+    }
 
 
 @router.post("", status_code=201)

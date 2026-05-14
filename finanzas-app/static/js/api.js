@@ -4,17 +4,25 @@ function getToken() {
   return localStorage.getItem("token");
 }
 
-function setSession(token, name, termsAccepted) {
+function getRefreshToken() {
+  return localStorage.getItem("refresh_token");
+}
+
+function setSession(token, name, termsAccepted, onboardingDone, refreshToken) {
   localStorage.setItem("token", token);
   localStorage.setItem("user_name", name);
   localStorage.setItem("terms_accepted", termsAccepted === true || termsAccepted === "true" ? "true" : "false");
+  if (onboardingDone !== undefined) localStorage.setItem("onboarding_done", onboardingDone ? "true" : "false");
+  if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
 }
 
 function clearSession() {
   localStorage.removeItem("token");
+  localStorage.removeItem("refresh_token");
   localStorage.removeItem("user_name");
   localStorage.removeItem("google_picture");
   localStorage.removeItem("terms_accepted");
+  localStorage.removeItem("onboarding_done");
 }
 
 function requireAuth() {
@@ -31,14 +39,55 @@ function requireTerms() {
   }
 }
 
+let _refreshingPromise = null;
+
+async function _tryRefresh() {
+  const rt = getRefreshToken();
+  if (!rt) return false;
+  try {
+    const res = await fetch("/api/auth/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: rt }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    localStorage.setItem("token", data.access_token);
+    if (data.refresh_token) localStorage.setItem("refresh_token", data.refresh_token);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 async function apiFetch(path, options = {}) {
   const token = getToken();
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(API_BASE + path, { ...options, headers });
+  let res = await fetch(API_BASE + path, { ...options, headers });
 
   if (res.status === 401) {
+    // Intentar refresh token antes de redirigir al login
+    if (!_refreshingPromise) {
+      _refreshingPromise = _tryRefresh().finally(() => { _refreshingPromise = null; });
+    }
+    const refreshed = await _refreshingPromise;
+    if (refreshed) {
+      // Reintentar el request con el nuevo access token
+      headers["Authorization"] = `Bearer ${getToken()}`;
+      res = await fetch(API_BASE + path, { ...options, headers });
+      if (res.status !== 401) {
+        if (!res.ok) {
+          let body = ""; try { body = await res.text(); } catch (_) {}
+          let detail = `Error ${res.status}`;
+          try { const j = JSON.parse(body); detail = j.detail || detail; } catch (_) {}
+          throw new Error(detail);
+        }
+        if (res.status === 204) return null;
+        return res.json();
+      }
+    }
     clearSession();
     window.location.href = "/login.html";
     return;

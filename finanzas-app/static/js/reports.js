@@ -111,5 +111,23 @@ function exportCSV() {
   window.location.href = `/api/reports/export/csv?year=${year}`;
 }
 
+function exportPDF() {
+  const year = yearSelect.value;
+  const token = getToken();
+  fetch(`/api/reports/export/pdf?year=${year}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+    .then(r => r.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement("a");
+      a.href = url;
+      a.download = `reporte_finanzas_${year}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(() => alert("Error al generar el PDF"));
+}
+
 yearSelect.addEventListener("change", loadReport);
 loadReport();

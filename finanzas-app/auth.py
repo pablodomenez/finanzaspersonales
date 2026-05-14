@@ -15,7 +15,9 @@ if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY no está configurada. Generá una con: python -c \"import secrets; print(secrets.token_hex(32))\"")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080").lstrip('﻿').strip())
+# Access token: 30 min por defecto (usa ACCESS_TOKEN_EXPIRE_MINUTES para override)
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30").lstrip('﻿').strip())
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30").lstrip('﻿').strip())
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer()
@@ -32,8 +34,26 @@ def verify_password(plain: str, hashed: str) -> bool:
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode["exp"] = expire
+    to_encode.update({"exp": expire, "type": "access"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(user_id: int) -> str:
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    payload = {"sub": str(user_id), "exp": expire, "type": "refresh"}
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_refresh_token(token: str) -> Optional[int]:
+    """Decodifica un refresh token y devuelve el user_id, o None si es inválido."""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "refresh":
+            return None
+        user_id = payload.get("sub")
+        return int(user_id) if user_id else None
+    except JWTError:
+        return None
 
 
 def get_current_user(

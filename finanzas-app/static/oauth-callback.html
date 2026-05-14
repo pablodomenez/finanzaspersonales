@@ -25,10 +25,11 @@
         const res = await fetch(`/api/auth/google/exchange?code=${encodeURIComponent(code)}`);
         if (!res.ok) throw new Error("exchange_failed");
         const data = await res.json();
-        setSession(data.access_token, data.user_name || "", data.terms_accepted ? "true" : "false");
+        setSession(data.access_token, data.user_name || "", data.terms_accepted ? "true" : "false", data.onboarding_done, data.refresh_token);
         if (data.picture) localStorage.setItem("google_picture", data.picture);
         else localStorage.removeItem("google_picture");
-        window.location.replace(data.terms_accepted ? "/dashboard.html" : "/terms.html");
+        if (!data.terms_accepted) { window.location.replace("/terms.html"); return; }
+        window.location.replace(data.onboarding_done ? "/dashboard.html" : "/onboarding.html");
       } catch {
         window.location.replace("/login.html?error=google_token");
       }

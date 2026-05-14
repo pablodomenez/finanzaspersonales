@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Boolean, Text
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Boolean, Text, Index
 from sqlalchemy.orm import relationship
 from database import Base
 import enum
@@ -20,6 +20,9 @@ class User(Base):
     google_id = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     terms_accepted_at = Column(DateTime, nullable=True)
+    totp_secret = Column(String, nullable=True)
+    totp_enabled = Column(Boolean, default=False)
+    onboarding_done = Column(Boolean, default=False)
 
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete")
     budgets = relationship("Budget", back_populates="user", cascade="all, delete")
@@ -42,6 +45,7 @@ class User(Base):
     alquileres = relationship("Alquiler", back_populates="user", cascade="all, delete")
     notificaciones_alquileres = relationship("NotificacionAlquiler", back_populates="user", cascade="all, delete")
     prestamos = relationship("Prestamo", back_populates="user", cascade="all, delete-orphan")
+    push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -58,6 +62,10 @@ class Category(Base):
 
 class Transaction(Base):
     __tablename__ = "transactions"
+    __table_args__ = (
+        Index("idx_transactions_user_date", "user_id", "date"),
+        Index("idx_transactions_user_type_date", "user_id", "type", "date"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -75,6 +83,9 @@ class Transaction(Base):
 
 class Budget(Base):
     __tablename__ = "budgets"
+    __table_args__ = (
+        Index("idx_budgets_user_period", "user_id", "year", "month"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -144,6 +155,9 @@ class CreditCard(Base):
 
 class CardExpense(Base):
     __tablename__ = "card_expenses"
+    __table_args__ = (
+        Index("idx_card_expenses_card_period", "card_id", "first_payment_year", "first_payment_month"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -221,6 +235,9 @@ class Servicio(Base):
 
 class Notificacion(Base):
     __tablename__ = "notificaciones"
+    __table_args__ = (
+        Index("idx_notificaciones_user_leida", "user_id", "leida"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -602,3 +619,16 @@ class NotificacionAlquiler(Base):
 
     alquiler = relationship("Alquiler", back_populates="notificaciones")
     user     = relationship("User", back_populates="notificaciones_alquileres")
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    endpoint   = Column(String, nullable=False, unique=True)
+    p256dh     = Column(String, nullable=False)
+    auth_key   = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="push_subscriptions")
