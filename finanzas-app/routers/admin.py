@@ -144,7 +144,7 @@ def get_stats(
     )
 
     # 2FA y Google OAuth adoption
-    totp_count = db.query(func.count(models.User.id)).filter(models.User.totp_enabled == 1).scalar()
+    totp_count = db.query(func.count(models.User.id)).filter(models.User.totp_enabled.is_(True)).scalar()
     google_count = db.query(func.count(models.User.id)).filter(models.User.google_id.isnot(None)).scalar()
     push_subs = db.query(func.count(models.PushSubscription.id)).scalar()
 
