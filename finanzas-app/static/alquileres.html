@@ -11,7 +11,22 @@
   <title>FinanzasApp — Alquileres</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
@@ -26,10 +41,10 @@
       </button>
       <div class="flex-1 flex items-center justify-between">
         <div>
-          <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Alquileres</h1>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white">Alquileres</h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gestioná tus contratos, pagos e índices de actualización</p>
         </div>
-        <button onclick="openAlquilerModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button onclick="openAlquilerModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
           + Nuevo alquiler
         </button>
       </div>
@@ -77,10 +92,10 @@
           </div>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
-          <div class="w-1 self-stretch rounded-full bg-violet-500"></div>
+          <div class="w-1 self-stretch rounded-full bg-blue-500"></div>
           <div>
             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pagos pendientes</p>
-            <p id="kpi-pendientes" class="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-1">—</p>
+            <p id="kpi-pendientes" class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">—</p>
             <p class="text-xs text-slate-400 mt-0.5">este mes</p>
           </div>
         </div>
@@ -104,7 +119,7 @@
   <div id="alquiler-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
       <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-        <h2 id="alquiler-modal-title" class="text-lg font-semibold text-slate-800 dark:text-white">Nuevo alquiler</h2>
+        <h2 id="alquiler-modal-title" class="text-xl font-bold text-slate-900 dark:text-white">Nuevo alquiler</h2>
         <button onclick="closeAlquilerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form id="alquiler-form" class="px-6 py-5 space-y-4">
@@ -202,7 +217,7 @@
   <div id="pago-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
       <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Registrar pago</h2>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Registrar pago</h2>
         <button onclick="closePagoModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form id="pago-form" class="px-6 py-5 space-y-4">
@@ -257,7 +272,7 @@
   <div id="actualizacion-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
       <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Actualizar precio</h2>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Actualizar precio</h2>
         <button onclick="closeActualizacionModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="px-6 py-5 space-y-4">
@@ -306,7 +321,7 @@
   <div id="detalle-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
       <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
-        <h2 id="detalle-title" class="text-lg font-semibold text-slate-800 dark:text-white"></h2>
+        <h2 id="detalle-title" class="text-xl font-bold text-slate-900 dark:text-white"></h2>
         <button onclick="closeDetalleModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="px-6 py-5">
@@ -340,7 +355,7 @@
         <div id="panel-gastos" class="tab-panel hidden">
           <div class="flex justify-between items-center mb-3">
             <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Gastos asociados</p>
-            <button id="btn-nuevo-gasto" onclick="" class="text-xs bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg font-medium transition">+ Agregar gasto</button>
+            <button id="btn-nuevo-gasto" onclick="" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition">+ Agregar gasto</button>
           </div>
           <div id="gastos-list" class="space-y-2"></div>
         </div>
@@ -359,7 +374,7 @@
   <div id="gasto-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md">
       <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-slate-800 dark:text-white">Agregar gasto</h2>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Agregar gasto</h2>
         <button onclick="closeGastoModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form id="gasto-form" class="px-6 py-5 space-y-4">
@@ -399,7 +414,7 @@
         <div id="gasto-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
         <div class="flex gap-3 pt-2">
           <button type="button" onclick="closeGastoModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition">Guardar</button>
+          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition">Guardar</button>
         </div>
       </form>
     </div>

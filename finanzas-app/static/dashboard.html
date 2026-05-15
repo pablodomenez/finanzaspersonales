@@ -11,8 +11,23 @@
   <title>FinanzasApp — Dashboard</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/design.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
     .progress-bar { transition: width 0.6s ease; }
@@ -21,7 +36,7 @@
     #category-list::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-slate-950 min-h-screen">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen">
 
   <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-20 border-r border-slate-800 -translate-x-full md:translate-x-0 transition-transform duration-300"></aside>
 
@@ -30,18 +45,18 @@
   <main class="md:ml-64 min-h-screen flex flex-col">
 
     <!-- ── Header ── -->
-    <header class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10">
-      <button class="md:hidden p-2 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 flex-shrink-0" onclick="openSidebar()" aria-label="Abrir menú">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10">
+      <button class="md:hidden p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0" onclick="openSidebar()" aria-label="Abrir menú">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="flex-1 flex items-center justify-between min-w-0">
         <div class="min-w-0">
-          <h1 id="greeting" class="text-xl font-bold text-gray-900 dark:text-white">Hola 👋</h1>
-          <p class="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Este es el resumen de tus finanzas hoy</p>
+          <h1 id="greeting" class="text-xl font-bold text-slate-900 dark:text-white">Hola 👋</h1>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Este es el resumen de tus finanzas hoy</p>
         </div>
         <div class="flex items-center gap-2">
           <div class="hidden sm:flex items-center gap-2">
-            <select id="month-select" class="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+            <select id="month-select" class="px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="1">Enero</option><option value="2">Febrero</option>
               <option value="3">Marzo</option><option value="4">Abril</option>
               <option value="5">Mayo</option><option value="6">Junio</option>
@@ -49,9 +64,9 @@
               <option value="9">Septiembre</option><option value="10">Octubre</option>
               <option value="11">Noviembre</option><option value="12">Diciembre</option>
             </select>
-            <select id="year-select" class="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500"></select>
+            <select id="year-select" class="px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
           </div>
-          <button onclick="window.location.href='/transactions.html'" class="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-violet-200 dark:shadow-none">
+          <button onclick="window.location.href='/transactions.html'" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span class="hidden sm:inline">Nuevo movimiento</span>
           </button>
@@ -65,51 +80,51 @@
       <div id="tour-kpis" class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
         <!-- Saldo total -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
           <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-slate-400">Saldo total</p>
-            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-              <i data-lucide="wallet" class="w-4 h-4 sm:w-5 sm:h-5 text-violet-600 dark:text-violet-400"></i>
+            <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Saldo total</p>
+            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <i data-lucide="wallet" class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400"></i>
             </div>
           </div>
           <p id="kpi-balance" class="text-base sm:text-2xl font-bold text-slate-400 dark:text-slate-500 mb-1.5 truncate">$ 0</p>
-          <p id="kpi-balance-change" class="text-xs text-gray-400"></p>
+          <p id="kpi-balance-change" class="text-xs text-slate-400"></p>
         </div>
 
         <!-- Ingresos -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
           <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-slate-400">Ingresos</p>
+            <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Ingresos</p>
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
               <i data-lucide="arrow-up-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400"></i>
             </div>
           </div>
           <p id="kpi-income" class="text-base sm:text-2xl font-bold text-slate-400 dark:text-slate-500 mb-1.5 truncate">$ 0</p>
-          <p id="kpi-income-change" class="text-xs text-gray-400"></p>
+          <p id="kpi-income-change" class="text-xs text-slate-400"></p>
         </div>
 
         <!-- Gastos -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
           <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-slate-400">Gastos</p>
+            <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Gastos</p>
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <i data-lucide="arrow-down-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400"></i>
             </div>
           </div>
           <p id="kpi-expense" class="text-base sm:text-2xl font-bold text-slate-400 dark:text-slate-500 mb-1.5 truncate">$ 0</p>
-          <p id="kpi-expense-change" class="text-xs text-gray-400"></p>
+          <p id="kpi-expense-change" class="text-xs text-slate-400"></p>
         </div>
 
         <!-- Ahorro del mes -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-3 sm:p-5 shadow-sm">
           <div class="flex items-center justify-between mb-2 sm:mb-3">
-            <p class="text-xs sm:text-sm font-medium text-gray-500 dark:text-slate-400">Ahorro del mes</p>
+            <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Ahorro del mes</p>
             <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
               <i data-lucide="piggy-bank" class="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400"></i>
             </div>
           </div>
           <p id="kpi-savings" class="text-base sm:text-2xl font-bold text-slate-400 dark:text-slate-500 mb-1.5 truncate">$ 0</p>
-          <p id="kpi-savings-change" class="text-xs text-gray-400"></p>
+          <p id="kpi-savings-change" class="text-xs text-slate-400"></p>
         </div>
 
       </div>
@@ -118,34 +133,34 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         <!-- Dólar hoy -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm px-4 py-3">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm px-4 py-3">
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-gray-700 dark:text-slate-200">💵 Dólar hoy</span>
-              <span id="cotiz-updated" class="text-xs text-gray-400 dark:text-slate-500"></span>
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">💵 Dólar hoy</span>
+              <span id="cotiz-updated" class="text-xs text-slate-400 dark:text-slate-500"></span>
             </div>
-            <button onclick="loadCotizaciones()" title="Actualizar" class="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+            <button onclick="loadCotizaciones()" title="Actualizar" class="text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             </button>
           </div>
           <div id="cotizaciones-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div class="col-span-full text-xs text-gray-400 py-1">Cargando cotizaciones...</div>
+            <div class="col-span-full text-xs text-slate-400 py-1">Cargando cotizaciones...</div>
           </div>
         </div>
 
         <!-- Crypto + Binance -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm px-4 py-3 flex flex-col justify-between gap-3">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm px-4 py-3 flex flex-col justify-between gap-3">
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-gray-700 dark:text-slate-200">₿ Cripto</span>
-              <span id="crypto-updated" class="text-xs text-gray-400 dark:text-slate-500"></span>
+              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">₿ Cripto</span>
+              <span id="crypto-updated" class="text-xs text-slate-400 dark:text-slate-500"></span>
             </div>
-            <button onclick="loadCrypto()" title="Actualizar" class="text-gray-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
+            <button onclick="loadCrypto()" title="Actualizar" class="text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             </button>
           </div>
           <div id="crypto-grid" class="grid grid-cols-3 gap-2">
-            <div class="col-span-full text-xs text-gray-400 py-1">Cargando precios...</div>
+            <div class="col-span-full text-xs text-slate-400 py-1">Cargando precios...</div>
           </div>
           <!-- Botón Binance -->
           <a href="https://www.binance.com/join?ref=PABLODOMENEZ" target="_blank" rel="noopener noreferrer"
@@ -164,19 +179,19 @@
       <div id="tour-charts" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
         <!-- Resumen mensual (line chart) -->
-        <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Resumen mensual</h3>
-            <span id="chart-period-label" class="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Resumen mensual</h3>
+            <span id="chart-period-label" class="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
           </div>
           <div class="flex items-center gap-4 mb-4">
-            <span class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>Ingresos
             </span>
-            <span class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>Gastos
             </span>
-            <span class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+            <span class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>Ahorro
             </span>
           </div>
@@ -186,42 +201,42 @@
         </div>
 
         <!-- Gastos por categoría (donut) -->
-        <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Gastos por categoría</h3>
-            <span class="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Gastos por categoría</h3>
+            <span class="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
           </div>
           <div class="flex gap-4">
             <!-- Donut -->
             <div class="relative flex-shrink-0" style="width:120px;height:120px">
               <canvas id="donut-chart" width="120" height="120"></canvas>
               <div id="no-expenses" class="hidden absolute inset-0 flex items-center justify-center">
-                <p class="text-xs text-gray-400 text-center leading-tight">Sin<br>gastos</p>
+                <p class="text-xs text-slate-400 text-center leading-tight">Sin<br>gastos</p>
               </div>
               <div id="donut-center" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p class="text-xs text-gray-400 leading-none">Total</p>
-                <p id="donut-total" class="text-xs font-bold text-gray-800 dark:text-white mt-0.5 text-center leading-tight">$ 0</p>
+                <p class="text-xs text-slate-400 leading-none">Total</p>
+                <p id="donut-total" class="text-xs font-bold text-slate-800 dark:text-white mt-0.5 text-center leading-tight">$ 0</p>
               </div>
             </div>
             <!-- Category list -->
             <div id="category-list" class="flex-1 space-y-2 overflow-y-auto" style="max-height:120px">
-              <p class="text-xs text-gray-400">Sin datos</p>
+              <p class="text-xs text-slate-400">Sin datos</p>
             </div>
           </div>
-          <p id="top-category-insight" class="mt-3 text-xs text-gray-500 dark:text-slate-400 italic border-t border-gray-100 dark:border-slate-800 pt-3"></p>
-          <a href="/transactions.html" class="mt-2 text-xs text-violet-600 dark:text-violet-400 font-medium hover:underline block">Ver todas las categorías →</a>
+          <p id="top-category-insight" class="mt-3 text-xs text-slate-500 dark:text-slate-400 italic border-t border-slate-100 dark:border-slate-800 pt-3"></p>
+          <a href="/transactions.html" class="mt-2 text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline block">Ver todas las categorías →</a>
         </div>
 
         <!-- Insights panel -->
-        <div class="lg:col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm flex flex-col">
+        <div class="lg:col-span-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm flex flex-col">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Insights para vos</h3>
-            <i data-lucide="sparkles" class="w-4 h-4 text-violet-500"></i>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Insights para vos</h3>
+            <i data-lucide="sparkles" class="w-4 h-4 text-blue-500"></i>
           </div>
           <div id="insights-list" class="space-y-3 flex-1">
-            <p class="text-xs text-gray-400">Sin movimientos aún</p>
+            <p class="text-xs text-slate-400">Sin movimientos aún</p>
           </div>
-          <a href="/reports.html" class="mt-4 text-xs text-violet-600 dark:text-violet-400 font-medium hover:underline">Ver todos los insights →</a>
+          <a href="/reports.html" class="mt-4 text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Ver todos los insights →</a>
         </div>
 
       </div>
@@ -230,36 +245,36 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <!-- Presupuesto mensual -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Presupuesto mensual</h3>
-            <span id="budget-period-label" class="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Presupuesto mensual</h3>
+            <span id="budget-period-label" class="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">Este mes</span>
           </div>
           <div id="budget-list" class="space-y-4">
-            <p class="text-xs text-gray-400">Sin presupuestos configurados</p>
+            <p class="text-xs text-slate-400">Sin presupuestos configurados</p>
           </div>
-          <a href="/budgets.html" class="mt-4 block text-xs text-violet-600 dark:text-violet-400 font-medium hover:underline">Ver todos los presupuestos →</a>
+          <a href="/budgets.html" class="mt-4 block text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Ver todos los presupuestos →</a>
         </div>
 
         <!-- Movimientos recientes -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Movimientos recientes</h3>
-            <a href="/transactions.html" class="text-xs text-violet-600 dark:text-violet-400 font-medium hover:underline">Ver todos</a>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Movimientos recientes</h3>
+            <a href="/transactions.html" class="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Ver todos</a>
           </div>
           <div id="recent-list" class="space-y-1">
-            <p class="text-xs text-gray-400 py-2">Sin transacciones recientes</p>
+            <p class="text-xs text-slate-400 py-2">Sin transacciones recientes</p>
           </div>
         </div>
 
         <!-- Calendario financiero -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Calendario financiero</h3>
-            <a href="/servicios.html" class="text-xs text-violet-600 dark:text-violet-400 font-medium hover:underline">Ver todo →</a>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Calendario financiero</h3>
+            <a href="/servicios.html" class="text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline">Ver todo →</a>
           </div>
           <div id="calendar-list" class="space-y-3">
-            <p class="text-xs text-gray-400">Sin servicios activos</p>
+            <p class="text-xs text-slate-400">Sin servicios activos</p>
           </div>
         </div>
 
@@ -269,20 +284,20 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <!-- Patrimonio Neto -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Patrimonio Neto</h3>
-            <i data-lucide="landmark" class="w-4 h-4 text-violet-500"></i>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Patrimonio Neto</h3>
+            <i data-lucide="landmark" class="w-4 h-4 text-blue-500"></i>
           </div>
           <div id="networth-content">
-            <p class="text-xs text-gray-400">Calculando...</p>
+            <p class="text-xs text-slate-400">Calculando...</p>
           </div>
         </div>
 
         <!-- Proyecciones -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Proyección próximos meses</h3>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Proyección próximos meses</h3>
             <i data-lucide="trending-up" class="w-4 h-4 text-emerald-500"></i>
           </div>
           <div class="h-40">
@@ -296,9 +311,9 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
         <!-- Score financiero -->
-        <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+        <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 shadow-sm">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">Score financiero</h3>
+            <h3 class="text-sm font-semibold text-slate-800 dark:text-white">Score financiero</h3>
             <i data-lucide="award" class="w-4 h-4 text-amber-500"></i>
           </div>
           <div class="flex items-center gap-6">
@@ -310,27 +325,27 @@
                   style="transition: stroke-dashoffset 1s ease"/>
               </svg>
               <div class="absolute inset-0 flex items-center justify-center">
-                <span id="score-value" class="text-xl font-bold text-gray-900 dark:text-white">0</span>
+                <span id="score-value" class="text-xl font-bold text-slate-900 dark:text-white">0</span>
               </div>
             </div>
             <div class="flex-1">
-              <p id="score-message" class="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">Calculando tu score...</p>
+              <p id="score-message" class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Calculando tu score...</p>
               <div class="grid grid-cols-3 gap-3">
                 <div>
-                  <p class="text-xs text-gray-400 mb-1">Ahorro</p>
-                  <div class="h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full">
-                    <div id="score-bar-savings" class="h-1.5 bg-violet-500 rounded-full progress-bar" style="width:0%"></div>
+                  <p class="text-xs text-slate-400 mb-1">Ahorro</p>
+                  <div class="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
+                    <div id="score-bar-savings" class="h-1.5 bg-blue-500 rounded-full progress-bar" style="width:0%"></div>
                   </div>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-400 mb-1">Control gastos</p>
-                  <div class="h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full">
+                  <p class="text-xs text-slate-400 mb-1">Control gastos</p>
+                  <div class="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
                     <div id="score-bar-control" class="h-1.5 bg-emerald-500 rounded-full progress-bar" style="width:0%"></div>
                   </div>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-400 mb-1">Consistencia</p>
-                  <div class="h-1.5 bg-gray-100 dark:bg-slate-800 rounded-full">
+                  <p class="text-xs text-slate-400 mb-1">Consistencia</p>
+                  <div class="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full">
                     <div id="score-bar-consistency" class="h-1.5 bg-amber-500 rounded-full progress-bar" style="width:0%"></div>
                   </div>
                 </div>
@@ -340,7 +355,7 @@
         </div>
 
         <!-- Tip del día -->
-        <div class="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl p-5 shadow-sm text-white">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-sm text-white">
           <div class="flex items-center gap-2 mb-3">
             <i data-lucide="book-open" class="w-4 h-4 opacity-80"></i>
             <p class="text-xs font-semibold opacity-80 uppercase tracking-wider">Tip del día</p>

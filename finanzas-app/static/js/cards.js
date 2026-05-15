@@ -1,4 +1,4 @@
-requireAuth();
+﻿requireAuth();
 initPageCommons();
 
 const monthSelect = document.getElementById("month-select");
@@ -103,11 +103,11 @@ function renderPaymentSection(card) {
 function renderCardWidget(card, month, year) {
   const limitBar = card.credit_limit
     ? `<div class="mt-3">
-        <div class="flex justify-between text-xs text-gray-400 mb-1">
+        <div class="flex justify-between text-xs text-slate-400 mb-1">
           <span>Usado este mes</span>
           <span>${Math.round((card.monthly_total / card.credit_limit) * 100)}% del límite</span>
         </div>
-        <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
+        <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5">
           <div class="h-1.5 rounded-full transition-all ${usageColor(card.monthly_total, card.credit_limit)}"
             style="width:${Math.min((card.monthly_total / card.credit_limit) * 100, 100)}%"></div>
         </div>
@@ -134,7 +134,7 @@ function renderCardWidget(card, month, year) {
   }
 
   return `
-    <div class="rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div class="p-5 text-white relative" style="background: linear-gradient(135deg, ${card.color}, ${darkenColor(card.color)})">
         <div class="flex items-start justify-between mb-8">
           <div>
@@ -157,12 +157,12 @@ function renderCardWidget(card, month, year) {
           </div>
         </div>
       </div>
-      <div class="bg-white dark:bg-gray-800 p-5">
+      <div class="bg-white dark:bg-slate-800 p-5">
         <div class="flex items-center justify-between mb-1">
-          <span class="text-sm text-gray-500 dark:text-gray-400">Total este mes</span>
-          <span class="font-bold text-xl text-gray-900 dark:text-white">${formatCurrency(card.monthly_total)}</span>
+          <span class="text-sm text-slate-500 dark:text-slate-400">Total este mes</span>
+          <span class="font-bold text-xl text-slate-900 dark:text-white">${formatCurrency(card.monthly_total)}</span>
         </div>
-        <p class="text-xs text-gray-400 mb-2">
+        <p class="text-xs text-slate-400 mb-2">
           ${expenseLabel}
           ${card.credit_limit ? ` · Límite: ${formatCurrency(card.credit_limit)}` : ""}
         </p>
@@ -170,11 +170,11 @@ function renderCardWidget(card, month, year) {
         ${renderPaymentSection(card)}
         <div class="flex gap-2 mt-4">
           <button data-action="add-expense" data-id="${card.id}"
-            class="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium text-sm py-2 rounded-lg transition text-center">
+            class="flex-1 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-gray-600 text-slate-700 dark:text-slate-300 font-medium text-sm py-2 rounded-lg transition text-center">
             + Gasto
           </button>
           <button data-action="view-history" data-id="${card.id}" data-name="${card.name}"
-            class="px-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 text-sm py-2 rounded-lg transition" title="Historial de pagos">
+            class="px-3 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-gray-600 text-slate-500 dark:text-slate-400 text-sm py-2 rounded-lg transition" title="Historial de pagos">
             📋
           </button>
         </div>
@@ -221,26 +221,26 @@ function renderExpensesTable(data) {
       typeBadge = `<span class="inline-flex items-center bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold px-2.5 py-1 rounded-full">
         🔄 Mensual
       </span>`;
-      amountCell = `<td class="px-6 py-3 text-right font-semibold text-gray-900 dark:text-white">${formatCurrency(e.installment_amount)}</td>`;
-      totalCell = `<td class="px-6 py-3 text-right text-gray-400 text-sm">—</td>`;
+      amountCell = `<td class="px-6 py-3 text-right font-semibold text-slate-900 dark:text-white">${formatCurrency(e.installment_amount)}</td>`;
+      totalCell = `<td class="px-6 py-3 text-right text-slate-400 text-sm">—</td>`;
     } else {
       const remaining = e.remaining > 0
-        ? `<span class="text-xs text-gray-400 ml-1">(${e.remaining} restante${e.remaining !== 1 ? "s" : ""})</span>`
+        ? `<span class="text-xs text-slate-400 ml-1">(${e.remaining} restante${e.remaining !== 1 ? "s" : ""})</span>`
         : "";
       typeBadge = `<span class="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold px-2.5 py-1 rounded-full">
         ${e.installment_number}/${e.installments}
       </span>${remaining}`;
-      amountCell = `<td class="px-6 py-3 text-right font-semibold text-gray-900 dark:text-white">${formatCurrency(e.installment_amount)}</td>`;
-      totalCell = `<td class="px-6 py-3 text-right text-gray-400 text-sm">${formatCurrency(e.total_amount)}</td>`;
+      amountCell = `<td class="px-6 py-3 text-right font-semibold text-slate-900 dark:text-white">${formatCurrency(e.installment_amount)}</td>`;
+      totalCell = `<td class="px-6 py-3 text-right text-slate-400 text-sm">${formatCurrency(e.total_amount)}</td>`;
     }
 
     return `
-      <tr class="border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
-        <td class="px-6 py-3 text-gray-800 dark:text-gray-200 font-medium">${e.description}</td>
+      <tr class="border-b border-gray-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+        <td class="px-6 py-3 text-slate-800 dark:text-slate-200 font-medium">${e.description}</td>
         <td class="px-6 py-3">
           <span class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${e.card_color}"></span>
-            <span class="text-gray-600 dark:text-gray-400 text-sm">${e.card_name}</span>
+            <span class="text-slate-600 dark:text-slate-400 text-sm">${e.card_name}</span>
           </span>
         </td>
         <td class="px-6 py-3 text-center">${typeBadge}</td>

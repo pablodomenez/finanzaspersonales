@@ -11,7 +11,22 @@
   <title>FinanzasApp — Inversiones</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -28,7 +43,7 @@
       </button>
       <div class="flex-1 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Inversiones</h1>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Inversiones</h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Portafolio · perfil inversor · calculadora</p>
       </div>
       <div class="flex gap-2">
@@ -38,7 +53,7 @@
         <a id="btn-export" href="/api/inversiones/exportar-csv" class="hidden items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
           <i data-lucide="download" class="w-4 h-4"></i> CSV
         </a>
-        <button onclick="openModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
           + Nueva inversión
         </button>
       </div>
@@ -306,7 +321,7 @@
                   </select>
                 </div>
               </div>
-              <button onclick="calcular()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+              <button onclick="calcular()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
                 Calcular
               </button>
             </div>
@@ -641,7 +656,7 @@
               </div>
 
               <button onclick="simCalcular()"
-                class="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
                 Calcular aporte necesario
               </button>
             </div>
@@ -798,7 +813,7 @@
           </div>
           <div class="flex gap-3 pt-2">
             <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
           </div>
         </form>
       </div>
@@ -834,7 +849,7 @@
           <p class="text-xs text-slate-400">El valor anterior se guardará en el historial automáticamente.</p>
           <div class="flex gap-3 pt-1">
             <button type="button" onclick="closeValorModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Actualizar</button>
+            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Actualizar</button>
           </div>
         </form>
       </div>

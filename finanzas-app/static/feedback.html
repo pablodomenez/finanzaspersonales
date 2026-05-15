@@ -11,7 +11,22 @@
   <title>FinanzasApp — Feedback</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
@@ -26,7 +41,7 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
       <div class="flex-1">
-        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Feedback</h1>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Feedback</h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tu opinión nos ayuda a mejorar la app</p>
       </div>
     </header>

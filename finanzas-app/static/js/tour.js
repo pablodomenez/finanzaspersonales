@@ -1,4 +1,4 @@
-// tour.js — Recorrida guiada para nuevos usuarios (solo dashboard)
+﻿// tour.js — Recorrida guiada para nuevos usuarios (solo dashboard)
 // Se muestra una vez. Reiniciar: localStorage.removeItem('_tour_done') + ir a dashboard.
 
 (function () {
@@ -80,7 +80,7 @@
 
     const dots = Array.from({ length: total }, (_, i) =>
       `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px;` +
-      `background:${i === currentStep ? '#7c3aed' : (dark ? '#475569' : '#d1d5db')};"></span>`
+      `background:${i === currentStep ? '#2563eb' : (dark ? '#475569' : '#d1d5db')};"></span>`
     ).join('');
 
     const prevBtn = currentStep > 0
@@ -93,13 +93,13 @@
       : '';
     const nextLabel = step.isLast ? '¡Empezar!' : 'Siguiente →';
     const nextBtn = `<button id="_t-next" style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:600;` +
-      `color:#fff;background:#7c3aed;border:none;cursor:pointer;">${nextLabel}</button>`;
+      `color:#fff;background:#2563eb;border:none;cursor:pointer;">${nextLabel}</button>`;
 
     tooltip.innerHTML = `
       <div style="background:${dark ? '#1e293b' : '#fff'};border:1px solid ${dark ? '#334155' : '#e5e7eb'};
            border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);padding:20px;font-family:inherit;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <span style="font-size:11px;font-weight:600;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;">
+          <span style="font-size:11px;font-weight:600;color:#2563eb;text-transform:uppercase;letter-spacing:0.05em;">
             Paso ${currentStep + 1} de ${total}
           </span>
           <button id="_t-close" style="background:none;border:none;cursor:pointer;
@@ -148,7 +148,7 @@
     const origPos = getComputedStyle(el).position;
     if (origPos === 'static') el.style.position = 'relative';
     el.style.zIndex = '9991';
-    el.style.boxShadow = '0 0 0 4px #7c3aed, 0 0 0 10px rgba(124,58,237,0.2)';
+    el.style.boxShadow = '0 0 0 4px #2563eb, 0 0 0 10px rgba(124,58,237,0.2)';
     el.style.transition = 'box-shadow 0.3s ease';
 
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

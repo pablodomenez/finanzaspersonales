@@ -1,4 +1,4 @@
-requireAuth();
+﻿requireAuth();
 initPageCommons();
 
 const yearSelect = document.getElementById("year-select");
@@ -32,7 +32,7 @@ async function loadTransactions() {
   if (search) params.set("search", search);
 
   const tbody = document.getElementById("transactions-body");
-  tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Cargando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Cargando...</td></tr>';
 
   try {
     const data = await apiFetch(`/api/transactions?${params}`);
@@ -40,7 +40,7 @@ async function loadTransactions() {
     data.forEach(t => { transactionMap[t.id] = t; });
 
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-400">Sin transacciones para este período</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Sin transacciones para este período</td></tr>';
       return;
     }
     const paymentLabels = {
@@ -52,15 +52,15 @@ async function loadTransactions() {
       cheque: "📄 Cheque",
     };
     tbody.innerHTML = data.map((t, i) => `
-      <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition anim-row-in" style="animation-delay:${Math.min(i, 15) * 28}ms">
-        <td class="px-6 py-4 text-gray-800 dark:text-gray-200">
+      <tr class="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition anim-row-in" style="animation-delay:${Math.min(i, 15) * 28}ms">
+        <td class="px-6 py-4 text-slate-800 dark:text-slate-200">
           <span class="mr-1">${t.category.icon}</span>${t.category.name}
         </td>
-        <td class="px-6 py-4 text-gray-600 dark:text-gray-400">${t.description || "—"}</td>
-        <td class="px-6 py-4 text-gray-500 dark:text-gray-400 hidden md:table-cell">
+        <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${t.description || "—"}</td>
+        <td class="px-6 py-4 text-slate-500 dark:text-slate-400 hidden md:table-cell">
           ${t.payment_method ? `<span class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full">${paymentLabels[t.payment_method] || t.payment_method}</span>` : '<span class="text-slate-300 dark:text-slate-600">—</span>'}
         </td>
-        <td class="px-6 py-4 text-gray-500 dark:text-gray-400">${formatDate(t.date)}</td>
+        <td class="px-6 py-4 text-slate-500 dark:text-slate-400">${formatDate(t.date)}</td>
         <td class="px-6 py-4 text-right font-semibold ${t.type === "income" ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}">
           ${t.type === "income" ? "+" : "-"}${formatCurrency(t.amount)}
         </td>

@@ -1,27 +1,4 @@
-// animations.js — Utilidades de animación compartidas
-(function injectStyles() {
-  if (document.getElementById('_anim-styles')) return;
-  const s = document.createElement('style');
-  s.id = '_anim-styles';
-  s.textContent = `
-    @keyframes _fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes _rowIn {
-      from { opacity: 0; transform: translateX(-6px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes _goalPop {
-      0%,100% { transform: scale(1); }
-      50%      { transform: scale(1.04); }
-    }
-    .anim-enter { animation: _fadeUp 0.35s ease both; }
-    .anim-row-in { animation: _rowIn 0.22s ease both; }
-    .anim-goal-pop { animation: _goalPop 0.4s ease; }
-  `;
-  document.head.appendChild(s);
-})();
+// animations.js — Utilidades de animación compartidas (keyframes en design.css)
 
 function staggerFadeIn(selector, step = 70) {
   document.querySelectorAll(selector).forEach((el, i) => {

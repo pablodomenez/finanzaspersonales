@@ -1,4 +1,4 @@
-requireAuth();
+﻿requireAuth();
 
 let prestamos = [];
 let cuotasActuales = [];
@@ -701,7 +701,7 @@ function badgeEstado(estado) {
 function tipoBadge(tipo) {
     const map = {
         hipotecario:'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400',
-        personal:   'bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-400',
+        personal:   'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400',
         vehiculo:   'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400',
         uva:        'bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400',
         otro:       'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',

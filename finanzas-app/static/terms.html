@@ -11,7 +11,22 @@
   <title>Términos y Condiciones — Finanzas Personales</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
 

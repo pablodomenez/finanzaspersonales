@@ -1,4 +1,4 @@
-// ── helpers ──────────────────────────────────────────────────────────────────
+﻿// ── helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n) {
   if (n == null || isNaN(n)) return "—";
@@ -43,14 +43,14 @@ const TIPO_CONFIG = {
   alerta:      { badge: "Alerta de gasto",   badgeColor: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",         accent: "text-amber-500",  border: "border-amber-100 dark:border-amber-800/30", emoji: "⚠️", link: "Ver análisis" },
   presupuesto: { badge: "Límite cercano",    badgeColor: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",                 accent: "text-red-500",    border: "border-red-100 dark:border-red-800/30",     emoji: "💳", link: "Ver presupuesto" },
   positivo:    { badge: "Todo en orden",     badgeColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", accent: "text-emerald-500", border: "border-emerald-100 dark:border-emerald-800/30", emoji: "✅", link: "Ver detalle" },
-  inicio:      { badge: "Comenzá",           badgeColor: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",     accent: "text-violet-500", border: "border-violet-100 dark:border-violet-800/30",  emoji: "🚀", link: "Ver más" },
+  inicio:      { badge: "Comenzá",           badgeColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",     accent: "text-blue-500", border: "border-blue-100 dark:border-blue-800/30",  emoji: "🚀", link: "Ver más" },
 };
 
 const HABIT_CARD_CONFIG = {
   badge: "Mejora de hábito",
-  badgeColor: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-  accent: "text-violet-600 dark:text-violet-400",
-  border: "border-violet-100 dark:border-violet-800/30",
+  badgeColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  accent: "text-blue-600 dark:text-blue-400",
+  border: "border-blue-100 dark:border-blue-800/30",
   emoji: "🎯",
   link: "Ver progreso",
 };
@@ -80,7 +80,7 @@ function renderDecisionCards(recomendaciones, habitos) {
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">${desc.replace(heroMatch?.[0] || "", "").trim()}</p>
         </div>
         <div class="absolute top-4 right-4 text-4xl opacity-20 select-none">${cfg.emoji}</div>
-        <button class="mt-3 text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1 hover:text-violet-600 dark:hover:text-violet-400 transition">
+        <button class="mt-3 text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition">
           ${cfg.link} <i data-lucide="chevron-right" class="w-3 h-3"></i>
         </button>
       </div>
@@ -103,7 +103,7 @@ function renderDecisionCards(recomendaciones, habitos) {
         </p>
       </div>
       <div class="absolute top-4 right-4 text-4xl opacity-20 select-none">${HABIT_CARD_CONFIG.emoji}</div>
-      <a href="#habitos" class="mt-3 text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1 hover:text-violet-600 dark:hover:text-violet-400 transition">
+      <a href="#habitos" class="mt-3 text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition">
         ${HABIT_CARD_CONFIG.link} <i data-lucide="chevron-right" class="w-3 h-3"></i>
       </a>
     </div>
@@ -199,11 +199,11 @@ const TIPO_ICON = {
 const TIPO_ICON_BG = {
   ahorro: "bg-emerald-50 dark:bg-emerald-900/20", inversion: "bg-blue-50 dark:bg-blue-900/20",
   alerta: "bg-amber-50 dark:bg-amber-900/20", presupuesto: "bg-red-50 dark:bg-red-900/20",
-  positivo: "bg-emerald-50 dark:bg-emerald-900/20", inicio: "bg-violet-50 dark:bg-violet-900/20",
+  positivo: "bg-emerald-50 dark:bg-emerald-900/20", inicio: "bg-blue-50 dark:bg-blue-900/20",
 };
 const TIPO_ICON_CLR = {
   ahorro: "text-emerald-600", inversion: "text-blue-600", alerta: "text-amber-600",
-  presupuesto: "text-red-600", positivo: "text-emerald-600", inicio: "text-violet-600",
+  presupuesto: "text-red-600", positivo: "text-emerald-600", inicio: "text-blue-600",
 };
 
 function renderAcciones(recs) {
@@ -225,7 +225,7 @@ function renderAcciones(recs) {
           </div>
           <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">${rec.mensaje}</p>
         </div>
-        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0 mt-1 group-hover:text-violet-500 transition"></i>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0 mt-1 group-hover:text-blue-500 transition"></i>
       </div>
     `;
   }).join("");
@@ -340,8 +340,8 @@ function renderHabitos(habitos) {
       cls = "text-slate-300 dark:text-slate-600";
       dotCls = "bg-slate-100 dark:bg-slate-700";
     } else if (d.registrado) {
-      cls = "text-violet-600 dark:text-violet-400 font-bold";
-      dotCls = "bg-violet-500";
+      cls = "text-blue-600 dark:text-blue-400 font-bold";
+      dotCls = "bg-blue-500";
     } else {
       cls = "text-slate-400 dark:text-slate-500";
       dotCls = "bg-slate-200 dark:bg-slate-700";
@@ -386,7 +386,7 @@ function renderLogros(logros) {
   grid.innerHTML = LOGROS_PENDIENTES.map(l => {
     const got = obtenidosNombres.has(l.nombre);
     return `
-      <div class="flex items-center gap-2 p-2 rounded-xl ${got ? "bg-violet-50 dark:bg-violet-900/20" : "bg-slate-50 dark:bg-slate-800 opacity-50"} transition">
+      <div class="flex items-center gap-2 p-2 rounded-xl ${got ? "bg-blue-50 dark:bg-blue-900/20" : "bg-slate-50 dark:bg-slate-800 opacity-50"} transition">
         <span class="text-xl ${got ? "" : "grayscale"}">${l.icono}</span>
         <div class="min-w-0">
           <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">${l.nombre}</p>
@@ -497,7 +497,7 @@ function renderInsights(insights) {
     const tagCls = INSIGHT_TAGS[ins.tag] || INSIGHT_TAGS["Patrón detectado"];
     return `
       <div class="flex-shrink-0 w-56 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 card-hover">
-        <div class="w-10 h-10 bg-violet-50 dark:bg-violet-900/20 rounded-xl flex items-center justify-center text-xl mb-3">
+        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-xl mb-3">
           ${ins.icon}
         </div>
         <p class="text-sm font-bold text-slate-800 dark:text-white mb-1 leading-tight">${ins.titulo}</p>

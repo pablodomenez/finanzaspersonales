@@ -1,8 +1,8 @@
-requireAuth();
+﻿requireAuth();
 initPageCommons();
 
 const FULL_MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const CHART_PALETTE = ["#3b82f6","#ef4444","#10b981","#f59e0b","#8b5cf6","#ec4899","#14b8a6","#f97316","#6366f1","#84cc16"];
+const CHART_PALETTE = ["#3b82f6","#ef4444","#10b981","#f59e0b","#3b82f6","#ec4899","#14b8a6","#f97316","#0ea5e9","#84cc16"];
 
 const TIPS = [
   "Automatizar tus ahorros mejora tu disciplina financiera y elimina la tentación de gastar.",
@@ -44,7 +44,7 @@ function pctChange(current, prev) {
 
 function setKpiColor(el, value) {
   el.classList.remove(
-    "text-gray-900","dark:text-white",
+    "text-slate-900","dark:text-white",
     "text-emerald-500","dark:text-emerald-400",
     "text-red-500","dark:text-red-400",
     "text-slate-400","dark:text-slate-500"
@@ -61,7 +61,7 @@ function renderChangeBadge(pct, inverse = false) {
     ? "text-emerald-600 dark:text-emerald-400"
     : "text-red-500 dark:text-red-400";
   const arrow = pct >= 0 ? "↑" : "↓";
-  return `<span class="${colorCls} font-semibold">${arrow}${Math.abs(pct).toFixed(1)}%</span> <span class="text-gray-400">vs mes anterior</span>`;
+  return `<span class="${colorCls} font-semibold">${arrow}${Math.abs(pct).toFixed(1)}%</span> <span class="text-slate-400">vs mes anterior</span>`;
 }
 
 // ── Main dashboard load ───────────────────────────────────────────────────────
@@ -140,8 +140,8 @@ async function loadDashboard() {
             },
             {
               label: "Ahorro", data: sData,
-              borderColor: "#6366f1", backgroundColor: "rgba(99,102,241,0.07)",
-              tension: 0.4, fill: true, pointBackgroundColor: "#6366f1",
+              borderColor: "#0ea5e9", backgroundColor: "rgba(14,165,233,0.07)",
+              tension: 0.4, fill: true, pointBackgroundColor: "#0ea5e9",
               pointRadius: 4, pointHoverRadius: 6, borderWidth: 2,
             },
           ],
@@ -173,7 +173,7 @@ async function loadDashboard() {
       noExp.classList.remove("hidden");
       donutCenter.classList.add("hidden");
       if (donutChart) { donutChart.destroy(); donutChart = null; }
-      document.getElementById("category-list").innerHTML = '<p class="text-xs text-gray-400">Sin gastos este mes</p>';
+      document.getElementById("category-list").innerHTML = '<p class="text-xs text-slate-400">Sin gastos este mes</p>';
       document.getElementById("top-category-insight").textContent = "";
     } else {
       noExp.classList.add("hidden");
@@ -212,11 +212,11 @@ async function loadDashboard() {
           <div class="flex items-center justify-between gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
               <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${CHART_PALETTE[i % CHART_PALETTE.length]}"></span>
-              <span class="text-xs text-gray-600 dark:text-slate-400 truncate">${c.name}</span>
+              <span class="text-xs text-slate-600 dark:text-slate-400 truncate">${c.name}</span>
             </div>
             <div class="flex items-center gap-1.5 flex-shrink-0">
-              <span class="text-xs font-semibold text-gray-800 dark:text-white">${formatCurrency(c.amount)}</span>
-              <span class="text-xs text-gray-400 w-7 text-right">${pct}%</span>
+              <span class="text-xs font-semibold text-slate-800 dark:text-white">${formatCurrency(c.amount)}</span>
+              <span class="text-xs text-slate-400 w-7 text-right">${pct}%</span>
             </div>
           </div>`;
       }).join("");
@@ -254,7 +254,7 @@ async function loadDashboard() {
     const donutCenter = document.getElementById("donut-center");
     if (donutCenter) donutCenter.classList.add("hidden");
     const catList = document.getElementById("category-list");
-    if (catList) catList.innerHTML = '<p class="text-xs text-gray-400">Sin gastos este mes</p>';
+    if (catList) catList.innerHTML = '<p class="text-xs text-slate-400">Sin gastos este mes</p>';
     const topIns = document.getElementById("top-category-insight");
     if (topIns) topIns.textContent = '';
     renderInsights({ total_income: 0, total_expense: 0, by_category: [], recent_transactions: [] }, null);
@@ -349,12 +349,12 @@ function renderInsights(data, prev) {
     blue:   "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
     orange: "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400",
     amber:  "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400",
-    violet: "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400",
+    violet: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
   };
 
   const el = document.getElementById("insights-list");
   if (insights.length === 0) {
-    el.innerHTML = '<p class="text-xs text-gray-400">Sin insights disponibles</p>';
+    el.innerHTML = '<p class="text-xs text-slate-400">Sin insights disponibles</p>';
     return;
   }
 
@@ -364,8 +364,8 @@ function renderInsights(data, prev) {
         <i data-lucide="${ins.icon}" class="w-3.5 h-3.5"></i>
       </div>
       <div class="min-w-0">
-        <p class="text-xs font-semibold text-gray-800 dark:text-white leading-tight">${ins.title}</p>
-        <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5 leading-snug">${ins.desc}</p>
+        <p class="text-xs font-semibold text-slate-800 dark:text-white leading-tight">${ins.title}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">${ins.desc}</p>
       </div>
     </div>`).join("");
 
@@ -376,16 +376,16 @@ function renderInsights(data, prev) {
 function renderRecentTransactions(transactions) {
   const list = document.getElementById("recent-list");
   if (!transactions || transactions.length === 0) {
-    list.innerHTML = '<p class="text-xs text-gray-400 py-2">Sin transacciones recientes</p>';
+    list.innerHTML = '<p class="text-xs text-slate-400 py-2">Sin transacciones recientes</p>';
     return;
   }
   list.innerHTML = transactions.map(t => `
     <div class="flex items-center justify-between py-2.5 border-b border-gray-50 dark:border-slate-800 last:border-0">
       <div class="flex items-center gap-3 min-w-0">
-        <div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-base flex-shrink-0">${t.category.icon}</div>
+        <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base flex-shrink-0">${t.category.icon}</div>
         <div class="min-w-0">
-          <p class="text-sm font-medium text-gray-800 dark:text-slate-200 truncate leading-tight">${t.description || t.category.name}</p>
-          <p class="text-xs text-gray-400 mt-0.5">${formatDate(t.date)}</p>
+          <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate leading-tight">${t.description || t.category.name}</p>
+          <p class="text-xs text-slate-400 mt-0.5">${formatDate(t.date)}</p>
         </div>
       </div>
       <span class="font-semibold text-sm flex-shrink-0 ml-2 ${t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}">
@@ -450,25 +450,25 @@ async function loadBudgets() {
 
     if (!budgets || budgets.length === 0) {
       el.innerHTML = `
-        <p class="text-xs text-gray-400">Sin presupuestos configurados.</p>
-        <a href="/budgets.html" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">Crear presupuesto →</a>`;
+        <p class="text-xs text-slate-400">Sin presupuestos configurados.</p>
+        <a href="/budgets.html" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Crear presupuesto →</a>`;
       return;
     }
 
     el.innerHTML = budgets.slice(0, 4).map(b => {
       const pct      = b.percentage;
       const barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
-      const pctColor = pct >= 100 ? "text-red-500" : pct >= 80 ? "text-amber-500" : "text-gray-400";
+      const pctColor = pct >= 100 ? "text-red-500" : pct >= 80 ? "text-amber-500" : "text-slate-400";
       return `
         <div>
           <div class="flex items-center justify-between mb-1.5">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-base flex-shrink-0">${b.category.icon}</span>
-              <span class="text-sm font-medium text-gray-700 dark:text-slate-300 truncate">${b.category.name}</span>
+              <span class="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">${b.category.name}</span>
             </div>
-            <span class="text-xs text-gray-500 dark:text-slate-400 flex-shrink-0 ml-2">${formatCurrency(b.spent)} / ${formatCurrency(b.limit_amount)}</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 ml-2">${formatCurrency(b.spent)} / ${formatCurrency(b.limit_amount)}</span>
           </div>
-          <div class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
+          <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5">
             <div class="${barColor} h-1.5 rounded-full" data-bar-pct="${Math.min(pct, 100)}" style="width:0%"></div>
           </div>
           <p class="text-right text-xs ${pctColor} mt-0.5">${pct}%</p>
@@ -490,8 +490,8 @@ async function loadCalendar() {
 
     if (activos.length === 0) {
       el.innerHTML = `
-        <p class="text-xs text-gray-400">Sin servicios activos.</p>
-        <a href="/servicios.html" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">Agregar servicio →</a>`;
+        <p class="text-xs text-slate-400">Sin servicios activos.</p>
+        <a href="/servicios.html" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Agregar servicio →</a>`;
       return;
     }
 
@@ -519,17 +519,17 @@ async function loadCalendar() {
 
       return `
         <div class="flex items-center gap-3">
-          <div class="flex flex-col items-center justify-center w-11 h-11 rounded-xl bg-gray-100 dark:bg-slate-800 flex-shrink-0">
-            <span class="text-sm font-bold text-gray-800 dark:text-white leading-none">${dayStr}</span>
-            <span class="text-xs text-gray-400 leading-none mt-0.5">${monthStr}</span>
+          <div class="flex flex-col items-center justify-center w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex-shrink-0">
+            <span class="text-sm font-bold text-slate-800 dark:text-white leading-none">${dayStr}</span>
+            <span class="text-xs text-slate-400 leading-none mt-0.5">${monthStr}</span>
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
-              <p class="text-sm font-medium text-gray-800 dark:text-slate-200 truncate leading-tight">${s.nombre}</p>
-              <span class="text-xs font-semibold text-gray-500 dark:text-slate-400 ml-2 flex-shrink-0">${pct}%</span>
+              <p class="text-sm font-medium text-slate-800 dark:text-slate-200 truncate leading-tight">${s.nombre}</p>
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-2 flex-shrink-0">${pct}%</span>
             </div>
-            <p class="text-xs text-gray-400 mt-0.5">${venceLabel}</p>
-            <div class="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1 mt-1.5">
+            <p class="text-xs text-slate-400 mt-0.5">${venceLabel}</p>
+            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1 mt-1.5">
               <div class="${barColor} h-1 rounded-full" data-bar-pct="${pct}" style="width:0%"></div>
             </div>
           </div>
@@ -553,21 +553,21 @@ async function loadNetWorth() {
       <p class="text-3xl font-bold ${color} mb-4">${formatCurrency(nw)}</p>
       <div class="grid grid-cols-2 gap-3 text-xs">
         <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
-          <p class="text-gray-400 mb-1">Activos</p>
+          <p class="text-slate-400 mb-1">Activos</p>
           <p class="font-bold text-emerald-600 dark:text-emerald-400">${formatCurrency(d.activos)}</p>
-          <p class="text-gray-400 mt-1.5">Inversiones: ${formatCurrency(d.detalle.inversiones)}</p>
-          <p class="text-gray-400">Metas: ${formatCurrency(d.detalle.metas_ahorro)}</p>
-          <p class="text-gray-400">A cobrar: ${formatCurrency(d.detalle.deudas_a_cobrar)}</p>
+          <p class="text-slate-400 mt-1.5">Inversiones: ${formatCurrency(d.detalle.inversiones)}</p>
+          <p class="text-slate-400">Metas: ${formatCurrency(d.detalle.metas_ahorro)}</p>
+          <p class="text-slate-400">A cobrar: ${formatCurrency(d.detalle.deudas_a_cobrar)}</p>
         </div>
         <div class="bg-red-50 dark:bg-red-900/20 rounded-xl p-3">
-          <p class="text-gray-400 mb-1">Pasivos</p>
+          <p class="text-slate-400 mb-1">Pasivos</p>
           <p class="font-bold text-red-500 dark:text-red-400">${formatCurrency(d.pasivos)}</p>
-          <p class="text-gray-400 mt-1.5">Deudas: ${formatCurrency(d.detalle.deudas_a_pagar)}</p>
-          <p class="text-gray-400">Préstamos: ${formatCurrency(d.detalle.prestamos_pendientes)}</p>
+          <p class="text-slate-400 mt-1.5">Deudas: ${formatCurrency(d.detalle.deudas_a_pagar)}</p>
+          <p class="text-slate-400">Préstamos: ${formatCurrency(d.detalle.prestamos_pendientes)}</p>
         </div>
       </div>`;
   } catch (_) {
-    el.innerHTML = '<p class="text-xs text-gray-400">No se pudo calcular</p>';
+    el.innerHTML = '<p class="text-xs text-slate-400">No se pudo calcular</p>';
   }
 }
 
@@ -597,7 +597,7 @@ async function loadProyecciones() {
           datasets: [
             { label: "Ingresos", data: incomes, backgroundColor: "rgba(16,185,129,0.6)", borderRadius: 4 },
             { label: "Gastos",   data: expenses, backgroundColor: "rgba(239,68,68,0.6)", borderRadius: 4 },
-            { label: "Balance",  data: balances, type: "line", borderColor: "#6366f1",
+            { label: "Balance",  data: balances, type: "line", borderColor: "#0ea5e9",
               backgroundColor: "rgba(99,102,241,0.1)", tension: 0.4, fill: true,
               pointRadius: 3, borderWidth: 2 },
           ],
@@ -648,19 +648,19 @@ async function loadCotizaciones() {
     const items = data.filter(d => SHOW.includes(d.casa));
 
     if (!items.length) {
-      grid.innerHTML = '<div class="col-span-full text-xs text-gray-400">No se pudo obtener cotizaciones.</div>';
+      grid.innerHTML = '<div class="col-span-full text-xs text-slate-400">No se pudo obtener cotizaciones.</div>';
       return;
     }
 
     grid.innerHTML = items.map(d => {
-      const color  = COLORS[d.casa] || "text-gray-700 dark:text-slate-300";
+      const color  = COLORS[d.casa] || "text-slate-700 dark:text-slate-300";
       const venta  = d.venta != null ? `$${Number(d.venta).toLocaleString("es-AR", {minimumFractionDigits: 0, maximumFractionDigits: 0})}` : "—";
       const compra = d.compra != null ? `$${Number(d.compra).toLocaleString("es-AR", {minimumFractionDigits: 0, maximumFractionDigits: 0})}` : "—";
       return `
-        <div class="bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-2 flex flex-col gap-0.5 min-w-0">
-          <span class="text-xs text-gray-400 dark:text-slate-500 truncate">${d.nombre}</span>
+        <div class="bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 flex flex-col gap-0.5 min-w-0">
+          <span class="text-xs text-slate-400 dark:text-slate-500 truncate">${d.nombre}</span>
           <span class="text-sm font-bold ${color} truncate">${venta}</span>
-          <span class="text-xs text-gray-400 dark:text-slate-500">Compra: ${compra}</span>
+          <span class="text-xs text-slate-400 dark:text-slate-500">Compra: ${compra}</span>
         </div>`;
     }).join("");
 
@@ -673,7 +673,7 @@ async function loadCotizaciones() {
       } catch (_) {}
     }
   } catch (_) {
-    grid.innerHTML = '<div class="col-span-full text-xs text-gray-400">No se pudo obtener cotizaciones.</div>';
+    grid.innerHTML = '<div class="col-span-full text-xs text-slate-400">No se pudo obtener cotizaciones.</div>';
   }
   lucide.createIcons();
 }
@@ -688,7 +688,7 @@ async function loadCrypto() {
 
   const COINS = [
     { id: "bitcoin",  symbol: "BTC", color: "text-orange-500 dark:text-orange-400" },
-    { id: "ethereum", symbol: "ETH", color: "text-violet-500 dark:text-violet-400" },
+    { id: "ethereum", symbol: "ETH", color: "text-blue-500 dark:text-blue-400" },
     { id: "binancecoin", symbol: "BNB", color: "text-amber-500 dark:text-amber-400" },
   ];
   const ids = COINS.map(c => c.id).join(",");
@@ -705,8 +705,8 @@ async function loadCrypto() {
         ? `<span class="${change >= 0 ? "text-emerald-500" : "text-red-500"} text-xs">${change >= 0 ? "+" : ""}${change.toFixed(1)}%</span>`
         : "";
       return `
-        <div class="bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-2 flex flex-col gap-0.5 min-w-0">
-          <span class="text-xs text-gray-400 dark:text-slate-500">${c.symbol}</span>
+        <div class="bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2 flex flex-col gap-0.5 min-w-0">
+          <span class="text-xs text-slate-400 dark:text-slate-500">${c.symbol}</span>
           <span class="text-sm font-bold ${c.color} truncate">${price}</span>
           ${changeHtml}
         </div>`;
@@ -716,7 +716,7 @@ async function loadCrypto() {
       updEl.textContent = `Act. ${new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}`;
     }
   } catch (_) {
-    grid.innerHTML = '<div class="col-span-full text-xs text-gray-400">No se pudo obtener precios.</div>';
+    grid.innerHTML = '<div class="col-span-full text-xs text-slate-400">No se pudo obtener precios.</div>';
   }
   lucide.createIcons();
 }

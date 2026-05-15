@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,22 @@
   <title>FinanzasApp — Préstamos</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
@@ -28,10 +43,10 @@
       </button>
       <div class="flex-1 flex items-center justify-between gap-4">
         <div>
-          <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Préstamos</h1>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white">Préstamos</h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Seguimiento de créditos y cuotas</p>
         </div>
-        <button onclick="openNuevoModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button onclick="openNuevoModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
           + Nuevo préstamo
         </button>
       </div>
@@ -84,7 +99,7 @@
         </div>
         <p class="text-slate-500 dark:text-slate-400 font-medium">No tenés préstamos registrados</p>
         <p class="text-sm text-slate-400 mt-1">Agregá tu primer préstamo o crédito hipotecario</p>
-        <button onclick="openNuevoModal()" class="mt-4 bg-blue-700 hover:bg-blue-800 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
+        <button onclick="openNuevoModal()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           + Nuevo préstamo
         </button>
       </div>

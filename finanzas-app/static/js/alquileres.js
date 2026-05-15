@@ -1,4 +1,4 @@
-requireAuth();
+﻿requireAuth();
 
 let _alquileres = [];
 let _indices = {};
@@ -63,12 +63,12 @@ function renderIndices() {
     const bgMap = {
       "text-blue-600 dark:text-blue-400": "bg-blue-50 dark:bg-blue-900/20",
       "text-emerald-600 dark:text-emerald-400": "bg-emerald-50 dark:bg-emerald-900/20",
-      "text-violet-600 dark:text-violet-400": "bg-violet-50 dark:bg-violet-900/20",
+      "text-blue-600 dark:text-blue-400": "bg-blue-50 dark:bg-blue-900/20",
     };
     const titleMap = {
       "text-blue-600 dark:text-blue-400": "text-blue-700 dark:text-blue-300",
       "text-emerald-600 dark:text-emerald-400": "text-emerald-700 dark:text-emerald-300",
-      "text-violet-600 dark:text-violet-400": "text-violet-700 dark:text-violet-300",
+      "text-blue-600 dark:text-blue-400": "text-blue-700 dark:text-blue-300",
     };
 
     return `
@@ -85,7 +85,7 @@ function renderIndices() {
   grid.innerHTML =
     indiceCard("ICL", "Índice de Contratos de Locación · BCRA", icl, "text-blue-600 dark:text-blue-400") +
     indiceCard("IPC", "Índice de Precios al Consumidor · INDEC", ipc, "text-emerald-600 dark:text-emerald-400") +
-    indiceCard("CVS", "Índice de Salarios · INDEC", cvs, "text-violet-600 dark:text-violet-400");
+    indiceCard("CVS", "Índice de Salarios · INDEC", cvs, "text-blue-600 dark:text-blue-400");
   document.getElementById("indices-loading")?.remove();
   document.getElementById("indices-fecha").textContent = `Actualizado: ${_indices.fecha || ""}`;
   lucide.createIcons();

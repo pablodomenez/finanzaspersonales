@@ -1,4 +1,4 @@
-requireAuth();
+﻿requireAuth();
 
 const yearSelect = document.getElementById("year-select");
 populateYearSelect(yearSelect, 4);
@@ -57,8 +57,8 @@ async function loadReport() {
     tbody.innerHTML = data.monthly.map(m => {
       const hasData = m.income > 0 || m.expense > 0;
       const balCls = m.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400";
-      return `<tr class="border-b border-gray-50 dark:border-gray-700/50 ${hasData ? "" : "opacity-30"}">
-        <td class="py-2 text-gray-700 dark:text-gray-300">${MONTH_FULL[m.month - 1].slice(0, 3)}</td>
+      return `<tr class="border-b border-gray-50 dark:border-slate-700/50 ${hasData ? "" : "opacity-30"}">
+        <td class="py-2 text-slate-700 dark:text-slate-300">${MONTH_FULL[m.month - 1].slice(0, 3)}</td>
         <td class="py-2 text-right text-green-600 dark:text-green-400 text-xs">${m.income > 0 ? formatCurrency(m.income) : "—"}</td>
         <td class="py-2 text-right text-red-500 dark:text-red-400 text-xs">${m.expense > 0 ? formatCurrency(m.expense) : "—"}</td>
         <td class="py-2 text-right text-xs font-medium ${hasData ? balCls : "text-gray-300"}">${hasData ? formatCurrency(m.balance) : "—"}</td>
@@ -67,7 +67,7 @@ async function loadReport() {
 
     // Dona top categorías
     if (data.by_category.length === 0) {
-      document.getElementById("donut-chart").parentElement.innerHTML = '<p class="text-center text-gray-400 text-sm py-8">Sin gastos este año</p>';
+      document.getElementById("donut-chart").parentElement.innerHTML = '<p class="text-center text-slate-400 text-sm py-8">Sin gastos este año</p>';
       document.getElementById("category-legend").innerHTML = "";
     } else {
       const top = data.by_category.slice(0, 8);
@@ -93,11 +93,11 @@ async function loadReport() {
         <div class="flex items-center justify-between text-xs">
           <div class="flex items-center gap-1.5">
             <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${CHART_PALETTE[i]}"></span>
-            <span class="text-gray-600 dark:text-gray-400">${c.icon} ${c.name}</span>
+            <span class="text-slate-600 dark:text-slate-400">${c.icon} ${c.name}</span>
           </div>
           <div class="flex gap-2 text-right">
-            <span class="text-gray-400">${c.percentage}%</span>
-            <span class="font-medium text-gray-700 dark:text-gray-300">${formatCurrency(c.amount)}</span>
+            <span class="text-slate-400">${c.percentage}%</span>
+            <span class="font-medium text-slate-700 dark:text-slate-300">${formatCurrency(c.amount)}</span>
           </div>
         </div>`).join("");
     }

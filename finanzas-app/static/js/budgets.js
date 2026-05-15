@@ -1,4 +1,4 @@
-requireAuth();
+﻿requireAuth();
 initPageCommons();
 
 const yearSelect = document.getElementById("year-select");
@@ -30,13 +30,13 @@ async function loadBudgets() {
   const month = document.getElementById("month-select").value;
   const year = yearSelect.value;
   const grid = document.getElementById("budgets-grid");
-  grid.innerHTML = '<p class="text-gray-400 text-sm col-span-3">Cargando...</p>';
+  grid.innerHTML = '<p class="text-slate-400 text-sm col-span-3">Cargando...</p>';
 
   try {
     const data = await apiFetch(`/api/budgets?month=${month}&year=${year}`);
     if (data.length === 0) {
       grid.innerHTML = `
-        <div class="col-span-3 text-center py-12 text-gray-400">
+        <div class="col-span-3 text-center py-12 text-slate-400">
           <p class="text-4xl mb-3">🎯</p>
           <p>No hay presupuestos para este mes.</p>
           <p class="text-sm mt-1">Hacé clic en "+ Nuevo presupuesto" para empezar.</p>
@@ -59,21 +59,21 @@ function renderBudgetCard(b) {
   const textColor = progressTextColor(b.percentage);
   const label = b.percentage >= 100
     ? `<span class="text-red-500 font-semibold text-xs">⚠️ Límite superado</span>`
-    : `<span class="text-gray-500 dark:text-gray-400 text-xs">${formatCurrency(b.limit_amount - b.spent)} disponible</span>`;
+    : `<span class="text-slate-500 dark:text-slate-400 text-xs">${formatCurrency(b.limit_amount - b.spent)} disponible</span>`;
   return `
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <span class="text-2xl">${b.category.icon}</span>
-          <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">${b.category.name}</span>
+          <span class="font-medium text-slate-800 dark:text-slate-200 text-sm">${b.category.name}</span>
         </div>
         <button data-action="delete-budget" data-id="${b.id}" class="text-gray-300 hover:text-red-400 transition text-lg leading-none">✕</button>
       </div>
       <div class="flex justify-between text-sm mb-2">
-        <span class="text-gray-600 dark:text-gray-400">${formatCurrency(b.spent)} gastado</span>
-        <span class="text-gray-400">de ${formatCurrency(b.limit_amount)}</span>
+        <span class="text-slate-600 dark:text-slate-400">${formatCurrency(b.spent)} gastado</span>
+        <span class="text-slate-400">de ${formatCurrency(b.limit_amount)}</span>
       </div>
-      <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-2">
+      <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-2">
         <div class="h-2 rounded-full ${color}" data-bar-pct="${pct}" style="width:0%"></div>
       </div>
       <div class="flex justify-between items-center">

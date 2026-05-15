@@ -11,7 +11,22 @@
   <title>FinanzasApp — Presupuestos</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
@@ -27,7 +42,7 @@
       </button>
       <div class="flex-1 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Presupuestos</h1>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Presupuestos</h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Límites de gasto por categoría</p>
       </div>
       <div class="flex gap-2 items-center">
@@ -40,7 +55,7 @@
           <option value="11">Noviembre</option><option value="12">Diciembre</option>
         </select>
         <select id="year-select" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
-        <button onclick="openModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
           + Nuevo presupuesto
         </button>
       </div>
@@ -92,7 +107,7 @@
           </div>
           <div class="flex gap-3 pt-2">
             <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
           </div>
         </form>
       </div>

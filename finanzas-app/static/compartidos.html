@@ -11,7 +11,22 @@
   <title>FinanzasApp — Gastos Compartidos</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
@@ -28,10 +43,10 @@
       </button>
       <div class="flex-1 flex items-center justify-between">
         <div>
-          <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Gastos Compartidos</h1>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white">Gastos Compartidos</h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Viajes, alquileres, cenas y más</p>
         </div>
-        <button id="btn-new-group" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button id="btn-new-group" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
           + Nuevo grupo
         </button>
       </div>
@@ -70,7 +85,7 @@
         <p id="detail-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></p>
       </div>
       <div class="flex items-center gap-2">
-        <button id="btn-add-expense" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+        <button id="btn-add-expense" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition">
           + Gasto
         </button>
         <!-- Botón invitar (solo en grupos colaborativos y si es owner) -->
@@ -217,7 +232,7 @@
 
           <div class="flex gap-3 pt-2">
             <button type="button" data-action="close-group-modal" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" id="group-submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Crear grupo</button>
+            <button type="submit" id="group-submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Crear grupo</button>
           </div>
         </form>
       </div>
@@ -270,7 +285,7 @@
           </div>
           <div class="flex gap-3 pt-2">
             <button type="button" data-action="close-expense-modal" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" id="expense-submit" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="submit" id="expense-submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
           </div>
         </form>
       </div>

@@ -11,7 +11,22 @@
   <title>FinanzasApp — Promociones</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <link rel="stylesheet" href="/css/design.css" />
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
@@ -27,7 +42,7 @@
       </button>
       <div class="flex-1 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Promociones vigentes</h1>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Promociones vigentes</h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Seguí tus promos activas y renovalas antes de que venzan</p>
       </div>
       <button onclick="openModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
@@ -68,10 +83,10 @@
           </div>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-start gap-4">
-          <div class="w-1 self-stretch rounded-full bg-violet-500"></div>
+          <div class="w-1 self-stretch rounded-full bg-blue-500"></div>
           <div>
             <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Vencen este mes</p>
-            <p id="kpi-mes" class="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-1">—</p>
+            <p id="kpi-mes" class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">—</p>
             <p class="text-xs text-slate-400 mt-0.5">próximos 30 días</p>
           </div>
         </div>

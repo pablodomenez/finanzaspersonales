@@ -11,8 +11,23 @@
   <title>FinanzasApp — Reportes</title>
   <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/design.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>tailwind.config = { darkMode: "class" };</script>
+  <script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: "#2563eb", hover: "#1d4ed8", light: "#dbeafe" }
+        },
+        fontFamily: {
+          sans: ["Inter", "system-ui", "-apple-system", "sans-serif"]
+        }
+      }
+    }
+  };
+</script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 min-h-screen">
@@ -28,7 +43,7 @@
       </button>
       <div class="flex-1 flex items-center justify-between">
       <div>
-        <h1 class="text-lg font-semibold text-slate-800 dark:text-white">Reportes anuales</h1>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Reportes anuales</h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Análisis completo de tu año financiero</p>
       </div>
       <div class="flex gap-2 items-center">

@@ -1,4 +1,4 @@
-requireAuth();
+﻿requireAuth();
 initPageCommons();
 
 // ── Quiz data ─────────────────────────────────────────────────────────────────

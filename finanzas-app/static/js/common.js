@@ -1,4 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
+﻿// ─────────────────────────────────────────────────────────────────────────────
 // common.js — Búsqueda global, notificaciones y ayuda (todas las páginas)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -98,16 +98,16 @@ const _HELP_FAQ = [
   btnGroup.className = "hidden md:flex items-center gap-2";
   btnGroup.innerHTML = `
     <button id="_search-btn" onclick="openGlobalSearch()" title="Buscar (Ctrl+K)"
-      class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+      class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
       <i data-lucide="search" class="w-4 h-4"></i>
     </button>
     <button id="_notif-btn" onclick="toggleGlobalNotif()" title="Notificaciones"
-      class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors relative overflow-visible">
+      class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors relative overflow-visible">
       <i data-lucide="bell" class="w-4 h-4"></i>
       <span id="_notif-dot" class="hidden absolute -top-1.5 -right-1.5 min-w-[1.1rem] h-[1.1rem] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none pointer-events-none"></span>
     </button>
     <button id="_help-btn" onclick="openGlobalHelp()" title="Ayuda"
-      class="w-9 h-9 rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+      class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
       <i data-lucide="help-circle" class="w-4 h-4"></i>
     </button>`;
 
@@ -124,49 +124,49 @@ const _HELP_FAQ = [
     <!-- Search overlay -->
     <div id="_search-overlay" class="hidden fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-16 px-4" onclick="_closeSearchOnOverlay(event)">
       <div class="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
-        <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-          <i data-lucide="search" class="w-5 h-5 text-gray-400 flex-shrink-0"></i>
+        <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+          <i data-lucide="search" class="w-5 h-5 text-slate-400 flex-shrink-0"></i>
           <input id="_search-input" type="text" placeholder="Buscar secciones, categorías..."
-            class="flex-1 bg-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
+            class="flex-1 bg-transparent text-sm text-slate-900 dark:text-white placeholder-gray-400 focus:outline-none"
             oninput="runGlobalSearch(this.value)" onkeydown="_searchKeyNav(event)">
-          <button onclick="closeGlobalSearch()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 flex-shrink-0">
+          <button onclick="closeGlobalSearch()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex-shrink-0">
             <i data-lucide="x" class="w-4 h-4"></i>
           </button>
         </div>
         <div id="_search-results" class="max-h-80 overflow-y-auto p-2">
-          <p class="text-xs text-gray-400 px-3 py-6 text-center">Escribí para buscar...</p>
+          <p class="text-xs text-slate-400 px-3 py-6 text-center">Escribí para buscar...</p>
         </div>
-        <div class="px-4 py-2.5 border-t border-gray-100 dark:border-slate-700 flex items-center gap-4">
-          <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">Esc</kbd> cerrar</span>
-          <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">↑↓</kbd> navegar</span>
-          <span class="text-xs text-gray-400"><kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-800 rounded text-xs font-mono">Enter</kbd> ir</span>
+        <div class="px-4 py-2.5 border-t border-slate-100 dark:border-slate-700 flex items-center gap-4">
+          <span class="text-xs text-slate-400"><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono">Esc</kbd> cerrar</span>
+          <span class="text-xs text-slate-400"><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono">↑↓</kbd> navegar</span>
+          <span class="text-xs text-slate-400"><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono">Enter</kbd> ir</span>
         </div>
       </div>
     </div>
 
     <!-- Notification panel -->
-    <div id="_notif-panel" class="hidden fixed z-40 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl w-80" style="top:68px;right:16px;">
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+    <div id="_notif-panel" class="hidden fixed z-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-80" style="top:68px;right:16px;">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
         <div class="flex items-center gap-2">
-          <span class="text-sm font-semibold text-gray-900 dark:text-white">Notificaciones</span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-white">Notificaciones</span>
           <span id="_notif-count" class="hidden text-xs bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full font-semibold"></span>
         </div>
-        <button onclick="_markNotifRead()" class="text-xs text-violet-600 dark:text-violet-400 hover:underline">Marcar leídas</button>
+        <button onclick="_markNotifRead()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Marcar leídas</button>
       </div>
-      <div id="_notif-list" class="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800">
-        <p class="text-xs text-gray-400 text-center py-8">Cargando alertas...</p>
+      <div id="_notif-list" class="max-h-80 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
+        <p class="text-xs text-slate-400 text-center py-8">Cargando alertas...</p>
       </div>
     </div>
 
     <!-- Help overlay -->
     <div id="_help-overlay" class="hidden fixed inset-0 bg-black/30 z-40" onclick="closeGlobalHelp()"></div>
     <div id="_help-panel" class="hidden fixed inset-y-0 right-0 w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex-shrink-0">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
         <div class="flex items-center gap-2.5">
-          <i data-lucide="help-circle" class="w-5 h-5 text-violet-500"></i>
-          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Guía de uso</h2>
+          <i data-lucide="help-circle" class="w-5 h-5 text-blue-500"></i>
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white">Guía de uso</h2>
         </div>
-        <button onclick="closeGlobalHelp()" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800">
+        <button onclick="closeGlobalHelp()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
@@ -195,7 +195,7 @@ function openGlobalSearch() {
     const inp = document.getElementById("_search-input");
     if (inp) { inp.value = ""; inp.focus(); }
     document.getElementById("_search-results").innerHTML =
-      '<p class="text-xs text-gray-400 px-3 py-6 text-center">Escribí para buscar...</p>';
+      '<p class="text-xs text-slate-400 px-3 py-6 text-center">Escribí para buscar...</p>';
     _searchIdx = -1;
   }, 30);
 }
@@ -217,7 +217,7 @@ function runGlobalSearch(query) {
   _searchIdx = -1;
 
   if (q.length < 2) {
-    container.innerHTML = '<p class="text-xs text-gray-400 px-3 py-6 text-center">Escribí para buscar...</p>';
+    container.innerHTML = '<p class="text-xs text-slate-400 px-3 py-6 text-center">Escribí para buscar...</p>';
     return;
   }
 
@@ -247,7 +247,7 @@ function runGlobalSearch(query) {
   }
 
   if (results.length === 0) {
-    container.innerHTML = `<p class="text-xs text-gray-400 px-3 py-6 text-center">Sin resultados para "<strong>${_esc(query)}</strong>"</p>`;
+    container.innerHTML = `<p class="text-xs text-slate-400 px-3 py-6 text-center">Sin resultados para "<strong>${_esc(query)}</strong>"</p>`;
     return;
   }
 
@@ -257,18 +257,18 @@ function runGlobalSearch(query) {
   let html = "";
   let idx = 0;
   Object.entries(groups).forEach(([group, items]) => {
-    html += `<p class="text-xs font-semibold text-gray-400 dark:text-slate-500 px-3 pt-3 pb-1 uppercase tracking-wider">${group}</p>`;
+    html += `<p class="text-xs font-semibold text-slate-400 dark:text-slate-500 px-3 pt-3 pb-1 uppercase tracking-wider">${group}</p>`;
     items.forEach(item => {
       const iconHtml = item.emoji
-        ? `<span class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-base flex-shrink-0">${item.emoji}</span>`
-        : `<span class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0"><i data-lucide="${item.icon}" class="w-4 h-4 text-gray-500 dark:text-slate-400"></i></span>`;
+        ? `<span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base flex-shrink-0">${item.emoji}</span>`
+        : `<span class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0"><i data-lucide="${item.icon}" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i></span>`;
       html += `
-        <div class="_search-result flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+        <div class="_search-result flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
              data-url="${item.url}" data-idx="${idx}" onclick="_goSearch('${item.url}')">
           ${iconHtml}
           <div class="min-w-0">
-            <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${_esc(item.label)}</p>
-            <p class="text-xs text-gray-400 truncate">${_esc(item.sub)}</p>
+            <p class="text-sm font-medium text-slate-800 dark:text-white truncate">${_esc(item.label)}</p>
+            <p class="text-xs text-slate-400 truncate">${_esc(item.sub)}</p>
           </div>
         </div>`;
       idx++;
@@ -286,7 +286,7 @@ function _searchKeyNav(e) {
   if (e.key === "ArrowDown")  { e.preventDefault(); _searchIdx = Math.min(_searchIdx + 1, items.length - 1); }
   else if (e.key === "ArrowUp") { e.preventDefault(); _searchIdx = Math.max(_searchIdx - 1, 0); }
   else if (e.key === "Enter" && _searchIdx >= 0) { _goSearch(items[_searchIdx].dataset.url); return; }
-  items.forEach((el, i) => el.classList.toggle("bg-gray-50", i === _searchIdx));
+  items.forEach((el, i) => el.classList.toggle("bg-slate-50", i === _searchIdx));
   if (items[_searchIdx]) items[_searchIdx].scrollIntoView({ block: "nearest" });
 }
 
@@ -332,7 +332,7 @@ async function _buildNotifs() {
   const list    = document.getElementById("_notif-list");
   const countEl = document.getElementById("_notif-count");
   if (!list) return;
-  list.innerHTML = '<p class="text-xs text-gray-400 text-center py-8">Cargando...</p>';
+  list.innerHTML = '<p class="text-xs text-slate-400 text-center py-8">Cargando...</p>';
 
   const now    = Date.now();
   const alerts = [];   // computed alerts (servicios, presupuestos, deudas)
@@ -393,7 +393,7 @@ async function _buildNotifs() {
 
   if (total === 0) {
     list.innerHTML = `
-      <div class="flex flex-col items-center py-8 gap-2 text-gray-400 dark:text-slate-500">
+      <div class="flex flex-col items-center py-8 gap-2 text-slate-400 dark:text-slate-500">
         <i data-lucide="check-circle" class="w-8 h-8 opacity-50"></i>
         <p class="text-xs">Todo al día, sin notificaciones pendientes</p>
       </div>`;
@@ -415,21 +415,21 @@ async function _buildNotifs() {
 
   // DB notifications section
   if (dbNotifs.length > 0) {
-    html += `<p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-4 pt-3 pb-1">Del sistema</p>`;
+    html += `<p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-4 pt-3 pb-1">Del sistema</p>`;
     html += dbNotifs.map(n => {
       const c = colorMap[n.color] || colorMap.amber;
       return `
         <a href="${_esc(n.url)}" onclick="_markOneRead('${n.tipo}',${n.id}); _closeNotif();"
-           class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer block">
+           class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer block">
           <div class="w-8 h-8 rounded-full ${c.bg} ${c.text} flex items-center justify-center flex-shrink-0 mt-0.5">
             <i data-lucide="${_esc(n.icon)}" class="w-4 h-4"></i>
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center justify-between gap-2">
-              <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${_esc(n.mensaje)}</p>
+              <p class="text-sm font-medium text-slate-800 dark:text-white truncate">${_esc(n.mensaje)}</p>
               <span class="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">${_fmtNotifDate(n.created_at)}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${_fmtNotifDate(n.created_at)}</p>
           </div>
         </a>`;
     }).join("");
@@ -438,17 +438,17 @@ async function _buildNotifs() {
   // Computed alerts section
   if (alerts.length > 0) {
     if (dbNotifs.length > 0)
-      html += `<p class="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider px-4 pt-3 pb-1">Alertas activas</p>`;
+      html += `<p class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-4 pt-3 pb-1">Alertas activas</p>`;
     html += alerts.map(a => {
       const c = colorMap[a.type] || colorMap.amber;
       return `
-        <a href="${a.url}" onclick="_closeNotif()" class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors cursor-pointer block">
+        <a href="${a.url}" onclick="_closeNotif()" class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer block">
           <div class="w-8 h-8 rounded-full ${c.bg} ${c.text} flex items-center justify-center flex-shrink-0 mt-0.5">
             <i data-lucide="${a.icon}" class="w-4 h-4"></i>
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${_esc(a.title)}</p>
-            <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">${_esc(a.desc)}</p>
+            <p class="text-sm font-medium text-slate-800 dark:text-white truncate">${_esc(a.title)}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${_esc(a.desc)}</p>
           </div>
         </a>`;
     }).join("");
@@ -509,17 +509,17 @@ function _buildFAQ() {
   if (!container || container.innerHTML.trim()) return;
   container.innerHTML = _HELP_FAQ.map((section, si) => `
     <div class="mb-4">
-      <p class="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2 px-1">${section.section}</p>
+      <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 px-1">${section.section}</p>
       <div class="space-y-1">
         ${section.items.map((item, ii) => `
-          <div class="rounded-xl border border-gray-100 dark:border-slate-700 overflow-hidden">
+          <div class="rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
             <button onclick="_toggleFAQ('_faq-${si}-${ii}')"
-                    class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors gap-3">
-              <span class="text-sm font-medium text-gray-800 dark:text-slate-200">${_esc(item.q)}</span>
-              <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200" id="_icon-faq-${si}-${ii}"></i>
+                    class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors gap-3">
+              <span class="text-sm font-medium text-slate-800 dark:text-slate-200">${_esc(item.q)}</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 flex-shrink-0 transition-transform duration-200" id="_icon-faq-${si}-${ii}"></i>
             </button>
             <div id="_faq-${si}-${ii}" class="hidden px-4 pb-3">
-              <p class="text-sm text-gray-500 dark:text-slate-400 leading-relaxed">${_esc(item.a)}</p>
+              <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">${_esc(item.a)}</p>
             </div>
           </div>`).join("")}
       </div>
