@@ -1,4 +1,4 @@
-const CACHE = "finanzas-v5";
+const CACHE = "finanzas-v6";
 const STATIC_ASSETS = [
   "/dashboard.html", "/transactions.html", "/budgets.html", "/goals.html",
   "/debts.html", "/cards.html", "/inversiones.html", "/reports.html",
@@ -50,11 +50,26 @@ self.addEventListener("notificationclick", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  // Solo manejar requests del mismo origen
   if (url.origin !== self.location.origin) return;
-  // API calls: red siempre, nunca caché
   if (url.pathname.startsWith("/api/")) return;
-  // Assets estáticos: caché primero, red como fallback
+
+  // HTML: red primero para siempre servir la versión más reciente
+  if (url.pathname.endsWith(".html") || url.pathname === "/") {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // JS/CSS/iconos: caché primero (están versionados con ?v=N)
   e.respondWith(
     caches.match(e.request).then(
       (cached) =>
