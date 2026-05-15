@@ -95,7 +95,9 @@ def _migrate_db():
             # Convertir columnas INTEGER a BOOLEAN para compatibilidad con el modelo SQLAlchemy
             for col in ("totp_enabled", "onboarding_done"):
                 try:
+                    conn.execute(text(f"ALTER TABLE users ALTER COLUMN {col} DROP DEFAULT"))
                     conn.execute(text(f"ALTER TABLE users ALTER COLUMN {col} TYPE BOOLEAN USING ({col} != 0)"))
+                    conn.execute(text(f"ALTER TABLE users ALTER COLUMN {col} SET DEFAULT false"))
                     conn.commit()
                 except Exception:
                     conn.rollback()
