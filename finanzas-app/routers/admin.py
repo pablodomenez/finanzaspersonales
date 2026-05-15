@@ -50,7 +50,7 @@ def list_users(
             "created_at": u.created_at.isoformat() if u.created_at else None,
             "is_admin": bool(u.is_admin),
             "is_active": u.is_active if u.is_active is not None else True,
-            "totp_enabled": bool(u.totp_enabled),
+            "totp_enabled": bool(u.totp_enabled) if u.totp_enabled is not None else False,
             "has_google": u.google_id is not None,
             "onboarding_done": bool(u.onboarding_done),
             "tx_count": tx_counts.get(u.id, 0),
@@ -144,7 +144,7 @@ def get_stats(
     )
 
     # 2FA y Google OAuth adoption
-    totp_count = db.query(func.count(models.User.id)).filter(models.User.totp_enabled == True).scalar()
+    totp_count = db.query(func.count(models.User.id)).filter(models.User.totp_enabled == 1).scalar()
     google_count = db.query(func.count(models.User.id)).filter(models.User.google_id.isnot(None)).scalar()
     push_subs = db.query(func.count(models.PushSubscription.id)).scalar()
 
