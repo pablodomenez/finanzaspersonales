@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from calendar import monthrange
 from typing import Optional
 import time
@@ -488,6 +488,24 @@ def pagar_cuota(
     cuota.estado = "pagado"
     cuota.fecha_pago = data.fecha_pago or date.today().isoformat()
 
+    # Crear transacción automática en movimientos
+    fecha_tx = datetime.utcnow()
+    if cuota.fecha_pago:
+        try:
+            fecha_tx = datetime.fromisoformat(cuota.fecha_pago)
+        except ValueError:
+            pass
+    db.add(models.Transaction(
+        user_id=current_user.id,
+        category_id=14,  # "Otros gastos"
+        amount=cuota.monto_total,
+        type=models.TransactionType.expense,
+        description=f"Cuota {cuota.numero_cuota} — {p.nombre}",
+        date=fecha_tx,
+        source_type="prestamo",
+        source_id=cuota.id,
+    ))
+
     # Sobrescribir con valores reales del banco si se proveen
     if data.capital_real is not None:
         cuota.capital = data.capital_real
@@ -535,5 +553,12 @@ def deshacer_pago(
     cuota.estado = "atrasado" if cuota.fecha_vencimiento < hoy else "pendiente"
     cuota.fecha_pago = None
     cuota.notas = ""
+    tx = db.query(models.Transaction).filter(
+        models.Transaction.user_id == current_user.id,
+        models.Transaction.source_type == "prestamo",
+        models.Transaction.source_id == cuota.id,
+    ).first()
+    if tx:
+        db.delete(tx)
     db.commit()
     return _serialize_cuota(cuota)

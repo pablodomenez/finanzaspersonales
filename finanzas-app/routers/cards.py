@@ -353,6 +353,8 @@ def upsert_payment(
         existing.paid_at = datetime.utcnow()
         db.commit()
         db.refresh(existing)
+        _upsert_card_payment_transaction(db, current_user.id, existing, card.name)
+        db.commit()
         return _serialize_payment(existing)
 
     payment = models.CardPayment(
@@ -369,7 +371,45 @@ def upsert_payment(
     db.add(payment)
     db.commit()
     db.refresh(payment)
+    _upsert_card_payment_transaction(db, current_user.id, payment, card.name)
+    db.commit()
     return _serialize_payment(payment)
+
+
+def _upsert_card_payment_transaction(db, user_id: int, payment: models.CardPayment, card_name: str):
+    if payment.amount_paid <= 0:
+        # Si se borró el monto pagado, eliminar la transacción vinculada
+        existing_tx = db.query(models.Transaction).filter(
+            models.Transaction.user_id == user_id,
+            models.Transaction.source_type == "card_payment",
+            models.Transaction.source_id == payment.id,
+        ).first()
+        if existing_tx:
+            db.delete(existing_tx)
+        return
+
+    month_name = MONTH_NAMES[payment.month] if 1 <= payment.month <= 12 else str(payment.month)
+    desc = f"Pago tarjeta {card_name} — {month_name} {payment.year}"
+    existing_tx = db.query(models.Transaction).filter(
+        models.Transaction.user_id == user_id,
+        models.Transaction.source_type == "card_payment",
+        models.Transaction.source_id == payment.id,
+    ).first()
+    if existing_tx:
+        existing_tx.amount = payment.amount_paid
+        existing_tx.description = desc
+        existing_tx.date = payment.paid_at or datetime.utcnow()
+    else:
+        db.add(models.Transaction(
+            user_id=user_id,
+            category_id=16,  # "Tarjeta de crédito"
+            amount=payment.amount_paid,
+            type=models.TransactionType.expense,
+            description=desc,
+            date=payment.paid_at or datetime.utcnow(),
+            source_type="card_payment",
+            source_id=payment.id,
+        ))
 
 
 @router.get("/payments/{card_id}")

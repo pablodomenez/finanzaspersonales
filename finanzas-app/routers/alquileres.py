@@ -442,6 +442,8 @@ def registrar_pago(
         existing.notas = data.notas or ""
         db.commit()
         db.refresh(existing)
+        _upsert_alquiler_transaction(db, current_user.id, existing, a.nombre)
+        db.commit()
         return _s_pago(existing)
 
     pago = models.PagoAlquiler(
@@ -457,7 +459,47 @@ def registrar_pago(
     db.add(pago)
     db.commit()
     db.refresh(pago)
+    _upsert_alquiler_transaction(db, current_user.id, pago, a.nombre)
+    db.commit()
     return _s_pago(pago)
+
+
+def _upsert_alquiler_transaction(db, user_id: int, pago: models.PagoAlquiler, alquiler_nombre: str):
+    monto = pago.monto_pagado or pago.monto_esperado
+    existing_tx = db.query(models.Transaction).filter(
+        models.Transaction.user_id == user_id,
+        models.Transaction.source_type == "alquiler",
+        models.Transaction.source_id == pago.id,
+    ).first()
+
+    if pago.estado != "pagado":
+        if existing_tx:
+            db.delete(existing_tx)
+        return
+
+    fecha = datetime.utcnow()
+    if pago.fecha_pago:
+        try:
+            fecha = datetime.fromisoformat(pago.fecha_pago)
+        except ValueError:
+            pass
+
+    desc = f"Alquiler {alquiler_nombre} — {pago.periodo}"
+    if existing_tx:
+        existing_tx.amount = monto
+        existing_tx.description = desc
+        existing_tx.date = fecha
+    else:
+        db.add(models.Transaction(
+            user_id=user_id,
+            category_id=7,  # "Vivienda"
+            amount=monto,
+            type=models.TransactionType.expense,
+            description=desc,
+            date=fecha,
+            source_type="alquiler",
+            source_id=pago.id,
+        ))
 
 
 @router.delete("/pagos/{pago_id}", status_code=204)
@@ -472,6 +514,13 @@ def eliminar_pago(
     ).first()
     if not pago:
         raise HTTPException(status_code=404, detail="Pago no encontrado")
+    tx = db.query(models.Transaction).filter(
+        models.Transaction.user_id == current_user.id,
+        models.Transaction.source_type == "alquiler",
+        models.Transaction.source_id == pago_id,
+    ).first()
+    if tx:
+        db.delete(tx)
     db.delete(pago)
     db.commit()
 

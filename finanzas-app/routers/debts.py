@@ -66,6 +66,16 @@ def create_debt(
     return _serialize(d)
 
 
+def _delete_source_transaction(db, user_id: int, source_type: str, source_id: int):
+    t = db.query(models.Transaction).filter(
+        models.Transaction.user_id == user_id,
+        models.Transaction.source_type == source_type,
+        models.Transaction.source_id == source_id,
+    ).first()
+    if t:
+        db.delete(t)
+
+
 @router.patch("/{debt_id}/toggle-paid")
 def toggle_paid(
     debt_id: int,
@@ -79,6 +89,24 @@ def toggle_paid(
     if not d:
         raise HTTPException(status_code=404, detail="Deuda no encontrada")
     d.paid = not d.paid
+    if d.paid:
+        # owe = yo le debo (gasto), owed = me deben (ingreso)
+        tx_type = models.TransactionType.expense if d.type == models.DebtType.owe else models.TransactionType.income
+        category_id = 14 if d.type == models.DebtType.owe else 4  # "Otros gastos" | "Otros ingresos"
+        desc = f"Deuda saldada: {d.person_name}" + (f" — {d.description}" if d.description else "")
+        tx = models.Transaction(
+            user_id=current_user.id,
+            category_id=category_id,
+            amount=d.amount,
+            type=tx_type,
+            description=desc,
+            date=datetime.utcnow(),
+            source_type="debt",
+            source_id=d.id,
+        )
+        db.add(tx)
+    else:
+        _delete_source_transaction(db, current_user.id, "debt", d.id)
     db.commit()
     db.refresh(d)
     return _serialize(d)

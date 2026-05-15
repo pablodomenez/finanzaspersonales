@@ -78,6 +78,8 @@ class Transaction(Base):
     date = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
     payment_method = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    source_type = Column(String, nullable=True)   # "debt" | "card_payment" | "alquiler" | "prestamo"
+    source_id = Column(Integer, nullable=True)
 
     user = relationship("User", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")
