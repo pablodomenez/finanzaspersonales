@@ -77,6 +77,9 @@ def get_current_user(
     if user is None:
         raise credentials_exception
 
+    if user.is_active is False:
+        raise HTTPException(status_code=403, detail="Cuenta desactivada")
+
     # Activar RLS a nivel base de datos para esta sesión (solo PostgreSQL)
     if is_postgres:
         try:
@@ -85,3 +88,9 @@ def get_current_user(
             pass
 
     return user
+
+
+def get_admin_user(current_user: models.User = Depends(get_current_user)) -> models.User:
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Acceso denegado: se requiere rol de administrador")
+    return current_user

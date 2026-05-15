@@ -23,6 +23,8 @@ class User(Base):
     totp_secret = Column(String, nullable=True)
     totp_enabled = Column(Boolean, default=False)
     onboarding_done = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
 
     transactions = relationship("Transaction", back_populates="user", cascade="all, delete")
     budgets = relationship("Budget", back_populates="user", cascade="all, delete")

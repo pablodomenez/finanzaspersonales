@@ -107,6 +107,7 @@ def me(current_user: models.User = Depends(auth_utils.get_current_user)):
         "terms_accepted": current_user.terms_accepted_at is not None,
         "onboarding_done": bool(current_user.onboarding_done),
         "totp_enabled": bool(current_user.totp_enabled),
+        "is_admin": bool(current_user.is_admin),
     }
 
 

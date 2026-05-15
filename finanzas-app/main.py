@@ -12,7 +12,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from limiter import limiter
 from database import engine, Base
-from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones, prestamos, push, twofa
+from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones, prestamos, push, twofa, admin
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
 # ── Sentry ──────────────────────────────────────────────────────────────────────
@@ -66,6 +66,8 @@ def _migrate_db():
         "ALTER TABLE pagos_prestamos ADD COLUMN IF NOT EXISTS cargos REAL DEFAULT 0",
         "ALTER TABLE pagos_prestamos ADD COLUMN IF NOT EXISTS capital_uva REAL",
         "ALTER TABLE pagos_prestamos ADD COLUMN IF NOT EXISTS interes_uva REAL",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin INTEGER DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active INTEGER DEFAULT 1",
     ]
     new_categories = [
         (15, "Mascotas",          "🐾", "expense"),
@@ -212,6 +214,7 @@ app.include_router(notificaciones.router)
 app.include_router(prestamos.router)
 app.include_router(push.router)
 app.include_router(twofa.router)
+app.include_router(admin.router)
 
 # Categorías endpoint (sin auth, datos estáticos)
 from fastapi import APIRouter

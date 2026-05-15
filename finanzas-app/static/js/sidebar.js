@@ -36,7 +36,11 @@
   }).join("");
 
   const profileActive = page === "profile";
+  const adminActive = page === "admin";
   const profileCls = profileActive
+    ? "w-full flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
+    : "w-full flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
+  const adminCls = adminActive
     ? "w-full flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
     : "w-full flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
 
@@ -89,6 +93,9 @@
       </button>
       <a href="/profile.html" class="${profileCls}" id="sidebar-profile-link">
         <span id="sidebar-profile-icon" class="w-4 h-4 shrink-0 flex items-center justify-center leading-none"><i data-lucide="user" class="w-4 h-4"></i></span>Mi Perfil
+      </a>
+      <a href="/admin.html" class="${adminCls} hidden" id="sidebar-admin-link">
+        <i data-lucide="shield" class="w-4 h-4 shrink-0"></i>Admin
       </a>
       <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-red-400 hover:bg-red-900/30 hover:text-red-300 text-sm font-medium transition-colors">
         <i data-lucide="log-out" class="w-4 h-4 shrink-0"></i>Cerrar sesión
@@ -158,6 +165,13 @@
             iconEl.textContent = profile.avatar_emoji;
             iconEl.className = "shrink-0 text-base leading-none flex items-center justify-center";
           }
+        }
+      } catch (_) {}
+      try {
+        const me = await apiFetch("/api/auth/me");
+        if (me && me.is_admin) {
+          const adminLink = document.getElementById("sidebar-admin-link");
+          if (adminLink) adminLink.classList.remove("hidden");
         }
       } catch (_) {}
     })();
