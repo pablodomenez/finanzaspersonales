@@ -11,7 +11,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from limiter import limiter
-from database import engine, Base
+from database import engine, Base, is_postgres
 from routers import auth, transactions, budgets, dashboard, goals, debts, reports, cards, profile, servicios, inversiones, promociones, compartidos, decisiones, google_auth, feedback, cotizaciones, alquileres, notificaciones, prestamos, push, twofa, admin
 import models  # SQLAlchemy declarative models must be imported to register table definitions
 
@@ -55,9 +55,9 @@ def _migrate_db():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS terms_accepted_at TIMESTAMP",
         "ALTER TABLE transactions ADD COLUMN IF NOT EXISTS payment_method TEXT",
         "ALTER TABLE pagos_servicios ADD COLUMN IF NOT EXISTS forma_pago TEXT DEFAULT ''",
-        "ALTER TABLE card_expenses ADD COLUMN expense_type TEXT DEFAULT 'cuota'",
-        "ALTER TABLE card_expenses ADD COLUMN end_month INTEGER",
-        "ALTER TABLE card_expenses ADD COLUMN end_year INTEGER",
+        "ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS expense_type TEXT DEFAULT 'cuota'",
+        "ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS end_month INTEGER",
+        "ALTER TABLE card_expenses ADD COLUMN IF NOT EXISTS end_year INTEGER",
         "ALTER TABLE shared_groups ADD COLUMN IF NOT EXISTS join_token TEXT",
         "ALTER TABLE shared_participants ADD COLUMN IF NOT EXISTS user_id INTEGER",
         "ALTER TABLE shared_expenses ADD COLUMN IF NOT EXISTS comprobante TEXT",
@@ -85,6 +85,13 @@ def _migrate_db():
                 conn.commit()
             except Exception:
                 conn.rollback()  # evita que PostgreSQL aborte todas las queries siguientes
+        # hashed_password debe ser nullable para usuarios de Google OAuth
+        if is_postgres:
+            try:
+                conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL"))
+                conn.commit()
+            except Exception:
+                conn.rollback()
         for cat_id, name, icon, cat_type in new_categories:
             try:
                 conn.execute(text(
