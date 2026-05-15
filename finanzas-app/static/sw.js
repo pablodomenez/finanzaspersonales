@@ -1,4 +1,4 @@
-const CACHE = "finanzas-v4";
+const CACHE = "finanzas-v5";
 const STATIC_ASSETS = [
   "/dashboard.html", "/transactions.html", "/budgets.html", "/goals.html",
   "/debts.html", "/cards.html", "/inversiones.html", "/reports.html",
@@ -7,6 +7,7 @@ const STATIC_ASSETS = [
   "/prestamos.html",
   "/js/api.js", "/js/theme.js", "/js/sidebar.js", "/js/common.js",
   "/js/animations.js", "/js/prestamos.js",
+  "/css/design.css",
   "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png",
 ];
 
