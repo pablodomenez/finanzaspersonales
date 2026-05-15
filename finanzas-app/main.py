@@ -85,13 +85,20 @@ def _migrate_db():
                 conn.commit()
             except Exception:
                 conn.rollback()  # evita que PostgreSQL aborte todas las queries siguientes
-        # hashed_password debe ser nullable para usuarios de Google OAuth
         if is_postgres:
+            # hashed_password debe ser nullable para usuarios de Google OAuth
             try:
                 conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL"))
                 conn.commit()
             except Exception:
                 conn.rollback()
+            # Convertir columnas INTEGER a BOOLEAN para compatibilidad con el modelo SQLAlchemy
+            for col in ("totp_enabled", "onboarding_done"):
+                try:
+                    conn.execute(text(f"ALTER TABLE users ALTER COLUMN {col} TYPE BOOLEAN USING ({col} != 0)"))
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
         for cat_id, name, icon, cat_type in new_categories:
             try:
                 conn.execute(text(
