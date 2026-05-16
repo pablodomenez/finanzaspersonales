@@ -93,6 +93,9 @@ function openNewModal() {
   document.getElementById("t-description").value = "";
   document.getElementById("t-date").value = new Date().toISOString().slice(0, 10);
   document.getElementById("modal-error").classList.add("hidden");
+  document.getElementById("scan-receipt-btn").classList.remove("hidden");
+  document.getElementById("scan-status").classList.add("hidden");
+  document.getElementById("receipt-input").value = "";
   populateCategorySelect("expense");
   document.getElementById("modal").classList.remove("hidden");
 }
@@ -108,6 +111,8 @@ function editTransaction(t) {
   document.getElementById("t-description").value = t.description;
   document.getElementById("t-date").value = t.date.slice(0, 10);
   document.getElementById("modal-error").classList.add("hidden");
+  document.getElementById("scan-receipt-btn").classList.add("hidden");
+  document.getElementById("scan-status").classList.add("hidden");
   document.getElementById("modal").classList.remove("hidden");
 }
 
@@ -192,6 +197,160 @@ window.clearSearch = clearSearch;
 window.openModal = openNewModal;
 
 Promise.all([loadCategories(), loadTransactions()]);
+
+// ── Escanear ticket/factura (OCR local con Tesseract.js, sin API key) ──────────
+document.getElementById("scan-receipt-btn").addEventListener("click", () => {
+  document.getElementById("receipt-input").click();
+});
+
+document.getElementById("receipt-input").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById("scan-status");
+  const setStatus = (msg, color) => {
+    const colors = {
+      blue:  "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
+      green: "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400",
+      red:   "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400",
+    };
+    statusEl.className = `text-sm text-center py-2 px-3 rounded-lg mb-3 ${colors[color]}`;
+    statusEl.textContent = msg;
+    statusEl.classList.remove("hidden");
+  };
+
+  setStatus("Leyendo ticket… (puede tardar unos segundos)", "blue");
+
+  try {
+    const { data: { text } } = await Tesseract.recognize(file, "spa+eng", {
+      logger: m => {
+        if (m.status === "recognizing text") {
+          const pct = Math.round((m.progress || 0) * 100);
+          setStatus(`Leyendo ticket… ${pct}%`, "blue");
+        }
+      },
+    });
+
+    const parsed = parseReceiptText(text);
+    let detected = 0;
+
+    if (parsed.amount != null) {
+      document.getElementById("t-amount").value = parsed.amount;
+      detected++;
+    }
+    if (parsed.description) {
+      document.getElementById("t-description").value = parsed.description;
+      detected++;
+    }
+    if (parsed.date) {
+      document.getElementById("t-date").value = parsed.date;
+      detected++;
+    }
+
+    document.getElementById("t-type").value = "expense";
+    populateCategorySelect("expense");
+    if (parsed.category_id) {
+      document.getElementById("t-category").value = parsed.category_id;
+    }
+
+    if (detected === 0) {
+      setStatus("No se detectaron datos. Intentá con una foto más clara y bien iluminada.", "red");
+    } else {
+      setStatus("✓ Datos detectados — revisá y confirmá antes de guardar", "green");
+    }
+  } catch (err) {
+    setStatus("Error al leer el ticket. Intentá con otra foto.", "red");
+    console.error(err);
+  } finally {
+    e.target.value = "";
+  }
+});
+
+function parseReceiptText(raw) {
+  const text = raw;
+  const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+  // ── Monto ────────────────────────────────────────────────────────────────────
+  // Busca primero línea con TOTAL / IMPORTE / A PAGAR
+  let amount = null;
+  const totalLine = lines.find(l => /\b(total|importe|a pagar|subtotal|neto)\b/i.test(l));
+  if (totalLine) {
+    const nums = [...totalLine.matchAll(/[\d.,]+/g)]
+      .map(m => _parseAmt(m[0]))
+      .filter(n => n > 0);
+    if (nums.length) amount = Math.max(...nums);
+  }
+  // Fallback: el número más grande del texto (el total suele ser el mayor)
+  if (!amount) {
+    const all = [...raw.matchAll(/(?<!\d)(\d{1,3}(?:[.,]\d{3})*[.,]\d{2})(?!\d)/g)]
+      .map(m => _parseAmt(m[1]))
+      .filter(n => n > 0 && n < 10_000_000);
+    if (all.length) amount = Math.max(...all);
+  }
+
+  // ── Fecha ────────────────────────────────────────────────────────────────────
+  let date = null;
+  const dateFmts = [
+    { re: /(\d{2})\/(\d{2})\/(\d{4})/, fn: m => `${m[3]}-${m[2]}-${m[1]}` },
+    { re: /(\d{4})-(\d{2})-(\d{2})/, fn: m => `${m[1]}-${m[2]}-${m[3]}` },
+    { re: /(\d{2})-(\d{2})-(\d{4})/, fn: m => `${m[3]}-${m[2]}-${m[1]}` },
+    { re: /(\d{2})\/(\d{2})\/(\d{2})/, fn: m => `20${m[3]}-${m[2]}-${m[1]}` },
+  ];
+  for (const { re, fn } of dateFmts) {
+    const m = text.match(re);
+    if (m) { date = fn(m); break; }
+  }
+
+  // ── Descripción ──────────────────────────────────────────────────────────────
+  // Primera línea con al menos 3 letras consecutivas (el nombre del comercio suele ser de las primeras)
+  const description = (
+    lines.find(l => /[a-záéíóúñA-ZÁÉÍÓÚÑ]{3,}/.test(l) && !/^\d+$/.test(l))
+    || ""
+  ).slice(0, 60);
+
+  // ── Categoría ─────────────────────────────────────────────────────────────────
+  const category_id = _guessCategory(raw.toLowerCase());
+
+  return { amount, date, description, category_id };
+}
+
+function _parseAmt(s) {
+  s = s.trim();
+  const hasDot = s.includes(".");
+  const hasComma = s.includes(",");
+  if (hasDot && hasComma) {
+    // 1.234,56 → ES format; 1,234.56 → EN format
+    return s.lastIndexOf(",") > s.lastIndexOf(".")
+      ? parseFloat(s.replace(/\./g, "").replace(",", "."))
+      : parseFloat(s.replace(/,/g, ""));
+  }
+  if (hasComma) {
+    const parts = s.split(",");
+    return parts[1]?.length === 2
+      ? parseFloat(s.replace(",", "."))
+      : parseFloat(s.replace(/,/g, ""));
+  }
+  return parseFloat(s);
+}
+
+function _guessCategory(t) {
+  const rules = [
+    { id: 17, kw: ["ypf", "shell", "axion", "esso", "puma", "nafta", "combustible", "gasoil", "gnc"] },
+    { id: 6,  kw: ["peaje", "autopista", "taxi", "uber", "cabify", "remis", "colectivo", "subte", "tren"] },
+    { id: 8,  kw: ["farmacia", "drogueria", "medico", "doctor", "clinica", "hospital", "laboratorio", "farmacity", "farmakón", "salud"] },
+    { id: 13, kw: ["edenor", "edesur", "metrogas", "aguas", "claro", "personal", "movistar", "fibertel", "cablevision", "directv", "telecom", "internet", "electricidad"] },
+    { id: 11, kw: ["indumentaria", "zara", "adidas", "nike", "calzado", "zapateria", "falabella", "tienda"] },
+    { id: 10, kw: ["cine", "cinema", "teatro", "concierto", "gaming", "steam", "playstation", "xbox", "netflix", "spotify"] },
+    { id: 9,  kw: ["libreria", "colegio", "escuela", "universidad", "curso", "capacitacion"] },
+    { id: 15, kw: ["veterinaria", "veterinario", "mascota", "petshop", "pet shop"] },
+    { id: 7,  kw: ["alquiler", "inmobiliaria", "expensas", "consorcio"] },
+    { id: 5,  kw: ["restaurant", "restaurante", "pizza", "burger", "hamburguesa", "delivery", "rappi", "pedidos", "coto", "carrefour", "walmart", "jumbo", "vea", "disco", "panaderia", "cafe", "heladeria", "sushi", "supermercado"] },
+  ];
+  for (const { id, kw } of rules) {
+    if (kw.some(k => t.includes(k))) return id;
+  }
+  return 14; // Otros gastos
+}
 
 // ── Importar CSV / Excel ───────────────────────────────────────────────────────
 let _csvFile = null;
