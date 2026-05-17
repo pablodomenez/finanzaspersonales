@@ -1,5 +1,7 @@
 import csv
 import io
+import json
+import os
 from datetime import datetime
 import openpyxl
 from typing import Optional
@@ -334,6 +336,91 @@ async def import_transactions(
         "errors": errors[:20],  # máximo 20 errores para no saturar
         "total_rows": len(created) + len(errors),
     }
+
+
+class ReceiptScanRequest(BaseModel):
+    image: str  # base64 data URL
+
+
+_RECEIPT_CATEGORIES = {
+    "comida": 5, "transporte": 6, "vivienda": 7, "salud": 8,
+    "educación": 9, "educacion": 9, "entretenimiento": 10, "ropa": 11,
+    "ahorro": 12, "servicios": 13, "otros gastos": 14, "mascotas": 15,
+    "combustible": 17,
+}
+
+
+@router.post("/scan-receipt")
+async def scan_receipt(
+    data: ReceiptScanRequest,
+    current_user: models.User = Depends(get_current_user),
+):
+    import httpx
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Escáner no configurado. Agregá GEMINI_API_KEY en las variables de entorno.")
+
+    image_data = data.image
+    media_type = "image/jpeg"
+    if "," in image_data:
+        prefix, image_data = image_data.split(",", 1)
+        if ":" in prefix and ";" in prefix:
+            media_type = prefix.split(":")[1].split(";")[0]
+
+    if len(image_data) > 14_000_000:
+        raise HTTPException(status_code=413, detail="Imagen demasiado grande (máx 10 MB)")
+
+    prompt = (
+        "Analizá esta imagen de un ticket o factura argentina. Extraé en JSON:\n"
+        "- amount: monto total pagado (número sin símbolos, null si no se ve)\n"
+        "- description: nombre del comercio o descripción breve (string, null si no se ve)\n"
+        "- date: fecha en formato YYYY-MM-DD (null si no se ve)\n"
+        "- category: una de estas exactas: Comida, Transporte, Vivienda, Salud, Educación, "
+        "Entretenimiento, Ropa, Ahorro, Servicios, Otros gastos, Mascotas, Combustible\n\n"
+        "Respondé SOLO con el JSON, sin texto adicional ni markdown."
+    )
+
+    payload = {
+        "contents": [{
+            "parts": [
+                {"inline_data": {"mime_type": media_type, "data": image_data}},
+                {"text": prompt},
+            ]
+        }],
+        "generationConfig": {"maxOutputTokens": 256, "temperature": 0},
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+                json=payload,
+            )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=502, detail="Error al contactar el servicio de análisis.")
+
+        text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+        if text.startswith("```"):
+            text = text.split("```")[1].lstrip("json").strip()
+
+        parsed = json.loads(text)
+        cat_key = (parsed.get("category") or "").lower().strip()
+        category_id = _RECEIPT_CATEGORIES.get(cat_key, 14)
+
+        return {
+            "amount": parsed.get("amount"),
+            "description": parsed.get("description"),
+            "date": parsed.get("date"),
+            "category_id": category_id,
+        }
+
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=422, detail="No se pudo interpretar la imagen. Intentá con una foto más clara.")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=502, detail="Error al analizar la imagen. Intentá nuevamente.")
 
 
 @router.delete("/{transaction_id}", status_code=204)
