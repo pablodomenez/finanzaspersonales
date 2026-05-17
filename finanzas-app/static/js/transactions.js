@@ -223,6 +223,7 @@ document.getElementById("receipt-input").addEventListener("change", async (e) =>
 
   try {
     const { data: { text } } = await Tesseract.recognize(file, "spa+eng", {
+      workerPath: "/js/tesseract-worker.min.js",
       logger: m => {
         if (m.status === "recognizing text") {
           const pct = Math.round((m.progress || 0) * 100);
