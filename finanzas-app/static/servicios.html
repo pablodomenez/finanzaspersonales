@@ -46,7 +46,7 @@
         <h1 class="text-xl font-bold text-slate-900 dark:text-white">Servicios</h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Programá y seguí el pago de tus servicios</p>
       </div>
-      <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+      <button onclick="openModal()" class="btn-primary">
         + Nuevo servicio
       </button>
       </div>
@@ -136,13 +136,13 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre del servicio</label>
             <input type="text" id="s-nombre" required placeholder="Ej: Internet Fibertel"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Categoría</label>
             <select id="s-categoria" required
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              class="form-input">
               <option value="">Seleccioná una categoría</option>
               <option value="Electricidad">⚡ Electricidad</option>
               <option value="Gas">🔥 Gas</option>
@@ -170,7 +170,7 @@
               </label>
             </div>
             <input type="number" id="s-monto" min="0.01" step="0.01" required placeholder="0.00"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
             <p id="monto-variable-hint" class="hidden text-xs text-slate-400 mt-1">Este monto es solo referencial, podrás ingresar el real al pagar.</p>
           </div>
 
@@ -178,13 +178,13 @@
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Día de vencimiento</label>
               <input type="number" id="s-dia" min="1" max="28" required placeholder="Ej: 15"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
               <p class="text-xs text-slate-400 mt-1">Del 1 al 28</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Frecuencia</label>
               <select id="s-frecuencia"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                class="form-input">
                 <option value="mensual">Mensual</option>
                 <option value="bimestral">Bimestral</option>
                 <option value="trimestral">Trimestral</option>
@@ -197,24 +197,24 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número de cuenta / CBU (opcional)</label>
             <input type="text" id="s-cuenta" placeholder="Ej: 123456789 / CBU"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Link de pago online (opcional)</label>
             <input type="url" id="s-link" placeholder="https://..."
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas (opcional)</label>
             <textarea id="s-notas" rows="2" placeholder="Proveedor, observaciones, etc."
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"></textarea>
+              class="form-input resize-none"></textarea>
           </div>
 
           <div class="flex gap-3 pt-2">
-            <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="button" onclick="closeModal()" class="btn-secondary flex-1">Cancelar</button>
+            <button type="submit" class="btn-primary flex-1">Guardar</button>
           </div>
         </form>
       </div>
@@ -238,17 +238,17 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Monto pagado</label>
             <input type="number" id="pagar-monto" min="0.01" step="0.01" required
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha de pago</label>
             <input type="date" id="pagar-fecha" required
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Forma de pago</label>
             <select id="pagar-forma-pago"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              class="form-input">
               <option value="">Sin especificar</option>
               <option value="Efectivo">💵 Efectivo</option>
               <option value="Transferencia">🏦 Transferencia bancaria</option>
@@ -262,11 +262,11 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas (opcional)</label>
             <input type="text" id="pagar-notas" placeholder="Referencia de pago, etc."
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div class="flex gap-3 pt-1">
-            <button type="button" onclick="closePagarModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Confirmar pago</button>
+            <button type="button" onclick="closePagarModal()" class="btn-secondary flex-1">Cancelar</button>
+            <button type="submit" class="btn-success flex-1 disabled:opacity-60">Confirmar pago</button>
           </div>
         </form>
       </div>

@@ -47,7 +47,7 @@
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Límites de gasto por categoría</p>
       </div>
       <div class="flex gap-2 items-center">
-        <select id="month-select" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+        <select id="month-select" class="filter-control">
           <option value="1">Enero</option><option value="2">Febrero</option>
           <option value="3">Marzo</option><option value="4">Abril</option>
           <option value="5">Mayo</option><option value="6">Junio</option>
@@ -55,8 +55,8 @@
           <option value="9">Septiembre</option><option value="10">Octubre</option>
           <option value="11">Noviembre</option><option value="12">Diciembre</option>
         </select>
-        <select id="year-select" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
-        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <select id="year-select" class="filter-control"></select>
+        <button onclick="openModal()" class="btn-primary">
           + Nuevo presupuesto
         </button>
       </div>
@@ -82,17 +82,17 @@
         <form id="budget-form" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Categoría</label>
-            <select id="b-category" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
+            <select id="b-category" class="form-input"></select>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Límite mensual</label>
             <input type="number" id="b-limit" min="1" step="0.01" required
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mes</label>
-              <select id="b-month" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <select id="b-month" class="form-input">
                 <option value="1">Enero</option><option value="2">Febrero</option>
                 <option value="3">Marzo</option><option value="4">Abril</option>
                 <option value="5">Mayo</option><option value="6">Junio</option>
@@ -103,12 +103,12 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Año</label>
-              <select id="b-year" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
+              <select id="b-year" class="form-input"></select>
             </div>
           </div>
           <div class="flex gap-3 pt-2">
-            <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="button" onclick="closeModal()" class="btn-secondary flex-1">Cancelar</button>
+            <button type="submit" class="btn-primary flex-1">Guardar</button>
           </div>
         </form>
       </div>

@@ -45,7 +45,7 @@
           <h1 class="text-xl font-bold text-slate-900 dark:text-white">Alquileres</h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gestioná tus contratos, pagos e índices de actualización</p>
         </div>
-        <button onclick="openAlquilerModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button onclick="openAlquilerModal()" class="btn-primary">
           + Nuevo alquiler
         </button>
       </div>
@@ -128,49 +128,49 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nombre del alquiler *</label>
-            <input type="text" id="a-nombre" placeholder="ej: Dpto Palermo" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="a-nombre" placeholder="ej: Dpto Palermo" required class="form-input">
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Dirección</label>
-            <input type="text" id="a-direccion" placeholder="Av. Corrientes 1234, CABA" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="a-direccion" placeholder="Av. Corrientes 1234, CABA" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Rol</label>
-            <select id="a-rol" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <select id="a-rol" class="form-input">
               <option value="inquilino">Soy inquilino</option>
               <option value="propietario">Soy propietario</option>
             </select>
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1" id="a-contraparte-label">Nombre del propietario</label>
-            <input type="text" id="a-contraparte" placeholder="Juan Pérez" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="a-contraparte" placeholder="Juan Pérez" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Valor actual *</label>
-            <input type="number" id="a-valor" placeholder="150000" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="a-valor" placeholder="150000" required step="0.01" min="0" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Moneda</label>
-            <select id="a-moneda" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <select id="a-moneda" class="form-input">
               <option value="ARS">ARS $</option>
               <option value="USD">USD U$S</option>
             </select>
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha inicio contrato *</label>
-            <input type="date" id="a-fecha-inicio" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="date" id="a-fecha-inicio" required class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha fin contrato</label>
-            <input type="date" id="a-fecha-fin" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="date" id="a-fecha-fin" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Día de pago</label>
-            <input type="number" id="a-dia-pago" value="1" min="1" max="28" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="a-dia-pago" value="1" min="1" max="28" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Índice de actualización</label>
-            <select id="a-indice" onchange="togglePorcentajeFijo()" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <select id="a-indice" onchange="togglePorcentajeFijo()" class="form-input">
               <option value="ICL">ICL (BCRA)</option>
               <option value="IPC">IPC (INDEC)</option>
               <option value="CVS">CVS / Salarios</option>
@@ -179,11 +179,11 @@
           </div>
           <div id="porcentaje-fijo-row" style="display:none">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Porcentaje fijo %</label>
-            <input type="number" id="a-porcentaje-fijo" placeholder="10.5" step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="a-porcentaje-fijo" placeholder="10.5" step="0.01" min="0" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Período de actualización</label>
-            <select id="a-periodo" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <select id="a-periodo" class="form-input">
               <option value="3">Trimestral (3 meses)</option>
               <option value="4">Cuatrimestral (4 meses)</option>
               <option value="6">Semestral (6 meses)</option>
@@ -192,21 +192,21 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Próxima actualización</label>
-            <input type="date" id="a-proxima-act" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="date" id="a-proxima-act" class="form-input">
           </div>
           <div id="valor-inmueble-row">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Valor del inmueble <span class="text-slate-400">(para ROI)</span></label>
-            <input type="number" id="a-valor-inmueble" placeholder="Opcional" step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="a-valor-inmueble" placeholder="Opcional" step="0.01" min="0" class="form-input">
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
-            <textarea id="a-notas" rows="2" placeholder="Observaciones del contrato..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+            <textarea id="a-notas" rows="2" placeholder="Observaciones del contrato..." class="form-input resize-none"></textarea>
           </div>
         </div>
         <div id="alquiler-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
         <div class="flex gap-3 pt-2">
           <button type="button" onclick="closeAlquilerModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition">Guardar</button>
+          <button type="submit" class="btn-primary flex-1">Guardar</button>
         </div>
       </form>
     </div>
@@ -226,11 +226,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Período (YYYY-MM) *</label>
-            <input type="month" id="p-periodo" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="month" id="p-periodo" required class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Estado</label>
-            <select id="p-estado" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <select id="p-estado" class="form-input">
               <option value="pagado">Pagado</option>
               <option value="pendiente">Pendiente</option>
               <option value="atrasado">Atrasado</option>
@@ -238,15 +238,15 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Monto esperado *</label>
-            <input type="number" id="p-monto-esperado" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="p-monto-esperado" required step="0.01" min="0" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Monto pagado</label>
-            <input type="number" id="p-monto-pagado" step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="p-monto-pagado" step="0.01" min="0" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha de pago</label>
-            <input type="date" id="p-fecha" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="date" id="p-fecha" class="form-input">
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Comprobante</label>
@@ -255,13 +255,13 @@
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
-            <input type="text" id="p-notas" placeholder="Transferencia banco..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="p-notas" placeholder="Transferencia banco..." class="form-input">
           </div>
         </div>
         <div id="pago-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
         <div class="flex gap-3 pt-2">
           <button type="button" onclick="closePagoModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition">Registrar pago</button>
+          <button type="submit" class="btn-success flex-1">Registrar pago</button>
         </div>
       </form>
     </div>
@@ -283,11 +283,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha de actualización</label>
-            <input type="date" id="act-fecha" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="date" id="act-fecha" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Índice usado</label>
-            <select id="act-indice" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <select id="act-indice" class="form-input">
               <option value="ICL">ICL</option>
               <option value="IPC">IPC</option>
               <option value="CVS">CVS</option>
@@ -296,15 +296,15 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Porcentaje aplicado % *</label>
-            <input type="number" id="act-porcentaje" required step="0.01" oninput="recalcularNuevoValor()" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="act-porcentaje" required step="0.01" oninput="recalcularNuevoValor()" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nuevo valor *</label>
-            <input type="number" id="act-valor-nuevo" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-600 dark:text-blue-400">
+            <input type="number" id="act-valor-nuevo" required step="0.01" min="0" class="form-input font-semibold text-blue-600 dark:text-blue-400">
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
-            <input type="text" id="act-notas" placeholder="Aplicada según resolución BCRA..." class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="act-notas" placeholder="Aplicada según resolución BCRA..." class="form-input">
           </div>
         </div>
         <div id="act-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
@@ -338,7 +338,7 @@
         <div id="panel-pagos" class="tab-panel">
           <div class="flex justify-between items-center mb-3">
             <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Historial de pagos</p>
-            <button id="btn-nuevo-pago" onclick="" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium transition">+ Registrar pago</button>
+            <button id="btn-nuevo-pago" onclick="" class="btn-success btn-sm">+ Registrar pago</button>
           </div>
           <div id="pagos-list" class="space-y-2"></div>
         </div>
@@ -356,7 +356,7 @@
         <div id="panel-gastos" class="tab-panel hidden">
           <div class="flex justify-between items-center mb-3">
             <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Gastos asociados</p>
-            <button id="btn-nuevo-gasto" onclick="" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium transition">+ Agregar gasto</button>
+            <button id="btn-nuevo-gasto" onclick="" class="btn-primary btn-sm">+ Agregar gasto</button>
           </div>
           <div id="gastos-list" class="space-y-2"></div>
         </div>
@@ -383,11 +383,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Descripción *</label>
-            <input type="text" id="g-descripcion" required placeholder="Expensas enero" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="g-descripcion" required placeholder="Expensas enero" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Tipo</label>
-            <select id="g-tipo" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <select id="g-tipo" class="form-input">
               <option value="expensa">Expensa</option>
               <option value="impuesto">Impuesto / ABL</option>
               <option value="seguro">Seguro</option>
@@ -397,25 +397,25 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Monto *</label>
-            <input type="number" id="g-monto" required step="0.01" min="0" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="number" id="g-monto" required step="0.01" min="0" class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Fecha *</label>
-            <input type="date" id="g-fecha" required class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="date" id="g-fecha" required class="form-input">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Período</label>
-            <input type="month" id="g-periodo" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="month" id="g-periodo" class="form-input">
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Notas</label>
-            <input type="text" id="g-notas" placeholder="" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="text" id="g-notas" placeholder="" class="form-input">
           </div>
         </div>
         <div id="gasto-form-error" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg"></div>
         <div class="flex gap-3 pt-2">
           <button type="button" onclick="closeGastoModal()" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-          <button type="submit" class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition">Guardar</button>
+          <button type="submit" class="btn-primary flex-1">Guardar</button>
         </div>
       </form>
     </div>
@@ -430,7 +430,7 @@
       <p id="confirm-msg" class="text-slate-700 dark:text-slate-300 text-sm mb-5">¿Eliminar?</p>
       <div class="flex gap-3">
         <button onclick="document.getElementById('confirm-modal').classList.add('hidden')" class="flex-1 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-        <button id="confirm-ok" class="flex-1 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition">Eliminar</button>
+        <button id="confirm-ok" class="btn-danger flex-1">Eliminar</button>
       </div>
     </div>
   </div>

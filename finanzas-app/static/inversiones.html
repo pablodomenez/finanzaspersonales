@@ -54,7 +54,7 @@
         <a id="btn-export" href="/api/inversiones/exportar-csv" class="hidden items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
           <i data-lucide="download" class="w-4 h-4"></i> CSV
         </a>
-        <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button onclick="openModal()" class="btn-primary">
           + Nueva inversión
         </button>
       </div>
@@ -299,30 +299,30 @@
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Capital inicial</label>
                   <input type="number" id="calc-capital" min="1" step="1" placeholder="1000000"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    class="form-input" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">TNA (%) — Tasa Nominal Anual</label>
                   <input type="number" id="calc-tna" min="0" step="0.1" placeholder="118.5"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    class="form-input" />
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Plazo</label>
                   <input type="number" id="calc-plazo" min="1" step="1" placeholder="30"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    class="form-input" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Unidad</label>
                   <select id="calc-unidad"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    class="form-input">
                     <option value="dias">Días</option>
                     <option value="meses">Meses</option>
                   </select>
                 </div>
               </div>
-              <button onclick="calcular()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+              <button onclick="calcular()" class="btn-primary w-full">
                 Calcular
               </button>
             </div>
@@ -612,7 +612,7 @@
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Moneda</label>
                   <select id="sim-moneda" onchange="simOnMonedaChange()"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    class="form-input">
                     <option value="ARS">ARS — Pesos</option>
                     <option value="USD">USD — Dólares</option>
                   </select>
@@ -633,7 +633,7 @@
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha objetivo</label>
                   <input type="date" id="sim-fecha"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    class="form-input" />
                 </div>
               </div>
 
@@ -642,13 +642,13 @@
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Rendimiento anual esperado (%)</label>
                   <input type="number" id="sim-tna" min="0" step="0.1" placeholder="118"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                    class="form-input" />
                   <p class="text-[10px] text-slate-400 mt-1 cursor-pointer hover:text-blue-500" onclick="simUsarInflacion()">↑ Usar inflación anual actual</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Frecuencia de aportes</label>
                   <select id="sim-frecuencia"
-                    class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                    class="form-input">
                     <option value="mensual">Mensual</option>
                     <option value="quincenal">Quincenal</option>
                     <option value="semanal">Semanal</option>
@@ -657,7 +657,7 @@
               </div>
 
               <button onclick="simCalcular()"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+                class="btn-primary w-full">
                 Calcular aporte necesario
               </button>
             </div>
@@ -736,7 +736,7 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
             <select id="i-tipo" required onchange="onTipoChange()"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              class="form-input">
               <option value="">Seleccioná un tipo</option>
               <option value="plazo_fijo">🏦 Plazo Fijo</option>
               <option value="fci">📊 Fondo Común (FCI)</option>
@@ -752,7 +752,7 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre / Descripción</label>
             <input type="text" id="i-nombre" required placeholder="Ej: PF Banco Galicia, AAPL, BTC..."
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -769,52 +769,52 @@
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha inicio</label>
               <input type="date" id="i-fecha-inicio" required
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Monto invertido</label>
               <input type="number" id="i-monto" min="0.01" step="0.01" required
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Valor actual</label>
               <input type="number" id="i-valor-actual" min="0.01" step="0.01" placeholder="= monto invertido"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
           </div>
           <div id="campo-vencimiento" class="hidden">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fecha de vencimiento</label>
             <input type="date" id="i-fecha-venc"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div id="campo-tna" class="hidden">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">TNA (%) — Tasa Nominal Anual</label>
             <input type="number" id="i-tna" min="0" step="0.01" placeholder="Ej: 118.5"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div id="campo-ticker" class="hidden">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Ticker / ID <span id="ticker-label-hint" class="text-slate-400 font-normal">(Yahoo Finance)</span>
             </label>
             <input type="text" id="i-ticker" placeholder="Ej: GGAL.BA, AAPL, bitcoin"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
             <p class="text-[11px] text-slate-400 mt-1">Opcional. Permite ver el precio en tiempo real en el panel de Cotizaciones.</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas</label>
             <input type="text" id="i-notas" placeholder="Broker, ticker, observaciones..."
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tesis de inversión (opcional)</label>
             <textarea id="i-tesis" rows="3" placeholder="¿Por qué hiciste esta inversión? ¿Cuál es tu expectativa?"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"></textarea>
+              class="form-input resize-none"></textarea>
           </div>
           <div class="flex gap-3 pt-2">
-            <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="button" onclick="closeModal()" class="btn-secondary flex-1">Cancelar</button>
+            <button type="submit" class="btn-primary flex-1">Guardar</button>
           </div>
         </form>
       </div>
@@ -836,12 +836,12 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nuevo valor actual</label>
             <input type="number" id="valor-input" min="0.01" step="0.01" required
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Estado</label>
             <select id="valor-estado"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              class="form-input">
               <option value="activo">Activa</option>
               <option value="cerrado">Cerrada</option>
               <option value="vencido">Vencida</option>
@@ -850,7 +850,7 @@
           <p class="text-xs text-slate-400">El valor anterior se guardará en el historial automáticamente.</p>
           <div class="flex gap-3 pt-1">
             <button type="button" onclick="closeValorModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Actualizar</button>
+            <button type="submit" class="btn-primary flex-1">Actualizar</button>
           </div>
         </form>
       </div>
@@ -908,12 +908,12 @@
               <div>
                 <label class="block text-xs text-slate-500 mb-1">Monto</label>
                 <input type="number" id="div-monto" min="0.01" step="0.01" required placeholder="0.00"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
               <div>
                 <label class="block text-xs text-slate-500 mb-1">Moneda</label>
                 <select id="div-moneda"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="form-input">
                   <option value="ARS">ARS</option>
                   <option value="USD">USD</option>
                 </select>
@@ -921,7 +921,7 @@
               <div>
                 <label class="block text-xs text-slate-500 mb-1">Tipo</label>
                 <select id="div-tipo"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="form-input">
                   <option value="dividendo">Dividendo</option>
                   <option value="cupon">Cupón</option>
                   <option value="renta">Renta</option>
@@ -933,12 +933,12 @@
               <div>
                 <label class="block text-xs text-slate-500 mb-1">Fecha</label>
                 <input type="date" id="div-fecha" required
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
               <div>
                 <label class="block text-xs text-slate-500 mb-1">Notas</label>
                 <input type="text" id="div-notas" placeholder="Opcional"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
             </div>
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-sm transition">

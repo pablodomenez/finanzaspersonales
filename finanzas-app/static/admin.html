@@ -101,9 +101,9 @@
       <div id="section-users" class="hidden">
         <div class="flex gap-3 mb-4">
           <input id="user-search" type="text" placeholder="Buscar por email o nombre…"
-            class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="form-input flex-1"
             oninput="debouncedLoadUsers()" />
-          <button onclick="loadUsers()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">Buscar</button>
+          <button onclick="loadUsers()" class="btn-primary">Buscar</button>
         </div>
         <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           <div class="overflow-x-auto">
@@ -154,20 +154,20 @@
               <div>
                 <label class="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Título</label>
                 <input id="push-title" type="text" placeholder="FinanzasApp" maxlength="60"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  class="form-input" />
               </div>
               <div>
                 <label class="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Mensaje</label>
                 <textarea id="push-body" rows="3" placeholder="Texto de la notificación…" maxlength="120"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+                  class="form-input resize-none"></textarea>
               </div>
               <div>
                 <label class="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">URL de destino</label>
                 <input id="push-url" type="text" value="/dashboard.html"
-                  class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  class="form-input" />
               </div>
               <button onclick="sendBroadcast()" id="push-btn"
-                class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                class="btn-primary w-full flex items-center justify-center gap-2">
                 <i data-lucide="send" class="w-4 h-4"></i>Enviar broadcast
               </button>
               <div id="push-result" class="hidden text-sm text-center py-2 rounded-lg"></div>

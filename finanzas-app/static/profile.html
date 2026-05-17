@@ -85,27 +85,27 @@
               <div>
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nombre completo *</label>
                 <input type="text" id="p-name" required placeholder="Tu nombre"
-                  class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Teléfono</label>
                 <input type="tel" id="p-phone" placeholder="+54 11 1234-5678"
-                  class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Fecha de nacimiento</label>
                 <input type="date" id="p-birth"
-                  class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">País</label>
                 <input type="text" id="p-country" placeholder="Argentina"
-                  class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Moneda principal</label>
                 <select id="p-currency"
-                  class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  class="form-input">
                   <option value="ARS">ARS — Peso argentino</option>
                   <option value="USD">USD — Dólar estadounidense</option>
                   <option value="EUR">EUR — Euro</option>
@@ -120,13 +120,13 @@
               <div>
                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Ocupación</label>
                 <input type="text" id="p-occupation" placeholder="Ej: Desarrollador, Médico..."
-                  class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                  class="form-input" />
               </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bio (opcional)</label>
               <textarea id="p-bio" rows="3" placeholder="Contá algo sobre vos o tus objetivos financieros..."
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"></textarea>
+                class="form-input resize-none"></textarea>
             </div>
             <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
@@ -137,7 +137,7 @@
           </div>
           <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
             <button type="submit" id="save-btn"
-              class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition disabled:opacity-60">
+              class="btn-primary">
               Guardar cambios
             </button>
           </div>
@@ -159,7 +159,7 @@
           <div id="nav-alert" class="hidden mx-4 mb-3 px-3 py-2 rounded-lg text-xs font-medium border"></div>
           <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
             <button id="nav-save-btn" type="button"
-              class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition disabled:opacity-60">
+              class="btn-primary">
               Guardar menú
             </button>
           </div>
@@ -172,7 +172,7 @@
             <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Volvé a ver la recorrida de bienvenida de la app</p>
           </div>
           <button onclick="localStorage.removeItem('_tour_done'); window.location.href='/dashboard.html';"
-            class="flex-shrink-0 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            class="btn-secondary flex-shrink-0">
             Reiniciar tour
           </button>
         </div>
@@ -218,7 +218,7 @@
     function showNavAlert(msg, ok) {
       alertEl.textContent = msg;
       alertEl.className = ok
-        ? "mx-4 mb-3 px-3 py-2 rounded-lg text-xs font-medium border bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700"
+        ? "mx-4 mb-3 px-3 py-2 rounded-lg text-xs font-medium border bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700"
         : "mx-4 mb-3 px-3 py-2 rounded-lg text-xs font-medium border bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
       alertEl.classList.remove("hidden");
       setTimeout(() => alertEl.classList.add("hidden"), 3000);

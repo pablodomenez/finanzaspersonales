@@ -47,7 +47,7 @@
           <h1 class="text-xl font-bold text-slate-900 dark:text-white">Préstamos</h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Seguimiento de créditos y cuotas</p>
         </div>
-        <button onclick="openNuevoModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+        <button onclick="openNuevoModal()" class="btn-primary">
           + Nuevo préstamo
         </button>
       </div>
@@ -100,7 +100,7 @@
         </div>
         <p class="text-slate-500 dark:text-slate-400 font-medium">No tenés préstamos registrados</p>
         <p class="text-sm text-slate-400 mt-1">Agregá tu primer préstamo o crédito hipotecario</p>
-        <button onclick="openNuevoModal()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
+        <button onclick="openNuevoModal()" class="btn-primary mt-4">
           + Nuevo préstamo
         </button>
       </div>
@@ -159,11 +159,11 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2">
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nombre del préstamo *</label>
-            <input id="f-nombre" type="text" required placeholder="ej: Hipoteca BNA" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-nombre" type="text" required placeholder="ej: Hipoteca BNA" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Tipo</label>
-            <select id="f-tipo" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="f-tipo" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
               <option value="hipotecario">Hipotecario</option>
               <option value="personal" selected>Personal</option>
               <option value="vehiculo">Vehículo / Prendario</option>
@@ -173,19 +173,19 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Entidad / Banco</label>
-            <input id="f-entidad" type="text" placeholder="ej: Banco Nación" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-entidad" type="text" placeholder="ej: Banco Nación" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">N° de operación <span class="font-normal text-slate-400">(referencia del banco, ej: Op n° 33232499)</span></label>
-            <input id="f-nro-op" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-nro-op" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Monto original *</label>
-            <input id="f-monto" type="number" required min="0.01" step="0.01" placeholder="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-monto" type="number" required min="0.01" step="0.01" placeholder="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Moneda</label>
-            <select id="f-moneda" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="f-moneda" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
               <option value="ARS" selected>ARS</option>
               <option value="USD">USD</option>
               <option value="UVA">UVA</option>
@@ -196,11 +196,11 @@
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">TNA % <span class="font-normal text-slate-400">(tasa nominal anual)</span></label>
-            <input id="f-tna" type="number" min="0" step="0.01" placeholder="0" value="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-tna" type="number" min="0" step="0.01" placeholder="0" value="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Sistema amortización</label>
-            <select id="f-sistema" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="f-sistema" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
               <option value="frances" selected>Francés (cuota fija)</option>
               <option value="aleman">Alemán (capital fijo)</option>
               <option value="cuota_fija">Cuota fija sin interés</option>
@@ -208,11 +208,11 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cantidad de cuotas *</label>
-            <input id="f-cuotas" type="number" required min="1" max="600" placeholder="ej: 240" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-cuotas" type="number" required min="1" max="600" placeholder="ej: 240" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Fecha 1° cuota *</label>
-            <input id="f-fecha" type="date" required class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-fecha" type="date" required class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
@@ -220,21 +220,21 @@
               <span class="font-normal text-slate-400">(si ya venías pagando)</span>
             </label>
             <div class="flex items-center gap-3">
-              <input id="f-cuota-desde" type="number" min="1" value="1" class="w-28 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input id="f-cuota-desde" type="number" min="1" value="1" class="w-28 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
               <p id="cuota-desde-hint" class="text-xs text-slate-400 flex-1"></p>
             </div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Día de pago</label>
-            <input id="f-dia" type="number" min="1" max="28" placeholder="10" value="10" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-dia" type="number" min="1" max="28" placeholder="10" value="10" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cargos mensuales <span class="font-normal text-slate-400">(seguros de vida/incendio + gastos administrativos)</span></label>
-            <input id="f-cargos" type="number" min="0" step="0.01" placeholder="0" value="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="f-cargos" type="number" min="0" step="0.01" placeholder="0" value="0" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Notas</label>
-            <textarea id="f-notas" rows="2" placeholder="Observaciones opcionales..." class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+            <textarea id="f-notas" rows="2" placeholder="Observaciones opcionales..." class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"></textarea>
           </div>
         </div>
 
@@ -270,7 +270,7 @@
         <!-- Fecha -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Fecha de pago</label>
-          <input id="pagar-fecha" type="date" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input id="pagar-fecha" type="date" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
         </div>
 
         <!-- Desglose de montos reales -->
@@ -286,15 +286,15 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Capital (ARS)</label>
-                <input id="pagar-capital" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcularTotal()" />
+                <input id="pagar-capital" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" oninput="recalcularTotal()" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Intereses (ARS)</label>
-                <input id="pagar-interes" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcularTotal()" />
+                <input id="pagar-interes" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" oninput="recalcularTotal()" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cargos (ARS)</label>
-                <input id="pagar-cargos" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="recalcularTotal()" />
+                <input id="pagar-cargos" type="number" min="0" step="0.01" placeholder="Calculado" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" oninput="recalcularTotal()" />
               </div>
               <div class="flex flex-col justify-end">
                 <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Total resultante</p>
@@ -322,7 +322,7 @@
         <!-- Notas -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Notas</label>
-          <input id="pagar-notas" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input id="pagar-notas" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
         </div>
 
         <div id="error-pagar" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3"></div>
@@ -347,29 +347,29 @@
         <input type="hidden" id="e-id" />
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Nombre</label>
-          <input id="e-nombre" type="text" required class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input id="e-nombre" type="text" required class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Entidad</label>
-          <input id="e-entidad" type="text" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input id="e-entidad" type="text" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">N° de operación <span class="font-normal text-slate-400">(referencia del banco)</span></label>
-          <input id="e-nro-op" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input id="e-nro-op" type="text" placeholder="Opcional" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Día de pago</label>
-            <input id="e-dia" type="number" min="1" max="28" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="e-dia" type="number" min="1" max="28" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Cargos mensuales</label>
-            <input id="e-cargos" type="number" min="0" step="0.01" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="e-cargos" type="number" min="0" step="0.01" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
           </div>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Notas</label>
-          <textarea id="e-notas" rows="2" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+          <textarea id="e-notas" rows="2" class="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 resize-none"></textarea>
         </div>
         <div id="error-editar" class="hidden text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3"></div>
         <div class="flex gap-3 pt-1">

@@ -47,7 +47,7 @@
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Gastos, cuotas, débitos y resumen mensual</p>
         </div>
         <div class="flex gap-2 items-center flex-wrap justify-end">
-          <select id="month-select" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+          <select id="month-select" class="filter-control">
             <option value="1">Enero</option><option value="2">Febrero</option>
             <option value="3">Marzo</option><option value="4">Abril</option>
             <option value="5">Mayo</option><option value="6">Junio</option>
@@ -55,8 +55,8 @@
             <option value="9">Septiembre</option><option value="10">Octubre</option>
             <option value="11">Noviembre</option><option value="12">Diciembre</option>
           </select>
-          <select id="year-select" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
-          <button onclick="openExpenseModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          <select id="year-select" class="filter-control"></select>
+          <button onclick="openExpenseModal()" class="btn-primary">
             + Nuevo gasto
           </button>
           <button onclick="openCardModal()" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition">
@@ -87,7 +87,7 @@
         <p class="text-5xl mb-4">💳</p>
         <p class="text-base font-medium text-slate-500 dark:text-slate-400">No tenés tarjetas registradas</p>
         <p class="text-sm mt-2">Agregá tu primera tarjeta para empezar a registrar gastos</p>
-        <button onclick="openCardModal()" class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition">
+        <button onclick="openCardModal()" class="mt-6 btn-primary">
           + Agregar tarjeta
         </button>
       </div>
@@ -137,32 +137,32 @@
             <div class="col-span-2">
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre de la tarjeta</label>
               <input type="text" id="c-name" required placeholder="Ej: Visa Galicia"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Banco (opcional)</label>
               <input type="text" id="c-bank" placeholder="Ej: Galicia"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Últimos 4 dígitos</label>
               <input type="text" id="c-last-four" maxlength="4" placeholder="1234"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Límite de crédito</label>
               <input type="number" id="c-limit" min="0" step="1000" placeholder="Opcional"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Día de cierre</label>
               <input type="number" id="c-closing" min="1" max="31" placeholder="Ej: 15"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Día de vencimiento</label>
               <input type="number" id="c-due" min="1" max="31" placeholder="Ej: 5"
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
           </div>
           <div>
@@ -171,8 +171,8 @@
             <input type="hidden" id="c-color" value="#3b82f6" />
           </div>
           <div class="flex gap-3 pt-2">
-            <button type="button" onclick="closeCardModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="button" onclick="closeCardModal()" class="btn-secondary flex-1">Cancelar</button>
+            <button type="submit" class="btn-primary flex-1">Guardar</button>
           </div>
         </form>
       </div>
@@ -207,23 +207,23 @@
 
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tarjeta</label>
-            <select id="e-card" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
+            <select id="e-card" class="form-input"></select>
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descripción</label>
             <input type="text" id="e-desc" required placeholder="Ej: Netflix"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" id="e-amount-label">Monto total</label>
               <input type="number" id="e-amount" min="0.01" step="0.01" required
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
             <div id="installments-field">
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cuotas</label>
               <input type="number" id="e-installments" min="1" max="120" value="1" required
-                class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+                class="form-input" />
             </div>
           </div>
           <div id="installment-preview" class="hidden bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2 text-sm text-blue-700 dark:text-blue-300 text-center"></div>
@@ -231,7 +231,7 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Desde — Mes</label>
-              <select id="e-month" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <select id="e-month" class="form-input">
                 <option value="1">Enero</option><option value="2">Febrero</option>
                 <option value="3">Marzo</option><option value="4">Abril</option>
                 <option value="5">Mayo</option><option value="6">Junio</option>
@@ -242,7 +242,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Año</label>
-              <select id="e-year" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"></select>
+              <select id="e-year" class="form-input"></select>
             </div>
           </div>
 
@@ -250,7 +250,7 @@
           <div id="end-date-section" class="hidden">
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Hasta (opcional)</label>
             <div class="grid grid-cols-2 gap-3">
-              <select id="e-end-month" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <select id="e-end-month" class="form-input">
                 <option value="">Sin fin</option>
                 <option value="1">Enero</option><option value="2">Febrero</option>
                 <option value="3">Marzo</option><option value="4">Abril</option>
@@ -259,7 +259,7 @@
                 <option value="9">Septiembre</option><option value="10">Octubre</option>
                 <option value="11">Noviembre</option><option value="12">Diciembre</option>
               </select>
-              <select id="e-end-year" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600">
+              <select id="e-end-year" class="form-input">
                 <option value="">Sin fin</option>
               </select>
             </div>
@@ -267,8 +267,8 @@
           </div>
 
           <div class="flex gap-3 pt-2">
-            <button type="button" onclick="closeExpenseModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar</button>
+            <button type="button" onclick="closeExpenseModal()" class="btn-secondary flex-1">Cancelar</button>
+            <button type="submit" class="btn-primary flex-1">Guardar</button>
           </div>
         </form>
       </div>
@@ -299,21 +299,21 @@
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">¿Cuánto abonaste?</label>
             <input type="number" id="p-amount-paid" min="0" step="0.01" required placeholder="0.00"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Notas (opcional)</label>
             <input type="text" id="p-notes" placeholder="Ej: Pago mínimo"
-              class="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+              class="form-input" />
           </div>
 
           <!-- Preview del resultado -->
           <div id="payment-preview" class="hidden rounded-lg px-4 py-3 text-sm text-center font-medium"></div>
 
           <div class="flex gap-3 pt-2">
-            <button type="button" onclick="closePaymentModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancelar</button>
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm transition disabled:opacity-60">Guardar pago</button>
+            <button type="button" onclick="closePaymentModal()" class="btn-secondary flex-1">Cancelar</button>
+            <button type="submit" class="btn-primary flex-1">Guardar pago</button>
           </div>
         </form>
       </div>
