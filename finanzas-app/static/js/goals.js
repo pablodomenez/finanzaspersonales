@@ -3,6 +3,7 @@ initPageCommons();
 
 const ICONS = ["🎯","✈️","🏠","🚗","💍","📱","🎓","🏋️","🌴","💻","🎸","🐶","💎","🏖️","🍕"];
 let selectedIcon = "🎯";
+const goalMap = {};
 
 // Poblar picker de íconos
 const picker = document.getElementById("icon-picker");
@@ -36,6 +37,7 @@ async function loadGoals() {
         </div>`;
       return;
     }
+    goals.forEach(g => { goalMap[g.id] = g; });
     grid.innerHTML = goals.map(g => renderGoalCard(g)).join("");
     staggerFadeIn('#goals-grid > div', 60);
     grid.querySelectorAll('[data-bar-pct]').forEach(bar => {
@@ -47,6 +49,7 @@ async function loadGoals() {
 }
 
 const TRASH_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>`;
+const EDIT_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
 const CAL_SVG   = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`;
 const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>`;
 
@@ -73,6 +76,7 @@ function renderGoalCard(g) {
             ${completedBadge}
           </div>
         </div>
+        <button data-action="edit-goal" data-id="${g.id}" class="text-slate-300 hover:text-blue-400 transition p-1 rounded">${EDIT_SVG}</button>
         <button data-action="delete-goal" data-id="${g.id}" class="text-slate-300 hover:text-red-400 transition p-1 rounded">${TRASH_SVG}</button>
       </div>
       <div class="flex justify-between text-sm mb-1.5">
@@ -98,6 +102,7 @@ function renderGoalCard(g) {
 document.getElementById("goals-grid").addEventListener("click", (e) => {
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
+  if (btn.dataset.action === "edit-goal") openEditModal(goalMap[parseInt(btn.dataset.id)]);
   if (btn.dataset.action === "delete-goal") deleteGoal(btn.dataset.id);
   if (btn.dataset.action === "contribute") openContrib(btn.dataset.id, btn.dataset.name);
 });
@@ -111,11 +116,39 @@ async function deleteGoal(id) {
 }
 
 function openModal() {
+  document.getElementById("g-edit-id").value = "";
+  document.getElementById("modal-title").textContent = "Nueva meta";
+  document.getElementById("modal-submit").textContent = "Crear";
   document.getElementById("g-name").value = "";
   document.getElementById("g-target").value = "";
   document.getElementById("g-deadline").value = "";
   document.getElementById("modal-error").classList.add("hidden");
+  setIcon("🎯");
   document.getElementById("modal").classList.remove("hidden");
+}
+
+function openEditModal(g) {
+  document.getElementById("g-edit-id").value = g.id;
+  document.getElementById("modal-title").textContent = "Editar meta";
+  document.getElementById("modal-submit").textContent = "Guardar";
+  document.getElementById("g-name").value = g.name;
+  document.getElementById("g-target").value = g.target_amount;
+  document.getElementById("g-deadline").value = g.deadline ? g.deadline.slice(0, 10) : "";
+  document.getElementById("modal-error").classList.add("hidden");
+  setIcon(g.icon);
+  document.getElementById("modal").classList.remove("hidden");
+}
+
+function setIcon(ico) {
+  selectedIcon = ico;
+  document.getElementById("g-icon").value = ico;
+  picker.querySelectorAll("button").forEach(b => {
+    if (b.textContent === ico) {
+      b.className = b.className.replace("border-transparent", "border-blue-500 bg-blue-50 dark:bg-blue-900/30");
+    } else {
+      b.className = b.className.replace("border-blue-500 bg-blue-50 dark:bg-blue-900/30", "border-transparent");
+    }
+  });
 }
 
 function closeModal() {
@@ -140,17 +173,20 @@ document.getElementById("goal-form").addEventListener("submit", async (e) => {
   btn.disabled = true;
   const errEl = document.getElementById("modal-error");
   errEl.classList.add("hidden");
+  const editId = document.getElementById("g-edit-id").value;
   const deadline = document.getElementById("g-deadline").value;
+  const body = {
+    name: document.getElementById("g-name").value,
+    icon: document.getElementById("g-icon").value,
+    target_amount: parseFloat(document.getElementById("g-target").value),
+    deadline: deadline ? new Date(deadline + "T12:00:00").toISOString() : null,
+  };
   try {
-    await apiFetch("/api/goals", {
-      method: "POST",
-      body: JSON.stringify({
-        name: document.getElementById("g-name").value,
-        icon: document.getElementById("g-icon").value,
-        target_amount: parseFloat(document.getElementById("g-target").value),
-        deadline: deadline ? new Date(deadline + "T12:00:00").toISOString() : null,
-      }),
-    });
+    if (editId) {
+      await apiFetch(`/api/goals/${editId}`, { method: "PUT", body: JSON.stringify(body) });
+    } else {
+      await apiFetch("/api/goals", { method: "POST", body: JSON.stringify(body) });
+    }
     closeModal();
     loadGoals();
   } catch (err) {

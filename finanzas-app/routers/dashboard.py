@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
@@ -44,7 +44,7 @@ def summary(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     month = month or now.month
     year = year or now.year
 
@@ -223,7 +223,7 @@ def proyecciones(
         months = 6
 
     uid = current_user.id
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # ── Promedio histórico (últimos 3 meses) ──────────────────────────────────
     hist_windows = [_month_offset(now.month, now.year, -(i + 1)) for i in range(3)]

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
@@ -34,7 +34,7 @@ def get_insights(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     month = month or now.month
     year = year or now.year
     today = now.date()

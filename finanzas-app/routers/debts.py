@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -18,10 +18,17 @@ class DebtCreate(BaseModel):
     due_date: Optional[datetime] = None
 
 
+class DebtUpdate(BaseModel):
+    person_name: Optional[str] = Field(default=None, min_length=1)
+    description: Optional[str] = None
+    amount: Optional[float] = Field(default=None, gt=0)
+    due_date: Optional[datetime] = None
+
+
 def _serialize(d: models.Debt) -> dict:
     overdue = False
     if d.due_date and not d.paid:
-        overdue = d.due_date < datetime.utcnow()
+        overdue = d.due_date < datetime.now(timezone.utc).replace(tzinfo=None)
     return {
         "id": d.id,
         "person_name": d.person_name,
@@ -66,6 +73,26 @@ def create_debt(
     return _serialize(d)
 
 
+@router.put("/{debt_id}")
+def update_debt(
+    debt_id: int,
+    data: DebtUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    d = db.query(models.Debt).filter(
+        models.Debt.id == debt_id,
+        models.Debt.user_id == current_user.id,
+    ).first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Deuda no encontrada")
+    for field, value in data.model_dump(exclude_none=True).items():
+        setattr(d, field, value)
+    db.commit()
+    db.refresh(d)
+    return _serialize(d)
+
+
 def _delete_source_transaction(db, user_id: int, source_type: str, source_id: int):
     t = db.query(models.Transaction).filter(
         models.Transaction.user_id == user_id,
@@ -100,7 +127,7 @@ def toggle_paid(
             amount=d.amount,
             type=tx_type,
             description=desc,
-            date=datetime.utcnow(),
+            date=datetime.now(timezone.utc).replace(tzinfo=None),
             source_type="debt",
             source_id=d.id,
         )

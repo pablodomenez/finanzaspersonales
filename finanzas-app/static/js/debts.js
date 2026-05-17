@@ -2,6 +2,7 @@ requireAuth();
 initPageCommons();
 
 let currentTab = "all";
+const debtMap = {};
 
 const IC = {
   arrowDown: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m12 5 0 14M5 12l7 7 7-7"/></svg>`,
@@ -11,6 +12,7 @@ const IC = {
   check:     `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>`,
   undo:      `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`,
   trash:     `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>`,
+  edit:      `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
 };
 
 function setTab(tab) {
@@ -45,6 +47,7 @@ async function loadDebts() {
     document.getElementById("kpi-owe-count").textContent = `${oweCount} pendiente${oweCount !== 1 ? "s" : ""}`;
     document.getElementById("kpi-owed-count").textContent = `${owedCount} pendiente${owedCount !== 1 ? "s" : ""}`;
 
+    debts.forEach(d => { debtMap[d.id] = d; });
     if (debts.length === 0) {
       list.innerHTML = `
         <div class="text-center py-16 text-slate-400">
@@ -96,6 +99,8 @@ function renderDebtCard(d) {
         <span class="font-bold text-sm ${isOwe ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}">${formatCurrency(d.amount)}</span>
         <button data-action="toggle" data-id="${d.id}" title="${d.paid ? "Marcar pendiente" : "Marcar saldada"}"
           class="${d.paid ? "text-slate-300 hover:text-amber-500" : "text-slate-300 hover:text-emerald-500"} transition p-1 rounded">${d.paid ? IC.undo : IC.check}</button>
+        <button data-action="edit-debt" data-id="${d.id}" title="Editar"
+          class="text-slate-300 hover:text-blue-400 transition p-1 rounded">${IC.edit}</button>
         <button data-action="delete-debt" data-id="${d.id}"
           class="text-slate-300 hover:text-red-400 transition p-1 rounded">${IC.trash}</button>
       </div>
@@ -113,6 +118,7 @@ document.getElementById("debts-list").addEventListener("click", async (e) => {
       loadDebts();
     } catch (err) { alert(err.message); }
   }
+  if (btn.dataset.action === "edit-debt") openEditModal(debtMap[parseInt(id)]);
   if (btn.dataset.action === "delete-debt") {
     if (!confirm("¿Eliminar esta deuda?")) return;
     try {
@@ -123,11 +129,28 @@ document.getElementById("debts-list").addEventListener("click", async (e) => {
 });
 
 function openModal() {
+  document.getElementById("d-edit-id").value = "";
+  document.getElementById("modal-title").textContent = "Nueva deuda";
+  document.getElementById("modal-submit").textContent = "Guardar";
   document.getElementById("d-person").value = "";
   document.getElementById("d-description").value = "";
   document.getElementById("d-amount").value = "";
   document.getElementById("d-due-date").value = "";
   document.querySelector('input[name="d-type"][value="owe"]').checked = true;
+  document.getElementById("modal-error").classList.add("hidden");
+  document.getElementById("modal").classList.remove("hidden");
+}
+
+function openEditModal(d) {
+  document.getElementById("d-edit-id").value = d.id;
+  document.getElementById("modal-title").textContent = "Editar deuda";
+  document.getElementById("modal-submit").textContent = "Guardar";
+  document.getElementById("d-person").value = d.person_name;
+  document.getElementById("d-description").value = d.description || "";
+  document.getElementById("d-amount").value = d.amount;
+  document.getElementById("d-due-date").value = d.due_date ? d.due_date.slice(0, 10) : "";
+  const typeInput = document.querySelector(`input[name="d-type"][value="${d.type}"]`);
+  if (typeInput) typeInput.checked = true;
   document.getElementById("modal-error").classList.add("hidden");
   document.getElementById("modal").classList.remove("hidden");
 }
@@ -142,18 +165,23 @@ document.getElementById("debt-form").addEventListener("submit", async (e) => {
   btn.disabled = true;
   const errEl = document.getElementById("modal-error");
   errEl.classList.add("hidden");
+  const editId = document.getElementById("d-edit-id").value;
   const dueDate = document.getElementById("d-due-date").value;
+  const body = {
+    person_name: document.getElementById("d-person").value,
+    description: document.getElementById("d-description").value,
+    amount: parseFloat(document.getElementById("d-amount").value),
+    due_date: dueDate ? new Date(dueDate + "T12:00:00").toISOString() : null,
+  };
   try {
-    await apiFetch("/api/debts", {
-      method: "POST",
-      body: JSON.stringify({
-        person_name: document.getElementById("d-person").value,
-        description: document.getElementById("d-description").value,
-        amount: parseFloat(document.getElementById("d-amount").value),
-        type: document.querySelector('input[name="d-type"]:checked').value,
-        due_date: dueDate ? new Date(dueDate + "T12:00:00").toISOString() : null,
-      }),
-    });
+    if (editId) {
+      await apiFetch(`/api/debts/${editId}`, { method: "PUT", body: JSON.stringify(body) });
+    } else {
+      await apiFetch("/api/debts", {
+        method: "POST",
+        body: JSON.stringify({ ...body, type: document.querySelector('input[name="d-type"]:checked').value }),
+      });
+    }
     closeModal();
     loadDebts();
   } catch (err) {

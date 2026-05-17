@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -18,15 +18,8 @@ MONTH_NAMES_ES = [
 ]
 
 
-@router.get("/summary")
-def report_summary(
-    year: Optional[int] = None,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
-):
-    year = year or datetime.utcnow().year
-
-    # Ingresos y gastos por mes para el año completo
+def _collect_report_data(year: int, user_id: int, db: Session) -> dict:
+    """Devuelve monthly + by_category + totales para el año dado."""
     rows = (
         db.query(
             extract("month", models.Transaction.date).label("month"),
@@ -34,7 +27,7 @@ def report_summary(
             func.sum(models.Transaction.amount).label("total"),
         )
         .filter(
-            models.Transaction.user_id == current_user.id,
+            models.Transaction.user_id == user_id,
             extract("year", models.Transaction.date) == year,
         )
         .group_by("month", models.Transaction.type)
@@ -51,14 +44,13 @@ def report_summary(
     for m in monthly.values():
         m["balance"] = round(m["income"] - m["expense"], 2)
 
-    # Gastos por categoría en el año
     cat_rows = (
         db.query(
             models.Transaction.category_id,
             func.sum(models.Transaction.amount).label("total"),
         )
         .filter(
-            models.Transaction.user_id == current_user.id,
+            models.Transaction.user_id == user_id,
             models.Transaction.type == models.TransactionType.expense,
             extract("year", models.Transaction.date) == year,
         )
@@ -79,14 +71,29 @@ def report_summary(
 
     total_income = sum(m["income"] for m in monthly.values())
     total_expense = sum(m["expense"] for m in monthly.values())
-
     return {
-        "year": year,
-        "total_income": round(total_income, 2),
-        "total_expense": round(total_expense, 2),
-        "balance": round(total_income - total_expense, 2),
         "monthly": list(monthly.values()),
         "by_category": categories_data,
+        "total_income": round(total_income, 2),
+        "total_expense": round(total_expense, 2),
+    }
+
+
+@router.get("/summary")
+def report_summary(
+    year: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    year = year or datetime.now(timezone.utc).year
+    data = _collect_report_data(year, current_user.id, db)
+    return {
+        "year": year,
+        "total_income": data["total_income"],
+        "total_expense": data["total_expense"],
+        "balance": round(data["total_income"] - data["total_expense"], 2),
+        "monthly": data["monthly"],
+        "by_category": data["by_category"],
     }
 
 
@@ -141,60 +148,13 @@ def export_pdf(
         from fastapi import HTTPException
         raise HTTPException(status_code=501, detail="fpdf2 no está instalado en el servidor")
 
-    year = year or datetime.utcnow().year
+    year = year or datetime.now(timezone.utc).year
 
-    # Reusar la lógica de report_summary
-    rows = (
-        db.query(
-            extract("month", models.Transaction.date).label("month"),
-            models.Transaction.type,
-            func.sum(models.Transaction.amount).label("total"),
-        )
-        .filter(
-            models.Transaction.user_id == current_user.id,
-            extract("year", models.Transaction.date) == year,
-        )
-        .group_by("month", models.Transaction.type)
-        .all()
-    )
-
-    monthly: dict[int, dict] = {m: {"month": m, "income": 0.0, "expense": 0.0} for m in range(1, 13)}
-    for row in rows:
-        m = int(row.month)
-        if row.type == models.TransactionType.income:
-            monthly[m]["income"] = round(float(row.total), 2)
-        else:
-            monthly[m]["expense"] = round(float(row.total), 2)
-    for m in monthly.values():
-        m["balance"] = round(m["income"] - m["expense"], 2)
-
-    cat_rows = (
-        db.query(
-            models.Transaction.category_id,
-            func.sum(models.Transaction.amount).label("total"),
-        )
-        .filter(
-            models.Transaction.user_id == current_user.id,
-            models.Transaction.type == models.TransactionType.expense,
-            extract("year", models.Transaction.date) == year,
-        )
-        .group_by(models.Transaction.category_id)
-        .all()
-    )
-    cat_map = {r.category_id: float(r.total) for r in cat_rows}
-    categories_data = []
-    if cat_map:
-        cats = db.query(models.Category).filter(models.Category.id.in_(list(cat_map.keys()))).all()
-        total_exp = sum(cat_map.values())
-        for c in sorted(cats, key=lambda x: cat_map[x.id], reverse=True):
-            categories_data.append({
-                "name": c.name,
-                "amount": round(cat_map[c.id], 2),
-                "percentage": round((cat_map[c.id] / total_exp) * 100, 1) if total_exp > 0 else 0,
-            })
-
-    total_income  = sum(m["income"] for m in monthly.values())
-    total_expense = sum(m["expense"] for m in monthly.values())
+    rd = _collect_report_data(year, current_user.id, db)
+    monthly        = {m["month"]: m for m in rd["monthly"]}
+    categories_data = [{"name": c["name"], "amount": c["amount"], "percentage": c["percentage"]} for c in rd["by_category"]]
+    total_income   = rd["total_income"]
+    total_expense  = rd["total_expense"]
 
     # ── Generar PDF ──────────────────────────────────────────────────────────
     pdf = FPDF()
@@ -207,7 +167,7 @@ def export_pdf(
     pdf.cell(0, 12, f"Reporte Financiero {year}", ln=True, align="C")
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 6, f"Usuario: {current_user.name}  |  Generado: {datetime.utcnow().strftime('%d/%m/%Y %H:%M')} UTC", ln=True, align="C")
+    pdf.cell(0, 6, f"Usuario: {current_user.name}  |  Generado: {datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')} UTC", ln=True, align="C")
     pdf.ln(4)
 
     # Resumen anual

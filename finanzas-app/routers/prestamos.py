@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from calendar import monthrange
 from typing import Optional
 import time
@@ -489,7 +489,7 @@ def pagar_cuota(
     cuota.fecha_pago = data.fecha_pago or date.today().isoformat()
 
     # Crear transacción automática en movimientos
-    fecha_tx = datetime.utcnow()
+    fecha_tx = datetime.now(timezone.utc).replace(tzinfo=None)
     if cuota.fecha_pago:
         try:
             fecha_tx = datetime.fromisoformat(cuota.fecha_pago)

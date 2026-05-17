@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -23,6 +23,16 @@ class CardCreate(BaseModel):
     closing_day: Optional[int] = Field(None, ge=1, le=31)
     due_day: Optional[int] = Field(None, ge=1, le=31)
     color: str = "#3b82f6"
+
+
+class CardUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1)
+    bank: Optional[str] = None
+    last_four: Optional[str] = None
+    credit_limit: Optional[float] = None
+    closing_day: Optional[int] = Field(default=None, ge=1, le=31)
+    due_day: Optional[int] = Field(default=None, ge=1, le=31)
+    color: Optional[str] = None
 
 
 class ExpenseCreate(BaseModel):
@@ -237,7 +247,7 @@ def create_card(
 @router.put("/{card_id}")
 def update_card(
     card_id: int,
-    data: CardCreate,
+    data: CardUpdate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -247,7 +257,7 @@ def update_card(
     ).first()
     if not card:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
-    for field, value in data.model_dump().items():
+    for field, value in data.model_dump(exclude_none=True).items():
         setattr(card, field, value)
     db.commit()
     db.refresh(card)
@@ -350,11 +360,10 @@ def upsert_payment(
         existing.pending_balance = pending
         existing.status = status
         existing.notes = data.notes
-        existing.paid_at = datetime.utcnow()
-        db.commit()
-        db.refresh(existing)
+        existing.paid_at = datetime.now(timezone.utc).replace(tzinfo=None)
         _upsert_card_payment_transaction(db, current_user.id, existing, card.name)
         db.commit()
+        db.refresh(existing)
         return _serialize_payment(existing)
 
     payment = models.CardPayment(
@@ -369,10 +378,10 @@ def upsert_payment(
         notes=data.notes,
     )
     db.add(payment)
-    db.commit()
-    db.refresh(payment)
+    db.flush()  # obtener el ID sin commitear, necesario para _upsert_card_payment_transaction
     _upsert_card_payment_transaction(db, current_user.id, payment, card.name)
     db.commit()
+    db.refresh(payment)
     return _serialize_payment(payment)
 
 

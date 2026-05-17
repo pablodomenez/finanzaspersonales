@@ -1,6 +1,6 @@
 import asyncio
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 
 import requests
@@ -477,7 +477,7 @@ def _upsert_alquiler_transaction(db, user_id: int, pago: models.PagoAlquiler, al
             db.delete(existing_tx)
         return
 
-    fecha = datetime.utcnow()
+    fecha = datetime.now(timezone.utc).replace(tzinfo=None)
     if pago.fecha_pago:
         try:
             fecha = datetime.fromisoformat(pago.fecha_pago)

@@ -1,5 +1,5 @@
 """Panel de administración — acceso restringido a usuarios con is_admin=True."""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -100,7 +100,7 @@ def get_stats(
     db: Session = Depends(get_db),
     _: models.User = Depends(get_admin_user),
 ):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     last_7 = now - timedelta(days=7)
     last_30 = now - timedelta(days=30)
 

@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -189,7 +189,7 @@ def list_invites(
     )
     result = []
     for inv in invites:
-        if inv.expires_at < datetime.utcnow():
+        if inv.expires_at < datetime.now(timezone.utc).replace(tzinfo=None):
             continue
         result.append({
             "token":       inv.token,
@@ -212,7 +212,7 @@ def accept_invite(
         raise HTTPException(status_code=404, detail="Invitación no encontrada o ya procesada")
     if inv.invitee_id != current_user.id:
         raise HTTPException(status_code=403, detail="Esta invitación no es para vos")
-    if inv.expires_at < datetime.utcnow():
+    if inv.expires_at < datetime.now(timezone.utc).replace(tzinfo=None):
         raise HTTPException(status_code=410, detail="La invitación expiró")
 
     # Evitar duplicado
@@ -386,7 +386,7 @@ def invite_user(
     pending = db.query(models.SharedGroupInvite).filter_by(
         group_id=group_id, invitee_id=invitee.id, status="pending"
     ).first()
-    if pending and pending.expires_at > datetime.utcnow():
+    if pending and pending.expires_at > datetime.now(timezone.utc).replace(tzinfo=None):
         raise HTTPException(status_code=409, detail="Ya existe una invitación pendiente para este usuario")
 
     token = secrets.token_urlsafe(32)
@@ -395,7 +395,7 @@ def invite_user(
         inviter_id=current_user.id,
         invitee_id=invitee.id,
         token=token,
-        expires_at=datetime.utcnow() + timedelta(days=7),
+        expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=7),
     )
     db.add(inv)
     db.commit()
@@ -511,7 +511,7 @@ def add_expense(
         participant_id=participant_id,
         description=data.description.strip(),
         amount=data.amount,
-        date=data.date or datetime.utcnow(),
+        date=data.date or datetime.now(timezone.utc).replace(tzinfo=None),
         comprobante=data.comprobante or None,
     )
     db.add(e)

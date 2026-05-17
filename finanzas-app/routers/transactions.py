@@ -2,9 +2,10 @@ import csv
 import io
 import json
 import os
-from datetime import datetime
-import openpyxl
+from datetime import datetime, timezone
 from typing import Optional
+import httpx
+import openpyxl
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import extract
@@ -13,6 +14,8 @@ from database import get_db
 from auth import get_current_user
 from limiter import limiter
 import models
+
+_utcnow = lambda: datetime.now(timezone.utc).replace(tzinfo=None)
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
@@ -83,16 +86,11 @@ def list_transactions(
 
     total = q.count()
     items = q.order_by(models.Transaction.date.desc()).offset(offset).limit(limit).all()
-
-    # Retrocompatibilidad: si no se usa paginación (page=1, limit=100 default), devuelve lista directa
-    if page == 1 and limit == 100 and not search:
-        return [_serialize(t) for t in items]
-
     return {
         "items": [_serialize(t) for t in items],
         "total": total,
         "page": page,
-        "pages": max(1, -(-total // limit)),  # ceil division
+        "pages": max(1, -(-total // limit)),
         "limit": limit,
     }
 
@@ -111,14 +109,12 @@ def create_transaction(
         type=data.type,
         category_id=data.category_id,
         description=data.description or "",
-        date=data.date or datetime.utcnow(),
+        date=data.date or _utcnow(),
         payment_method=data.payment_method,
     )
     db.add(t)
     db.commit()
     db.refresh(t)
-    # Cargar relación explícitamente para el response
-    db.query(models.Transaction).options(joinedload(models.Transaction.category)).filter(models.Transaction.id == t.id).first()
     return _serialize(t)
 
 
@@ -355,12 +351,9 @@ async def scan_receipt(
     data: ReceiptScanRequest,
     current_user: models.User = Depends(get_current_user),
 ):
-    import httpx
-
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise HTTPException(status_code=503, detail="Escáner no configurado. Agregá GEMINI_API_KEY en las variables de entorno.")
-
     image_data = data.image
     media_type = "image/jpeg"
     if "," in image_data:

@@ -2,7 +2,7 @@ import io
 import csv
 import time
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -243,7 +243,7 @@ def save_perfil(data: PerfilCreate, db: Session = Depends(get_db), current_user:
         p.perfil = data.perfil
         p.puntaje = data.puntaje
         p.respuestas = data.respuestas or ""
-        p.updated_at = datetime.utcnow()
+        p.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     else:
         p = models.InversorPerfil(user_id=current_user.id, perfil=data.perfil,
                                   puntaje=data.puntaje, respuestas=data.respuestas or "")

@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
@@ -92,7 +92,7 @@ def accept_terms(
     db: Session = Depends(get_db),
 ):
     db.query(models.User).filter(models.User.id == current_user.id).update(
-        {"terms_accepted_at": datetime.utcnow()}
+        {"terms_accepted_at": datetime.now(timezone.utc).replace(tzinfo=None)}
     )
     db.commit()
     return {"ok": True}
@@ -166,7 +166,7 @@ def forgot_password(request: Request, data: ForgotPasswordRequest, db: Session =
     reset_token = models.PasswordResetToken(
         user_id=user.id,
         token=token,
-        expires_at=datetime.utcnow() + timedelta(hours=1),
+        expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=1),
     )
     db.add(reset_token)
     db.commit()
@@ -185,7 +185,7 @@ def reset_password(request: Request, data: ResetPasswordRequest, db: Session = D
 
     if not reset_token:
         raise HTTPException(status_code=400, detail="Token inválido o ya utilizado")
-    if reset_token.expires_at < datetime.utcnow():
+    if reset_token.expires_at < datetime.now(timezone.utc).replace(tzinfo=None):
         raise HTTPException(status_code=400, detail="El enlace expiró. Solicitá uno nuevo.")
 
     user = db.query(models.User).filter(models.User.id == reset_token.user_id).first()

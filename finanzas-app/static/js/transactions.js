@@ -35,11 +35,12 @@ async function loadTransactions() {
   tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Cargando...</td></tr>';
 
   try {
-    const data = await apiFetch(`/api/transactions?${params}`);
+    const resp = await apiFetch(`/api/transactions?${params}`);
+    const items = resp.items ?? resp;
     // Actualizar mapa para acceso rápido desde botones
-    data.forEach(t => { transactionMap[t.id] = t; });
+    items.forEach(t => { transactionMap[t.id] = t; });
 
-    if (data.length === 0) {
+    if (items.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Sin transacciones para este período</td></tr>';
       return;
     }
@@ -51,7 +52,7 @@ async function loadTransactions() {
       debito_automatico: "🔄 Débito auto.",
       cheque: "📄 Cheque",
     };
-    tbody.innerHTML = data.map((t, i) => `
+    tbody.innerHTML = items.map((t, i) => `
       <tr class="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition anim-row-in" style="animation-delay:${Math.min(i, 15) * 28}ms">
         <td class="px-6 py-4 text-slate-800 dark:text-slate-200">
           <span class="mr-1">${t.category.icon}</span>${t.category.name}

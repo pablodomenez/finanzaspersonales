@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import extract, func
 from pydantic import BaseModel, Field
@@ -75,6 +75,7 @@ def list_budgets(
 @router.post("", status_code=201)
 def create_or_update_budget(
     data: BudgetCreate,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -93,6 +94,7 @@ def create_or_update_budget(
         existing.limit_amount = data.limit_amount
         db.commit()
         db.refresh(existing)
+        response.status_code = 200
         budget = existing
     else:
         budget = models.Budget(
