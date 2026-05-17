@@ -3,6 +3,7 @@ initPageCommons();
 
 let allPromos = [];
 let allPeriodicas = [];
+let promosGlobalesHoy = [];
 let currentTab = "todas";
 let editingId = null;
 let editingPeriodicaId = null;
@@ -11,9 +12,10 @@ const DIAS_NOMBRE = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sáb
 
 async function loadPromos() {
   try {
-    [allPromos, allPeriodicas] = await Promise.all([
+    [allPromos, allPeriodicas, promosGlobalesHoy] = await Promise.all([
       apiFetch("/api/promociones"),
       apiFetch("/api/promociones/periodicas"),
+      apiFetch("/api/promociones/globales/hoy"),
     ]);
     renderKPIs();
     renderGrid();
@@ -233,29 +235,103 @@ function renderCard(p) {
 // ── Promos del día ────────────────────────────────────────────────────────────
 
 function renderHoy() {
-  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-  const hoyIdx = new Date().getDay(); // 0=Dom JS, necesitamos convertir a 0=Lun backend
+  const hoyIdx = new Date().getDay();
   const hoyBackend = hoyIdx === 0 ? 6 : hoyIdx - 1;
   const nombreDia = DIAS_NOMBRE[hoyBackend];
 
   document.getElementById("hoy-titulo").textContent = `Promos activas para hoy (${nombreDia})`;
 
-  const promosHoy = allPeriodicas.filter(p => p.activa && p.dias_semana.includes(hoyBackend));
+  const promosPersonalesHoy = allPeriodicas.filter(p => p.activa && p.dias_semana.includes(hoyBackend));
   const grid = document.getElementById("hoy-grid");
 
-  if (promosHoy.length === 0) {
+  if (promosGlobalesHoy.length === 0 && promosPersonalesHoy.length === 0) {
     grid.innerHTML = `
       <div class="col-span-full text-center py-10">
         <p class="text-4xl mb-3">🎉</p>
-        <p class="text-slate-500 dark:text-slate-400 text-sm">No tenés promos cargadas para hoy (${nombreDia}).</p>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">No hay promos disponibles para hoy (${nombreDia}).</p>
         <button onclick="setTab('recurrentes')" class="mt-3 text-violet-600 dark:text-violet-400 text-sm hover:underline">Agregar promos recurrentes →</button>
       </div>`;
     lucide.createIcons();
     return;
   }
 
-  grid.innerHTML = promosHoy.map(renderCardPeriodica).join("");
+  let html = "";
+
+  if (promosGlobalesHoy.length > 0) {
+    html += `
+      <div class="col-span-full">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg">🏦</span>
+          <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Promos bancarias de hoy</h3>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold">${promosGlobalesHoy.length} disponibles</span>
+        </div>
+      </div>
+      ${promosGlobalesHoy.map(renderCardGlobal).join("")}`;
+  }
+
+  if (promosPersonalesHoy.length > 0) {
+    if (promosGlobalesHoy.length > 0) {
+      html += `
+        <div class="col-span-full border-t border-slate-200 dark:border-slate-700 pt-4 mt-2">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">👤</span>
+            <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Tus promos personales</h3>
+          </div>
+        </div>`;
+    }
+    html += promosPersonalesHoy.map(renderCardPeriodica).join("");
+  }
+
+  grid.innerHTML = html;
   lucide.createIcons();
+}
+
+function renderCardGlobal(p) {
+  const diasLabels = (p.dias_nombres || []).join(", ") || "Ningún día";
+
+  const descuentoHtml = p.descuento_pct
+    ? `<div class="bg-blue-50 dark:bg-blue-900/20 rounded-md px-3 py-2 text-center">
+        <p class="text-xs text-blue-500 dark:text-blue-400 mb-0.5">Descuento</p>
+        <p class="text-xl font-bold text-blue-700 dark:text-blue-300">${p.descuento_pct}%</p>
+        ${p.tope_reintegro ? `<p class="text-xs text-blue-500 dark:text-blue-400">tope ${formatCurrency(p.tope_reintegro)}</p>` : ""}
+      </div>`
+    : "";
+
+  return `
+    <div class="bg-white dark:bg-slate-900 rounded-lg border-2 border-blue-300 dark:border-blue-700 p-5 flex flex-col gap-3 relative" data-global-id="${p.id}">
+      <div class="absolute top-3 right-3">
+        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold border border-blue-200 dark:border-blue-700">Automática</span>
+      </div>
+      <div class="flex items-start gap-2 min-w-0 pr-24">
+        <span class="text-2xl">${p.icono}</span>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-800 dark:text-white truncate">${p.nombre}</p>
+          ${p.categoria ? `<p class="text-xs text-slate-400">${p.categoria}</p>` : ""}
+        </div>
+      </div>
+
+      ${p.descripcion ? `<p class="text-xs text-slate-500 dark:text-slate-400 italic">"${p.descripcion}"</p>` : ""}
+
+      <div class="grid grid-cols-${p.descuento_pct ? "2" : "1"} gap-2 text-xs">
+        ${descuentoHtml}
+        <div class="bg-slate-50 dark:bg-slate-800 rounded-md px-3 py-2 flex flex-col justify-center">
+          <p class="text-slate-400 mb-1">Días activos</p>
+          <p class="text-xs font-medium text-slate-700 dark:text-slate-300">${diasLabels}</p>
+          ${p.medio_pago ? `<p class="text-xs text-slate-400 mt-1">via ${p.medio_pago}</p>` : ""}
+        </div>
+      </div>
+
+      ${p.notas ? `<p class="text-xs text-slate-400">${p.notas}</p>` : ""}
+
+      <div class="flex gap-2 mt-auto pt-1 border-t border-slate-100 dark:border-slate-800">
+        <button
+          data-global-action="agregar"
+          data-global-id="${p.id}"
+          class="flex-1 flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition font-medium">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>Agregar a mis promos
+        </button>
+      </div>
+    </div>`;
 }
 
 // ── Promos recurrentes (todas) ────────────────────────────────────────────────
@@ -607,6 +683,26 @@ function addPeriodicaGridListener(containerId) {
 
 addPeriodicaGridListener("recurrentes-grid");
 addPeriodicaGridListener("hoy-grid");
+
+document.getElementById("hoy-grid").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-global-action='agregar']");
+  if (!btn) return;
+  const gid = btn.dataset.globalId;
+  const promo = promosGlobalesHoy.find(p => p.id === gid);
+  if (!promo) return;
+
+  openModalPeriodica(null);
+  document.getElementById("pp-nombre").value = promo.nombre;
+  document.getElementById("pp-categoria").value = promo.categoria;
+  document.getElementById("pp-medio-pago").value = promo.medio_pago || "";
+  document.getElementById("pp-descripcion").value = promo.descripcion || "";
+  document.getElementById("pp-descuento").value = promo.descuento_pct || "";
+  document.getElementById("pp-tope").value = promo.tope_reintegro || "";
+  document.getElementById("pp-notas").value = promo.notas || "";
+  document.querySelectorAll(".pp-dia").forEach(cb => {
+    cb.checked = (promo.dias_semana || []).includes(parseInt(cb.value));
+  });
+});
 
 document.getElementById("notifs-list").addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-action='leer-notif']");

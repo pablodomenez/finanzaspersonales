@@ -9,6 +9,8 @@ from database import get_db
 from auth import get_current_user
 import models
 
+from promos_data import get_todas as _get_todas_globales, get_promos_hoy as _get_promos_hoy_globales
+
 router = APIRouter(prefix="/api/promociones", tags=["promociones"])
 
 CAT_ICON = {
@@ -354,6 +356,21 @@ def leer_notificacion(
         raise HTTPException(status_code=404, detail="Notificación no encontrada")
     n.leida = True
     db.commit()
+
+
+# ── Promos globales (sin auth — datos públicos) ───────────────────────────────
+
+@router.get("/globales")
+def list_globales():
+    """Devuelve todas las promos bancarias del dataset curado."""
+    return _get_todas_globales()
+
+
+@router.get("/globales/hoy")
+def list_globales_hoy():
+    """Devuelve las promos bancarias activas para el día de hoy."""
+    weekday = date.today().weekday()  # 0=Lunes … 6=Domingo
+    return _get_promos_hoy_globales(weekday)
 
 
 # ── Promos periódicas ─────────────────────────────────────────────────────────
