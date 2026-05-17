@@ -1,4 +1,4 @@
-﻿// tour.js — Recorrida guiada para nuevos usuarios (solo dashboard)
+// tour.js — Recorrida guiada para nuevos usuarios (solo dashboard)
 // Se muestra una vez. Reiniciar: localStorage.removeItem('_tour_done') + ir a dashboard.
 
 (function () {
@@ -7,25 +7,67 @@
   const STEPS = [
     {
       title: '¡Bienvenido/a a FinanzasApp! 👋',
-      body: 'En unos segundos te mostramos las funciones principales para que puedas empezar a controlar tus finanzas de inmediato.',
+      body: 'Te mostramos en un minuto todo lo que podés hacer. Desde acá vas a controlar tus finanzas, inversiones, servicios, alquileres y mucho más.',
       target: null,
     },
     {
-      title: 'Tus métricas del mes',
-      body: 'Estos 4 indicadores te dan un pantallazo de tu situación: saldo total, ingresos, gastos y cuánto ahorraste este mes.',
+      title: 'Tu resumen del mes',
+      body: 'Estos indicadores te dan un pantallazo rápido: saldo total, ingresos, gastos y cuánto ahorraste. Se actualizan en tiempo real a medida que cargás movimientos.',
       target: '#tour-kpis',
       placement: 'bottom',
     },
     {
       title: 'Gráficos y tendencias',
-      body: 'Seguí la evolución mes a mes, la distribución de gastos por categoría e insights automáticos sobre tu situación financiera.',
+      body: 'Visualizá la evolución mes a mes, la distribución de gastos por categoría e insights automáticos sobre tu salud financiera.',
       target: '#tour-charts',
       placement: 'bottom',
     },
     {
-      title: 'Navegación principal',
-      body: 'Desde el menú lateral accedés a todas las secciones: Presupuestos, Tarjetas, Deudas, Objetivos, Inversiones y más.',
-      target: '#sidebar',
+      title: 'Movimientos y presupuestos',
+      body: 'Registrá ingresos y gastos, asignales categorías y definí presupuestos mensuales por rubro para mantenerte dentro de tus límites.',
+      target: '[href="/transactions.html"]',
+      placement: 'right',
+    },
+    {
+      title: 'Tarjetas de crédito y deudas',
+      body: 'Cargá tus tarjetas con sus fechas de cierre y vencimiento, registrá compras en cuotas y llevá el control de lo que debés a terceros.',
+      target: '[href="/cards.html"]',
+      placement: 'right',
+    },
+    {
+      title: 'Servicios con alertas de vencimiento 🔔',
+      body: 'Registrá luz, gas, internet, streaming y más. La app te avisa cuando están por vencer para que nunca te olvides de pagarlos.',
+      target: '[href="/servicios.html"]',
+      placement: 'right',
+    },
+    {
+      title: 'Inversiones con cotizaciones en tiempo real 📈',
+      body: 'Seguí tus acciones, CEDEARs, criptomonedas y plazos fijos. Los precios se actualizan automáticamente desde Yahoo Finance y CoinGecko.',
+      target: '[href="/inversiones.html"]',
+      placement: 'right',
+    },
+    {
+      title: 'Promociones y descuentos del día 🏷️',
+      body: 'Cargá promos de tus tarjetas y bancos. Podés configurar promociones periódicas por día de semana para que aparezcan automáticamente cada semana.',
+      target: '[href="/promociones.html"]',
+      placement: 'right',
+    },
+    {
+      title: 'Alquileres, préstamos y compartidos',
+      body: 'Gestioná alquileres con ajuste automático por índices (ICL/IPC), préstamos con amortización, y gastos compartidos con otros usuarios.',
+      target: '[href="/alquileres.html"]',
+      placement: 'right',
+    },
+    {
+      title: 'Escanear ticket con IA 📷',
+      body: 'En Movimientos podés fotografiar un ticket o factura y la IA extrae automáticamente el monto, categoría y descripción para pre-llenar el formulario.',
+      target: '[href="/transactions.html"]',
+      placement: 'right',
+    },
+    {
+      title: 'Objetivos, decisiones y reportes',
+      body: 'Definí metas de ahorro, usá el asistente de Decisiones para comparar opciones financieras y generá reportes detallados de tu situación.',
+      target: '[href="/goals.html"]',
       placement: 'right',
     },
     {
@@ -35,14 +77,14 @@
       placement: 'bottom',
     },
     {
-      title: 'Panel de ayuda',
-      body: 'Si tenés dudas, aquí encontrás respuestas rápidas sobre cada sección de la app.',
+      title: 'Panel de ayuda y personalización',
+      body: 'Aquí encontrás respuestas rápidas sobre cada sección. Desde tu Perfil podés reordenar y ocultar secciones del menú a tu gusto.',
       target: '#_help-btn',
       placement: 'bottom',
     },
     {
       title: '¡Ya estás listo/a! 🎉',
-      body: 'Podés reiniciar este tour en cualquier momento desde tu perfil. ¡Ahora empezá registrando tu primer movimiento!',
+      body: 'Podés reiniciar este tour en cualquier momento desde tu Perfil. ¡Empezá registrando tu primer movimiento!',
       target: null,
       isLast: true,
     },
@@ -167,7 +209,7 @@
       if (placement === 'right') {
         left = rect.right + GAP;
         top  = rect.top + rect.height / 2 - TH / 2;
-        // fallback: if off-screen right, go below
+        // fallback: si se sale a la derecha, mostrar abajo
         if (left + TW > vw - 16) {
           left = rect.left + rect.width / 2 - TW / 2;
           top  = rect.bottom + GAP;
@@ -175,14 +217,14 @@
       } else if (placement === 'bottom') {
         top  = rect.bottom + GAP;
         left = rect.left + rect.width / 2 - TW / 2;
-        // fallback: if off-screen bottom, go above
+        // fallback: si se sale abajo, mostrar arriba
         if (top + TH > vh - 16) top = rect.top - TH - GAP;
       } else {
         top  = rect.bottom + TH + GAP < vh ? rect.bottom + GAP : rect.top - TH - GAP;
         left = rect.left + rect.width / 2 - TW / 2;
       }
 
-      // Clamp to viewport
+      // Clamp al viewport
       left = Math.max(16, Math.min(left, vw - TW - 16));
       top  = Math.max(16, Math.min(top, vh - TH - 16));
 
@@ -211,7 +253,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Wait for dashboard data + common.js buttons to render
+    // Esperar a que carguen los datos del dashboard y los botones de common.js
     setTimeout(() => {
       buildUI();
       renderStep();
