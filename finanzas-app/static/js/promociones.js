@@ -2,12 +2,19 @@ requireAuth();
 initPageCommons();
 
 let allPromos = [];
+let allPeriodicas = [];
 let currentTab = "todas";
 let editingId = null;
+let editingPeriodicaId = null;
+
+const DIAS_NOMBRE = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 async function loadPromos() {
   try {
-    allPromos = await apiFetch("/api/promociones");
+    [allPromos, allPeriodicas] = await Promise.all([
+      apiFetch("/api/promociones"),
+      apiFetch("/api/promociones/periodicas"),
+    ]);
     renderKPIs();
     renderGrid();
     await loadNotificaciones();
@@ -46,16 +53,49 @@ function renderKPIs() {
 
 function setTab(tab) {
   currentTab = tab;
-  ["todas", "vigentes", "por-vencer", "vencidas"].forEach(t => {
+  const allTabs = ["hoy", "todas", "vigentes", "por-vencer", "vencidas", "recurrentes"];
+
+  allTabs.forEach(t => {
     const btn = document.getElementById(`tab-${t}`);
+    if (!btn) return;
     if (t === tab) {
-      btn.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-amber-500 text-white transition";
+      if (t === "hoy") {
+        btn.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-violet-600 text-white transition flex items-center gap-1.5";
+      } else if (t === "recurrentes") {
+        btn.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-violet-600 text-white transition";
+      } else {
+        btn.className = "px-4 py-1.5 rounded-md text-sm font-medium bg-amber-500 text-white transition";
+      }
     } else {
-      btn.className = "px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
+      if (t === "hoy") {
+        btn.className = "px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5";
+      } else {
+        btn.className = "px-4 py-1.5 rounded-md text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
+      }
     }
   });
-  renderGrid();
+
+  // Mostrar/ocultar secciones y botones de header
+  const esHoy = tab === "hoy";
+  const esRecurrentes = tab === "recurrentes";
+  const esPromoRegular = !esHoy && !esRecurrentes;
+
+  document.getElementById("promos-section").classList.toggle("hidden", !esPromoRegular);
+  document.getElementById("hoy-section").classList.toggle("hidden", !esHoy);
+  document.getElementById("recurrentes-section").classList.toggle("hidden", !esRecurrentes);
+  document.getElementById("btn-nueva-promo").classList.toggle("hidden", !esPromoRegular);
+  document.getElementById("btn-nueva-periodica").classList.toggle("hidden", !esRecurrentes);
+
+  if (esHoy) {
+    renderHoy();
+  } else if (esRecurrentes) {
+    renderRecurrentes();
+  } else {
+    renderGrid();
+  }
 }
+
+// ── Grid de promos regulares ──────────────────────────────────────────────────
 
 function renderGrid() {
   const grid = document.getElementById("promos-grid");
@@ -117,7 +157,6 @@ function renderCard(p) {
     urgencyBadge = `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Vigente</span>`;
   }
 
-  // Ahorro mensual y total acumulado desde inicio
   let ahorroHtml = "";
   if (p.ahorro_mensual && p.ahorro_mensual > 0) {
     let totalAhorradoHtml = "";
@@ -191,6 +230,110 @@ function renderCard(p) {
     </div>`;
 }
 
+// ── Promos del día ────────────────────────────────────────────────────────────
+
+function renderHoy() {
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const hoyIdx = new Date().getDay(); // 0=Dom JS, necesitamos convertir a 0=Lun backend
+  const hoyBackend = hoyIdx === 0 ? 6 : hoyIdx - 1;
+  const nombreDia = DIAS_NOMBRE[hoyBackend];
+
+  document.getElementById("hoy-titulo").textContent = `Promos activas para hoy (${nombreDia})`;
+
+  const promosHoy = allPeriodicas.filter(p => p.activa && p.dias_semana.includes(hoyBackend));
+  const grid = document.getElementById("hoy-grid");
+
+  if (promosHoy.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-10">
+        <p class="text-4xl mb-3">🎉</p>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">No tenés promos cargadas para hoy (${nombreDia}).</p>
+        <button onclick="setTab('recurrentes')" class="mt-3 text-violet-600 dark:text-violet-400 text-sm hover:underline">Agregar promos recurrentes →</button>
+      </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  grid.innerHTML = promosHoy.map(renderCardPeriodica).join("");
+  lucide.createIcons();
+}
+
+// ── Promos recurrentes (todas) ────────────────────────────────────────────────
+
+function renderRecurrentes() {
+  const grid = document.getElementById("recurrentes-grid");
+
+  if (allPeriodicas.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-10">
+        <p class="text-4xl mb-3">🏷️</p>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">Aún no cargaste promos recurrentes.</p>
+        <button onclick="openModalPeriodica()" class="mt-3 bg-violet-600 hover:bg-violet-700 text-white text-sm px-4 py-2 rounded-lg transition">+ Agregar primera promo</button>
+      </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  grid.innerHTML = allPeriodicas.map(renderCardPeriodica).join("");
+  lucide.createIcons();
+}
+
+function renderCardPeriodica(p) {
+  const diasLabels = (p.dias_nombres || []).join(", ") || "Ningún día";
+  const activaBadge = p.activa
+    ? `<span class="text-xs px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 font-semibold">Activa</span>`
+    : `<span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 font-semibold">Inactiva</span>`;
+
+  const descuentoHtml = p.descuento_pct
+    ? `<div class="bg-violet-50 dark:bg-violet-900/20 rounded-md px-3 py-2 text-center">
+        <p class="text-xs text-violet-500 dark:text-violet-400 mb-0.5">Descuento</p>
+        <p class="text-xl font-bold text-violet-700 dark:text-violet-300">${p.descuento_pct}%</p>
+        ${p.tope_reintegro ? `<p class="text-xs text-violet-500 dark:text-violet-400">tope ${formatCurrency(p.tope_reintegro)}</p>` : ""}
+      </div>`
+    : "";
+
+  return `
+    <div class="bg-white dark:bg-slate-900 rounded-lg border border-violet-200 dark:border-violet-800 p-5 flex flex-col gap-3" data-pid="${p.id}">
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-2xl">${p.icono}</span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-slate-800 dark:text-white truncate">${p.nombre}</p>
+            ${p.categoria ? `<p class="text-xs text-slate-400">${p.categoria}</p>` : ""}
+          </div>
+        </div>
+        ${activaBadge}
+      </div>
+
+      ${p.descripcion ? `<p class="text-xs text-slate-500 dark:text-slate-400 italic">"${p.descripcion}"</p>` : ""}
+
+      <div class="grid grid-cols-${p.descuento_pct ? "2" : "1"} gap-2 text-xs">
+        ${descuentoHtml}
+        <div class="bg-slate-50 dark:bg-slate-800 rounded-md px-3 py-2 flex flex-col justify-center">
+          <p class="text-slate-400 mb-1">Días activos</p>
+          <p class="text-xs font-medium text-slate-700 dark:text-slate-300">${diasLabels}</p>
+          ${p.medio_pago ? `<p class="text-xs text-slate-400 mt-1">via ${p.medio_pago}</p>` : ""}
+        </div>
+      </div>
+
+      ${p.notas ? `<p class="text-xs text-slate-400">${p.notas}</p>` : ""}
+
+      <div class="flex gap-2 mt-auto pt-1 border-t border-slate-100 dark:border-slate-800">
+        <button data-paction="edit" data-pid="${p.id}" class="flex-1 flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium">
+          <i data-lucide="pencil" class="w-3.5 h-3.5"></i>Editar
+        </button>
+        <button data-paction="toggle" data-pid="${p.id}" data-activa="${p.activa}" class="flex-1 flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-md ${p.activa ? "text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20" : "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"} transition font-medium">
+          <i data-lucide="${p.activa ? "pause" : "play"}" class="w-3.5 h-3.5"></i>${p.activa ? "Pausar" : "Activar"}
+        </button>
+        <button data-paction="delete" data-pid="${p.id}" class="flex-1 flex items-center justify-center gap-1 text-xs px-3 py-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition font-medium">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>Eliminar
+        </button>
+      </div>
+    </div>`;
+}
+
+// ── Notificaciones ────────────────────────────────────────────────────────────
+
 async function loadNotificaciones() {
   try {
     const notifs = await apiFetch("/api/promociones/notificaciones");
@@ -254,7 +397,6 @@ document.getElementById("renovar-form").addEventListener("submit", async (e) => 
     });
     closeRenovarModal();
     loadPromos();
-    // ocultar badge si ya no hay pendientes
     const badge = document.getElementById("promo-badge");
     if (badge) badge.classList.add("hidden");
   } catch (err) {
@@ -267,7 +409,7 @@ document.getElementById("modal-renovar").addEventListener("click", (e) => {
   if (e.target === document.getElementById("modal-renovar")) closeRenovarModal();
 });
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
+// ── Modal promo regular ───────────────────────────────────────────────────────
 
 function openModal(id = null) {
   editingId = id;
@@ -332,6 +474,78 @@ document.getElementById("promo-form").addEventListener("submit", async (e) => {
   }
 });
 
+// ── Modal promo periódica ─────────────────────────────────────────────────────
+
+function openModalPeriodica(id = null) {
+  editingPeriodicaId = id;
+  document.getElementById("modal-periodica-title").textContent = id ? "Editar promo recurrente" : "Nueva promo recurrente";
+  document.getElementById("modal-periodica-error").classList.add("hidden");
+  document.getElementById("periodica-form").reset();
+  document.querySelectorAll(".pp-dia").forEach(cb => cb.checked = false);
+
+  if (id) {
+    const p = allPeriodicas.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById("pp-id").value = p.id;
+    document.getElementById("pp-nombre").value = p.nombre || "";
+    document.getElementById("pp-categoria").value = p.categoria || "";
+    document.getElementById("pp-medio-pago").value = p.medio_pago || "";
+    document.getElementById("pp-descripcion").value = p.descripcion || "";
+    document.getElementById("pp-descuento").value = p.descuento_pct || "";
+    document.getElementById("pp-tope").value = p.tope_reintegro || "";
+    document.getElementById("pp-notas").value = p.notas || "";
+    const dias = p.dias_semana || [];
+    document.querySelectorAll(".pp-dia").forEach(cb => {
+      cb.checked = dias.includes(parseInt(cb.value));
+    });
+  }
+
+  document.getElementById("modal-periodica").classList.remove("hidden");
+}
+
+function closeModalPeriodica() {
+  document.getElementById("modal-periodica").classList.add("hidden");
+  editingPeriodicaId = null;
+}
+
+document.getElementById("periodica-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errDiv = document.getElementById("modal-periodica-error");
+  errDiv.classList.add("hidden");
+
+  const dias = [];
+  document.querySelectorAll(".pp-dia:checked").forEach(cb => dias.push(parseInt(cb.value)));
+
+  const payload = {
+    nombre: document.getElementById("pp-nombre").value.trim(),
+    categoria: document.getElementById("pp-categoria").value,
+    medio_pago: document.getElementById("pp-medio-pago").value.trim(),
+    descripcion: document.getElementById("pp-descripcion").value.trim(),
+    descuento_pct: document.getElementById("pp-descuento").value ? parseFloat(document.getElementById("pp-descuento").value) : null,
+    tope_reintegro: document.getElementById("pp-tope").value ? parseFloat(document.getElementById("pp-tope").value) : null,
+    dias_semana: dias,
+    notas: document.getElementById("pp-notas").value.trim(),
+  };
+
+  try {
+    if (editingPeriodicaId) {
+      await apiFetch(`/api/promociones/periodicas/${editingPeriodicaId}`, { method: "PUT", body: JSON.stringify(payload) });
+    } else {
+      await apiFetch("/api/promociones/periodicas", { method: "POST", body: JSON.stringify(payload) });
+    }
+    closeModalPeriodica();
+    allPeriodicas = await apiFetch("/api/promociones/periodicas");
+    renderRecurrentes();
+  } catch (err) {
+    errDiv.textContent = err.message || "Error al guardar la promo.";
+    errDiv.classList.remove("hidden");
+  }
+});
+
+document.getElementById("modal-periodica").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("modal-periodica")) closeModalPeriodica();
+});
+
 // ── Event delegation ──────────────────────────────────────────────────────────
 
 document.getElementById("promos-grid").addEventListener("click", async (e) => {
@@ -355,6 +569,45 @@ document.getElementById("promos-grid").addEventListener("click", async (e) => {
   }
 });
 
+function addPeriodicaGridListener(containerId) {
+  document.getElementById(containerId).addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-paction]");
+    if (!btn) return;
+    const action = btn.dataset.paction;
+    const pid = parseInt(btn.dataset.pid);
+
+    if (action === "edit") {
+      openModalPeriodica(pid);
+    } else if (action === "toggle") {
+      const activa = btn.dataset.activa === "true";
+      try {
+        await apiFetch(`/api/promociones/periodicas/${pid}`, {
+          method: "PUT",
+          body: JSON.stringify({ activa: !activa }),
+        });
+        allPeriodicas = await apiFetch("/api/promociones/periodicas");
+        if (currentTab === "recurrentes") renderRecurrentes();
+        else if (currentTab === "hoy") renderHoy();
+      } catch (err) {
+        alert("Error: " + (err.message || ""));
+      }
+    } else if (action === "delete") {
+      if (!confirm("¿Eliminar esta promo recurrente?")) return;
+      try {
+        await apiFetch(`/api/promociones/periodicas/${pid}`, { method: "DELETE" });
+        allPeriodicas = await apiFetch("/api/promociones/periodicas");
+        if (currentTab === "recurrentes") renderRecurrentes();
+        else if (currentTab === "hoy") renderHoy();
+      } catch (err) {
+        alert("Error al eliminar: " + (err.message || ""));
+      }
+    }
+  });
+}
+
+addPeriodicaGridListener("recurrentes-grid");
+addPeriodicaGridListener("hoy-grid");
+
 document.getElementById("notifs-list").addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-action='leer-notif']");
   if (!btn) return;
@@ -375,4 +628,9 @@ document.getElementById("modal").addEventListener("click", (e) => {
   if (e.target === document.getElementById("modal")) closeModal();
 });
 
-loadPromos();
+// Activar tab "hoy" si viene de URL con hash
+if (window.location.hash === "#periodicas") {
+  loadPromos().then(() => setTab("hoy"));
+} else {
+  loadPromos();
+}

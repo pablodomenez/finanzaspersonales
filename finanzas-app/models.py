@@ -41,6 +41,7 @@ class User(Base):
     dividendos_inversiones = relationship("DividendoInversion", back_populates="user", cascade="all, delete")
     promociones = relationship("Promocion", back_populates="user", cascade="all, delete")
     notificaciones_promo = relationship("NotificacionPromo", back_populates="user", cascade="all, delete")
+    promos_periodicas = relationship("PromoPeriodica", back_populates="user", cascade="all, delete")
     shared_groups = relationship("SharedGroup", back_populates="user", cascade="all, delete-orphan")
     shared_group_memberships = relationship("SharedGroupMember", back_populates="user", cascade="all, delete-orphan")
     feedbacks = relationship("Feedback", back_populates="user", cascade="all, delete")
@@ -378,6 +379,26 @@ class NotificacionPromo(Base):
 
     promocion = relationship("Promocion", back_populates="notificaciones_promo")
     user = relationship("User", back_populates="notificaciones_promo")
+
+
+class PromoPeriodica(Base):
+    __tablename__ = "promos_periodicas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    nombre = Column(String, nullable=False)            # "Naranja X", "Mercado Pago"
+    descripcion = Column(String, default="")           # "30% en supermercados, tope $1500"
+    categoria = Column(String, default="")             # "Supermercados", "Farmacias", etc.
+    dias_semana = Column(String, nullable=False)       # JSON array: "[0,1,2]" (0=Lun…6=Dom)
+    descuento_pct = Column(Float, nullable=True)       # 30.0
+    tope_reintegro = Column(Float, nullable=True)      # en pesos
+    medio_pago = Column(String, default="")            # billetera/banco usado para pagar
+    icono = Column(String, default="🏷️")
+    activa = Column(Boolean, default=True)
+    notas = Column(String, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="promos_periodicas")
 
 
 class Feedback(Base):

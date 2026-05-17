@@ -1,6 +1,7 @@
 import asyncio
+import json
 from datetime import date, datetime, timedelta
-from typing import Optional
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -109,6 +110,71 @@ class PromocionUpdate(BaseModel):
 
 class PromocionRenovar(BaseModel):
     nueva_fecha_fin: str = Field(min_length=1)
+
+
+DIAS_NOMBRE = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+CAT_PERIODICA_ICON = {
+    "Supermercados": "🛒",
+    "Farmacias": "💊",
+    "Combustible": "⛽",
+    "Gastronomia": "🍽️",
+    "Indumentaria": "👗",
+    "Electronica": "📱",
+    "Viajes": "✈️",
+    "Entretenimiento": "🎬",
+    "Salud": "🏥",
+    "Educacion": "📚",
+    "Otros": "🏷️",
+}
+
+
+def _serialize_periodica(p: models.PromoPeriodica) -> dict:
+    try:
+        dias = json.loads(p.dias_semana) if p.dias_semana else []
+    except (json.JSONDecodeError, TypeError):
+        dias = []
+    icono = CAT_PERIODICA_ICON.get(p.categoria, p.icono or "🏷️")
+    return {
+        "id": p.id,
+        "nombre": p.nombre,
+        "descripcion": p.descripcion,
+        "categoria": p.categoria,
+        "icono": icono,
+        "dias_semana": dias,
+        "dias_nombres": [DIAS_NOMBRE[d] for d in dias if 0 <= d <= 6],
+        "descuento_pct": p.descuento_pct,
+        "tope_reintegro": p.tope_reintegro,
+        "medio_pago": p.medio_pago,
+        "activa": p.activa,
+        "notas": p.notas,
+        "created_at": p.created_at.isoformat() if p.created_at else None,
+    }
+
+
+class PromoPeriodicaCreate(BaseModel):
+    nombre: str = Field(min_length=1)
+    descripcion: Optional[str] = ""
+    categoria: Optional[str] = ""
+    dias_semana: List[int] = Field(default_factory=list)  # [0..6]
+    descuento_pct: Optional[float] = None
+    tope_reintegro: Optional[float] = None
+    medio_pago: Optional[str] = ""
+    icono: Optional[str] = "🏷️"
+    notas: Optional[str] = ""
+
+
+class PromoPeriodicaUpdate(BaseModel):
+    nombre: Optional[str] = None
+    descripcion: Optional[str] = None
+    categoria: Optional[str] = None
+    dias_semana: Optional[List[int]] = None
+    descuento_pct: Optional[float] = None
+    tope_reintegro: Optional[float] = None
+    medio_pago: Optional[str] = None
+    icono: Optional[str] = None
+    activa: Optional[bool] = None
+    notas: Optional[str] = None
 
 
 # ── Rutas ─────────────────────────────────────────────────────────────────────
@@ -290,6 +356,137 @@ def leer_notificacion(
     db.commit()
 
 
+# ── Promos periódicas ─────────────────────────────────────────────────────────
+
+@router.get("/periodicas/hoy")
+def list_periodicas_hoy(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    hoy = date.today().weekday()  # 0=Lunes … 6=Domingo
+    items = (
+        db.query(models.PromoPeriodica)
+        .filter(
+            models.PromoPeriodica.user_id == current_user.id,
+            models.PromoPeriodica.activa == True,
+        )
+        .all()
+    )
+    resultado = []
+    for p in items:
+        try:
+            dias = json.loads(p.dias_semana) if p.dias_semana else []
+        except (json.JSONDecodeError, TypeError):
+            dias = []
+        if hoy in dias:
+            resultado.append(_serialize_periodica(p))
+    return resultado
+
+
+@router.get("/periodicas")
+def list_periodicas(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    items = (
+        db.query(models.PromoPeriodica)
+        .filter(models.PromoPeriodica.user_id == current_user.id)
+        .order_by(models.PromoPeriodica.nombre.asc())
+        .all()
+    )
+    return [_serialize_periodica(p) for p in items]
+
+
+@router.post("/periodicas", status_code=201)
+def create_periodica(
+    data: PromoPeriodicaCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    dias_validos = [d for d in data.dias_semana if 0 <= d <= 6]
+    icono = CAT_PERIODICA_ICON.get(data.categoria or "", data.icono or "🏷️")
+    p = models.PromoPeriodica(
+        user_id=current_user.id,
+        nombre=data.nombre,
+        descripcion=data.descripcion or "",
+        categoria=data.categoria or "",
+        dias_semana=json.dumps(sorted(set(dias_validos))),
+        descuento_pct=data.descuento_pct,
+        tope_reintegro=data.tope_reintegro,
+        medio_pago=data.medio_pago or "",
+        icono=icono,
+        notas=data.notas or "",
+    )
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return _serialize_periodica(p)
+
+
+@router.put("/periodicas/{promo_id}")
+def update_periodica(
+    promo_id: int,
+    data: PromoPeriodicaUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    p = db.query(models.PromoPeriodica).filter(
+        models.PromoPeriodica.id == promo_id,
+        models.PromoPeriodica.user_id == current_user.id,
+    ).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Promo periódica no encontrada")
+
+    if data.nombre is not None:
+        p.nombre = data.nombre
+    if data.descripcion is not None:
+        p.descripcion = data.descripcion
+    if data.categoria is not None:
+        p.categoria = data.categoria
+        p.icono = CAT_PERIODICA_ICON.get(data.categoria, p.icono)
+    if data.dias_semana is not None:
+        dias_validos = [d for d in data.dias_semana if 0 <= d <= 6]
+        p.dias_semana = json.dumps(sorted(set(dias_validos)))
+    if data.descuento_pct is not None:
+        p.descuento_pct = data.descuento_pct
+    if data.tope_reintegro is not None:
+        p.tope_reintegro = data.tope_reintegro
+    if data.medio_pago is not None:
+        p.medio_pago = data.medio_pago
+    if data.icono is not None:
+        p.icono = data.icono
+    if data.activa is not None:
+        p.activa = data.activa
+    if data.notas is not None:
+        p.notas = data.notas
+
+    db.commit()
+    db.refresh(p)
+    return _serialize_periodica(p)
+
+
+@router.delete("/periodicas/{promo_id}", status_code=204)
+def delete_periodica(
+    promo_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    p = db.query(models.PromoPeriodica).filter(
+        models.PromoPeriodica.id == promo_id,
+        models.PromoPeriodica.user_id == current_user.id,
+    ).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Promo periódica no encontrada")
+    db.delete(p)
+    db.commit()
+
+
+@router.post("/periodicas/notificar", status_code=200)
+def trigger_notif_periodicas(current_user: models.User = Depends(get_current_user)):
+    _notify_promos_hoy_sync(user_id=current_user.id)
+    return {"status": "ok"}
+
+
 # ── Scheduler ─────────────────────────────────────────────────────────────────
 
 def _check_promo_sync():
@@ -363,4 +560,66 @@ async def check_promo_loop():
             await asyncio.to_thread(_check_promo_sync)
         except Exception as e:
             print(f"[PromoScheduler] Error: {e}")
+        await asyncio.sleep(24 * 3600)
+
+
+def _notify_promos_hoy_sync(user_id: int = None):
+    """Envía push a usuarios con promos periódicas activas para el día de hoy."""
+    from database import SessionLocal
+    from routers.push import send_push_to_user
+    db = SessionLocal()
+    try:
+        hoy = date.today().weekday()  # 0=Lun … 6=Dom
+        nombre_dia = DIAS_NOMBRE[hoy]
+
+        query = db.query(models.PromoPeriodica).filter(
+            models.PromoPeriodica.activa == True
+        )
+        if user_id is not None:
+            query = query.filter(models.PromoPeriodica.user_id == user_id)
+
+        todas = query.all()
+
+        # Agrupar por usuario
+        por_usuario: dict[int, list] = {}
+        for p in todas:
+            try:
+                dias = json.loads(p.dias_semana) if p.dias_semana else []
+            except (json.JSONDecodeError, TypeError):
+                dias = []
+            if hoy in dias:
+                por_usuario.setdefault(p.user_id, []).append(p)
+
+        for uid, promos in por_usuario.items():
+            nombres = ", ".join(p.nombre for p in promos[:3])
+            if len(promos) > 3:
+                nombres += f" y {len(promos) - 3} más"
+            body = f"{nombres}"
+            asyncio.run(send_push_to_user(
+                user_id=uid,
+                title=f"📢 Promos de hoy ({nombre_dia})",
+                body=body,
+                url="/promociones.html",
+                db=db,
+            ))
+    finally:
+        db.close()
+
+
+async def check_periodicas_loop():
+    """Loop diario que notifica promos del día a las 08:00."""
+    import time
+    # Esperar hasta las 08:00 del día siguiente
+    now = datetime.now()
+    target = now.replace(hour=8, minute=0, second=0, microsecond=0)
+    if now >= target:
+        target = target + timedelta(days=1)
+    delay = (target - now).total_seconds()
+    await asyncio.sleep(delay)
+
+    while True:
+        try:
+            await asyncio.to_thread(_notify_promos_hoy_sync)
+        except Exception as e:
+            print(f"[PromoPeriodicasScheduler] Error: {e}")
         await asyncio.sleep(24 * 3600)

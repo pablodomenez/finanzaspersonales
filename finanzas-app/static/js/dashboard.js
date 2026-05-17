@@ -723,3 +723,36 @@ async function loadCrypto() {
 
 loadCrypto();
 
+// ── Promos del día ────────────────────────────────────────────────────────────
+async function loadPromosHoy() {
+  try {
+    const promos = await apiFetch("/api/promociones/periodicas/hoy");
+    const widget = document.getElementById("promos-hoy-widget");
+    if (!promos || promos.length === 0) {
+      widget.classList.add("hidden");
+      return;
+    }
+
+    const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    document.getElementById("promos-hoy-dia").textContent = DIAS[new Date().getDay()];
+
+    const lista = document.getElementById("promos-hoy-lista");
+    lista.innerHTML = promos.map(p => {
+      const descuento = p.descuento_pct ? `${p.descuento_pct}% off` : "";
+      const tope = p.tope_reintegro ? ` · tope $${p.tope_reintegro.toLocaleString("es-AR")}` : "";
+      return `
+        <div class="flex items-center gap-2 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700 rounded-lg px-3 py-2">
+          <span class="text-lg">${p.icono}</span>
+          <div>
+            <p class="text-xs font-semibold text-violet-800 dark:text-violet-200">${p.nombre}</p>
+            <p class="text-xs text-violet-600 dark:text-violet-400">${descuento}${tope || p.descripcion || p.categoria}</p>
+          </div>
+        </div>`;
+    }).join("");
+
+    widget.classList.remove("hidden");
+  } catch (_) {}
+}
+
+loadPromosHoy();
+
