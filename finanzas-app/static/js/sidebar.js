@@ -1,39 +1,46 @@
 // Inyecta el sidebar en <aside id="sidebar"> y marca la página activa
 (function () {
   const page = window.location.pathname.split("/").pop().replace(".html", "");
-  const nav = [
-    { id: "dashboard",    icon: "layout-dashboard",  label: "Dashboard" },
-    { id: "transactions", icon: "arrow-left-right",   label: "Movimientos" },
-    { id: "budgets",      icon: "wallet",             label: "Presupuestos" },
-    { id: "cards",        icon: "credit-card",        label: "Tarjetas" },
-    { id: "debts",        icon: "users",              label: "Deudas" },
-    { id: "goals",        icon: "target",             label: "Objetivos" },
-    { id: "inversiones",  icon: "trending-up",        label: "Inversiones" },
-    { id: "alquileres",   icon: "home",               label: "Alquileres", badge: "alquiler" },
-    { id: "servicios",    icon: "zap",                label: "Servicios", badge: true },
-    { id: "promociones",  icon: "tag",                label: "Promociones", badge: "promo" },
-    { id: "prestamos",    icon: "landmark",            label: "Préstamos" },
-    { id: "compartidos",  icon: "users-round",        label: "Compartidos" },
-    { id: "reports",      icon: "bar-chart-2",        label: "Reportes" },
-    { id: "decisiones",   icon: "sparkles",           label: "Decisiones" },
+  const NAV_ITEMS = [
+    { id: "dashboard",    icon: "layout-dashboard",     label: "Dashboard" },
+    { id: "transactions", icon: "arrow-left-right",     label: "Movimientos" },
+    { id: "budgets",      icon: "wallet",               label: "Presupuestos" },
+    { id: "cards",        icon: "credit-card",          label: "Tarjetas" },
+    { id: "debts",        icon: "users",                label: "Deudas" },
+    { id: "goals",        icon: "target",               label: "Objetivos" },
+    { id: "inversiones",  icon: "trending-up",          label: "Inversiones" },
+    { id: "alquileres",   icon: "home",                 label: "Alquileres", badge: "alquiler" },
+    { id: "servicios",    icon: "zap",                  label: "Servicios", badge: true },
+    { id: "promociones",  icon: "tag",                  label: "Promociones", badge: "promo" },
+    { id: "prestamos",    icon: "landmark",             label: "Préstamos" },
+    { id: "compartidos",  icon: "users-round",          label: "Compartidos" },
+    { id: "reports",      icon: "bar-chart-2",          label: "Reportes" },
+    { id: "decisiones",   icon: "sparkles",             label: "Decisiones" },
     { id: "feedback",     icon: "message-square-heart", label: "Feedback" },
   ];
+  const NAV_BY_ID = Object.fromEntries(NAV_ITEMS.map(item => [item.id, item]));
 
-  const links = nav.map(({ id, icon, label, badge }) => {
-    const active = page === id;
-    const cls = active
-      ? "flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
-      : "flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
-    let badgeHtml = "";
-    if (badge === true) {
-      badgeHtml = `<span id="notif-badge" class="hidden ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
-    } else if (badge === "promo") {
-      badgeHtml = `<span id="promo-badge" class="hidden ml-auto bg-amber-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
-    } else if (badge === "alquiler") {
-      badgeHtml = `<span id="alquiler-badge" class="hidden ml-auto bg-orange-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
-    }
-    return `<a href="/${id}.html" class="${cls}"><i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>${label}${badgeHtml}</a>`;
-  }).join("");
+  function buildNavLinks(order, hidden) {
+    const hiddenSet = new Set(hidden || []);
+    return (order || NAV_ITEMS.map(i => i.id))
+      .filter(id => NAV_BY_ID[id] && !hiddenSet.has(id))
+      .map(id => {
+        const { icon, label, badge } = NAV_BY_ID[id];
+        const active = page === id;
+        const cls = active
+          ? "flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
+          : "flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
+        let badgeHtml = "";
+        if (badge === true) {
+          badgeHtml = `<span id="notif-badge" class="hidden ml-auto bg-red-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
+        } else if (badge === "promo") {
+          badgeHtml = `<span id="promo-badge" class="hidden ml-auto bg-amber-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
+        } else if (badge === "alquiler") {
+          badgeHtml = `<span id="alquiler-badge" class="hidden ml-auto bg-orange-500 text-white text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1 leading-none">0</span>`;
+        }
+        return `<a href="/${id}.html" class="${cls}"><i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>${label}${badgeHtml}</a>`;
+      }).join("");
+  }
 
   const profileActive = page === "profile";
   const adminActive = page === "admin";
@@ -44,6 +51,8 @@
     ? "w-full flex items-center gap-3 px-3 py-2 rounded-md bg-blue-600 text-white font-medium text-sm"
     : "w-full flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 font-medium text-sm transition-colors";
 
+  // Render inicial con orden por defecto (sin esperar API)
+  const defaultLinks = buildNavLinks(NAV_ITEMS.map(i => i.id), []);
   document.getElementById("sidebar").innerHTML = `
     <div class="px-5 py-5 border-b border-slate-700 relative">
       <div class="flex items-center gap-3">
@@ -86,7 +95,7 @@
         </div>
       </div>
     </div>
-    <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">${links}</nav>
+    <nav id="sidebar-nav" class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">${defaultLinks}</nav>
     <div class="px-3 py-4 border-t border-slate-700 space-y-0.5">
       <button id="theme-toggle" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 text-sm font-medium transition-colors">
         <i data-lucide="moon" class="w-4 h-4 shrink-0"></i>Cambiar tema
@@ -104,16 +113,36 @@
 
   if (window.lucide) lucide.createIcons();
 
-  // Auto-cierre al navegar en mobile (los links se inyectan aquí, por eso va dentro del IIFE)
+  // Auto-cierre al navegar en mobile
   document.querySelectorAll('#sidebar a').forEach(function(link) {
     link.addEventListener('click', function() {
       if (window.innerWidth < 768) closeSidebar();
     });
   });
 
-  // Carga badges de notificaciones y dispara chequeos (async, no bloquea el render)
+  // Carga preferencias y datos async
   if (typeof apiFetch === "function" && typeof getToken === "function" && getToken()) {
     (async () => {
+      // Cargar preferencias de nav primero para re-renderizar si hay cambios
+      try {
+        const prefs = await apiFetch("/api/profile/nav-preferences");
+        const defaultOrder = NAV_ITEMS.map(i => i.id);
+        const hasCustomOrder = JSON.stringify(prefs.order) !== JSON.stringify(defaultOrder) || prefs.hidden.length > 0;
+        if (hasCustomOrder) {
+          const navEl = document.getElementById("sidebar-nav");
+          if (navEl) {
+            navEl.innerHTML = buildNavLinks(prefs.order, prefs.hidden);
+            if (window.lucide) lucide.createIcons();
+            // Re-bind mobile close on new links
+            navEl.querySelectorAll('a').forEach(function(link) {
+              link.addEventListener('click', function() {
+                if (window.innerWidth < 768) closeSidebar();
+              });
+            });
+          }
+        }
+      } catch (_) {}
+
       try {
         await apiFetch("/api/servicios/check-vencimientos", { method: "POST" });
       } catch (_) {}

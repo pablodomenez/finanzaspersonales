@@ -209,6 +209,7 @@ class UserProfile(Base):
     occupation = Column(String, default="")
     bio = Column(String, default="")
     avatar_emoji = Column(String, default="👤")
+    nav_preferences = Column(String, nullable=True)  # JSON: {order: [...], hidden: [...]}
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="profile")

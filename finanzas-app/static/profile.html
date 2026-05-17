@@ -143,6 +143,28 @@
           </div>
         </form>
 
+        <!-- Personalizar menú -->
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Personalizar menú</h2>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Arrastrá para reordenar · Desactivá las secciones que no usás</p>
+            </div>
+            <button id="nav-restore-btn" type="button"
+              class="flex-shrink-0 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              Restaurar orden
+            </button>
+          </div>
+          <div id="nav-sort-list" class="p-3 space-y-1 select-none"></div>
+          <div id="nav-alert" class="hidden mx-4 mb-3 px-3 py-2 rounded-lg text-xs font-medium border"></div>
+          <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+            <button id="nav-save-btn" type="button"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition disabled:opacity-60">
+              Guardar menú
+            </button>
+          </div>
+        </div>
+
         <!-- Tour guiado -->
         <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-5 flex items-center justify-between gap-4">
           <div>
@@ -163,5 +185,178 @@
   <script src="/js/sidebar.js?v=5"></script>
   <script src="/js/common.js?v=5"></script>
   <script src="/js/profile.js"></script>
+  <script>
+  // ── Personalización del menú ──────────────────────────────────────────────
+  (function () {
+    const ALL_ITEMS = [
+      { id: "dashboard",    label: "Dashboard",      icon: "🗂️" },
+      { id: "transactions", label: "Movimientos",    icon: "↔️" },
+      { id: "budgets",      label: "Presupuestos",   icon: "👛" },
+      { id: "cards",        label: "Tarjetas",       icon: "💳" },
+      { id: "debts",        label: "Deudas",         icon: "👥" },
+      { id: "goals",        label: "Objetivos",      icon: "🎯" },
+      { id: "inversiones",  label: "Inversiones",    icon: "📈" },
+      { id: "alquileres",   label: "Alquileres",     icon: "🏠" },
+      { id: "servicios",    label: "Servicios",      icon: "⚡" },
+      { id: "promociones",  label: "Promociones",    icon: "🏷️" },
+      { id: "prestamos",    label: "Préstamos",      icon: "🏦" },
+      { id: "compartidos",  label: "Compartidos",    icon: "👫" },
+      { id: "reports",      label: "Reportes",       icon: "📊" },
+      { id: "decisiones",   label: "Decisiones IA",  icon: "✨" },
+      { id: "feedback",     label: "Feedback",       icon: "💬" },
+    ];
+    const DEFAULT_ORDER = ALL_ITEMS.map(i => i.id);
+    const ITEM_MAP = Object.fromEntries(ALL_ITEMS.map(i => [i.id, i]));
+
+    let currentOrder = [...DEFAULT_ORDER];
+    let currentHidden = new Set();
+    let dragSrc = null;
+
+    const listEl = document.getElementById("nav-sort-list");
+    const alertEl = document.getElementById("nav-alert");
+
+    function showNavAlert(msg, ok) {
+      alertEl.textContent = msg;
+      alertEl.className = ok
+        ? "mx-4 mb-3 px-3 py-2 rounded-lg text-xs font-medium border bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700"
+        : "mx-4 mb-3 px-3 py-2 rounded-lg text-xs font-medium border bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
+      alertEl.classList.remove("hidden");
+      setTimeout(() => alertEl.classList.add("hidden"), 3000);
+    }
+
+    function render() {
+      listEl.innerHTML = "";
+      currentOrder.forEach(id => {
+        const item = ITEM_MAP[id];
+        if (!item) return;
+        const isLocked = id === "dashboard";
+        const isHidden = currentHidden.has(id);
+        const row = document.createElement("div");
+        row.dataset.id = id;
+        row.draggable = !isLocked;
+        row.className = [
+          "flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors",
+          isHidden
+            ? "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 opacity-50"
+            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700",
+          isLocked ? "cursor-default" : "cursor-grab active:cursor-grabbing",
+        ].join(" ");
+
+        row.innerHTML = `
+          <span class="text-slate-300 dark:text-slate-600 flex-shrink-0 ${isLocked ? "opacity-20" : ""}">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+              <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+              <circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/>
+              <circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/>
+            </svg>
+          </span>
+          <span class="text-base leading-none flex-shrink-0">${item.icon}</span>
+          <span class="text-sm font-medium text-slate-700 dark:text-slate-300 flex-1">${item.label}</span>
+          ${isLocked
+            ? `<span class="text-xs text-slate-400 dark:text-slate-500 italic flex-shrink-0">siempre visible</span>`
+            : `<button type="button" data-toggle="${id}"
+                class="flex-shrink-0 relative inline-flex w-9 h-5 rounded-full transition-colors focus:outline-none ${isHidden ? "bg-slate-300 dark:bg-slate-600" : "bg-blue-600"}"
+                aria-pressed="${!isHidden}" title="${isHidden ? "Activar" : "Ocultar"}">
+                <span class="inline-block w-4 h-4 mt-0.5 rounded-full bg-white shadow transition-transform ${isHidden ? "translate-x-0.5" : "translate-x-4"}"></span>
+              </button>`
+          }`;
+
+        // Drag events
+        row.addEventListener("dragstart", e => {
+          if (isLocked) { e.preventDefault(); return; }
+          dragSrc = id;
+          e.dataTransfer.effectAllowed = "move";
+          row.classList.add("opacity-40");
+        });
+        row.addEventListener("dragend", () => {
+          row.classList.remove("opacity-40");
+          listEl.querySelectorAll("[data-id]").forEach(r => r.classList.remove("border-blue-400", "dark:border-blue-500"));
+        });
+        row.addEventListener("dragover", e => {
+          if (!dragSrc || id === dragSrc || id === "dashboard") return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          listEl.querySelectorAll("[data-id]").forEach(r => r.classList.remove("border-blue-400", "dark:border-blue-500"));
+          row.classList.add("border-blue-400", "dark:border-blue-500");
+        });
+        row.addEventListener("drop", e => {
+          e.preventDefault();
+          if (!dragSrc || dragSrc === id || id === "dashboard") return;
+          const fromIdx = currentOrder.indexOf(dragSrc);
+          const toIdx = currentOrder.indexOf(id);
+          if (fromIdx === -1 || toIdx === -1) return;
+          currentOrder.splice(fromIdx, 1);
+          currentOrder.splice(toIdx, 0, dragSrc);
+          dragSrc = null;
+          render();
+        });
+
+        // Toggle button
+        const toggleBtn = row.querySelector("[data-toggle]");
+        if (toggleBtn) {
+          toggleBtn.addEventListener("click", () => {
+            const tid = toggleBtn.dataset.toggle;
+            if (currentHidden.has(tid)) currentHidden.delete(tid);
+            else currentHidden.add(tid);
+            render();
+          });
+        }
+
+        listEl.appendChild(row);
+      });
+    }
+
+    // Load preferences from API
+    async function loadPrefs() {
+      try {
+        const prefs = await apiFetch("/api/profile/nav-preferences");
+        currentOrder = prefs.order || [...DEFAULT_ORDER];
+        currentHidden = new Set(prefs.hidden || []);
+      } catch (_) {
+        currentOrder = [...DEFAULT_ORDER];
+        currentHidden = new Set();
+      }
+      render();
+    }
+
+    // Save button
+    document.getElementById("nav-save-btn").addEventListener("click", async () => {
+      const btn = document.getElementById("nav-save-btn");
+      btn.disabled = true;
+      btn.textContent = "Guardando...";
+      try {
+        await apiFetch("/api/profile/nav-preferences", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: currentOrder, hidden: [...currentHidden] }),
+        });
+        showNavAlert("Menú guardado correctamente", true);
+      } catch (_) {
+        showNavAlert("Error al guardar. Intentá de nuevo.", false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Guardar menú";
+      }
+    });
+
+    // Restore button
+    document.getElementById("nav-restore-btn").addEventListener("click", () => {
+      currentOrder = [...DEFAULT_ORDER];
+      currentHidden = new Set();
+      render();
+    });
+
+    // Init once API is available
+    if (typeof apiFetch === "function" && typeof getToken === "function" && getToken()) {
+      loadPrefs();
+    } else {
+      // Wait briefly for api.js to load
+      window.addEventListener("load", () => {
+        if (typeof apiFetch === "function" && getToken()) loadPrefs();
+        else render();
+      });
+    }
+  })();
+  </script>
 </body>
 </html>
