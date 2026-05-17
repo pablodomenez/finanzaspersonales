@@ -112,15 +112,14 @@
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
         <div class="flex items-center gap-3">
           <h2 id="modal-title" class="text-base font-semibold text-slate-800 dark:text-white">Nueva transacción</h2>
-          <button id="scan-receipt-btn" type="button"
-            class="flex items-center gap-1.5 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition font-medium">
+          <label id="scan-receipt-btn" for="receipt-input"
+            class="flex items-center gap-1.5 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2.5 py-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition font-medium cursor-pointer select-none">
             📷 Escanear ticket
-          </button>
+          </label>
         </div>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-lg leading-none">✕</button>
       </div>
       <div class="p-6">
-        <input type="file" id="receipt-input" accept="image/*" style="position:absolute;width:0;height:0;opacity:0;overflow:hidden">
         <div id="scan-status" class="hidden text-sm text-center py-2 px-3 rounded-lg mb-3"></div>
         <div id="modal-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
         <form id="transaction-form" class="space-y-4">
@@ -231,6 +230,10 @@
       </div>
     </div>
   </div>
+
+  <!-- Input fuera del modal para que iOS Safari lo active correctamente via label -->
+  <input type="file" id="receipt-input" accept="image/*"
+    style="position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0">
 
   <script src="/js/api.js?v=5"></script>
   <script src="/js/sidebar.js?v=5"></script>

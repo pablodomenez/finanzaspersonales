@@ -93,7 +93,7 @@ function openNewModal() {
   document.getElementById("t-description").value = "";
   document.getElementById("t-date").value = new Date().toISOString().slice(0, 10);
   document.getElementById("modal-error").classList.add("hidden");
-  document.getElementById("scan-receipt-btn").classList.remove("hidden");
+  document.getElementById("scan-receipt-btn").style.display = "";
   document.getElementById("scan-status").classList.add("hidden");
   document.getElementById("receipt-input").value = "";
   populateCategorySelect("expense");
@@ -111,7 +111,7 @@ function editTransaction(t) {
   document.getElementById("t-description").value = t.description;
   document.getElementById("t-date").value = t.date.slice(0, 10);
   document.getElementById("modal-error").classList.add("hidden");
-  document.getElementById("scan-receipt-btn").classList.add("hidden");
+  document.getElementById("scan-receipt-btn").style.display = "none";
   document.getElementById("scan-status").classList.add("hidden");
   document.getElementById("modal").classList.remove("hidden");
 }
@@ -199,10 +199,8 @@ window.openModal = openNewModal;
 Promise.all([loadCategories(), loadTransactions()]);
 
 // ── Escanear ticket/factura (Gemini Vision via backend) ───────────────────────
-document.getElementById("scan-receipt-btn").addEventListener("click", () => {
-  document.getElementById("receipt-input").click();
-});
-
+// El label#scan-receipt-btn activa el input nativamente — sin .click() programático
+// para que funcione en iOS Safari y todos los móviles.
 document.getElementById("receipt-input").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
