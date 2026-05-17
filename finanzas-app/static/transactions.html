@@ -120,7 +120,7 @@
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-lg leading-none">✕</button>
       </div>
       <div class="p-6">
-        <input type="file" id="receipt-input" accept="image/*" class="hidden">
+        <input type="file" id="receipt-input" accept="image/*" style="position:absolute;width:0;height:0;opacity:0;overflow:hidden">
         <div id="scan-status" class="hidden text-sm text-center py-2 px-3 rounded-lg mb-3"></div>
         <div id="modal-error" class="hidden bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-lg p-3 mb-4"></div>
         <form id="transaction-form" class="space-y-4">
