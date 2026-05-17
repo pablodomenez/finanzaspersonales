@@ -113,6 +113,19 @@
 
   if (window.lucide) lucide.createIcons();
 
+  // Exponer función global para re-renderizar el nav con nuevas preferencias
+  window.refreshSidebarNav = function(order, hidden) {
+    const navEl = document.getElementById("sidebar-nav");
+    if (!navEl) return;
+    navEl.innerHTML = buildNavLinks(order, hidden);
+    if (window.lucide) lucide.createIcons();
+    navEl.querySelectorAll("a").forEach(function(link) {
+      link.addEventListener("click", function() {
+        if (window.innerWidth < 768) closeSidebar();
+      });
+    });
+  };
+
   // Auto-cierre al navegar en mobile
   document.querySelectorAll('#sidebar a').forEach(function(link) {
     link.addEventListener('click', function() {

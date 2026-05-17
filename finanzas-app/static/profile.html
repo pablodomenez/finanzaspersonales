@@ -325,12 +325,15 @@
       btn.disabled = true;
       btn.textContent = "Guardando...";
       try {
-        await apiFetch("/api/profile/nav-preferences", {
+        const saved = await apiFetch("/api/profile/nav-preferences", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ order: currentOrder, hidden: [...currentHidden] }),
         });
         showNavAlert("Menú guardado correctamente", true);
+        if (saved && typeof window.refreshSidebarNav === "function") {
+          window.refreshSidebarNav(saved.order, saved.hidden);
+        }
       } catch (err) {
         console.error("Error guardando nav-preferences:", err);
         showNavAlert("Error al guardar. Intentá de nuevo.", false);
