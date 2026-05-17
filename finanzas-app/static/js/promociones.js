@@ -12,10 +12,9 @@ const DIAS_NOMBRE = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sáb
 
 async function loadPromos() {
   try {
-    [allPromos, allPeriodicas, promosGlobalesHoy] = await Promise.all([
+    [allPromos, allPeriodicas] = await Promise.all([
       apiFetch("/api/promociones"),
       apiFetch("/api/promociones/periodicas"),
-      apiFetch("/api/promociones/globales/hoy"),
     ]);
     renderKPIs();
     renderGrid();
@@ -24,6 +23,14 @@ async function loadPromos() {
     document.getElementById("promos-grid").innerHTML =
       `<p class="text-red-500 text-sm col-span-full">Error al cargar promociones.</p>`;
   }
+  // Globales: fetch nativo sin auth, falla silenciosamente sin romper el resto
+  try {
+    const res = await fetch("/api/promociones/globales/hoy");
+    if (res.ok) promosGlobalesHoy = await res.json();
+  } catch (_) {
+    promosGlobalesHoy = [];
+  }
+  if (currentTab === "hoy") renderHoy();
 }
 
 function renderKPIs() {
