@@ -92,5 +92,6 @@ document.getElementById("profile-form").addEventListener("submit", async (e) => 
   }
 });
 
+requireAuth();
 buildAvatarGrid();
 loadProfile();

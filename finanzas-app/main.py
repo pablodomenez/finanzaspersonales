@@ -77,6 +77,7 @@ def _migrate_db():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled INTEGER DEFAULT 0",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS onboarding_done INTEGER DEFAULT 0",
+        "ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS nav_preferences TEXT",
     ]
     with engine.connect() as conn:
         for sql in new_columns + extra_columns:

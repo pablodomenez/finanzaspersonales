@@ -331,7 +331,8 @@
           body: JSON.stringify({ order: currentOrder, hidden: [...currentHidden] }),
         });
         showNavAlert("Menú guardado correctamente", true);
-      } catch (_) {
+      } catch (err) {
+        console.error("Error guardando nav-preferences:", err);
         showNavAlert("Error al guardar. Intentá de nuevo.", false);
       } finally {
         btn.disabled = false;
