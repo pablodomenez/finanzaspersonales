@@ -7,9 +7,10 @@ import models
 router = APIRouter(prefix="/api/notificaciones", tags=["notificaciones"])
 
 _TIPO_META = {
-    "servicio": {"icon": "zap",  "url": "/servicios.html",   "color": "blue"},
-    "promo":    {"icon": "tag",  "url": "/promociones.html", "color": "amber"},
-    "alquiler": {"icon": "home", "url": "/alquileres.html",  "color": "orange"},
+    "servicio": {"icon": "zap",       "url": "/servicios.html",   "color": "blue"},
+    "promo":    {"icon": "tag",       "url": "/promociones.html", "color": "amber"},
+    "alquiler": {"icon": "home",      "url": "/alquileres.html",  "color": "orange"},
+    "admin":    {"icon": "megaphone", "url": "/dashboard.html",   "color": "violet"},
 }
 
 def _ser(n, tipo):
@@ -21,21 +22,23 @@ def _ser(n, tipo):
         "leida": n.leida,
         "created_at": n.created_at.isoformat() if n.created_at else "",
         "icon": m["icon"],
-        "url": m["url"],
+        "url": getattr(n, "url", m["url"]),
         "color": m["color"],
     }
 
 
 @router.get("")
 def get_all(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    svc  = db.query(models.Notificacion).filter_by(user_id=user.id).order_by(models.Notificacion.created_at.desc()).limit(30).all()
-    prom = db.query(models.NotificacionPromo).filter_by(user_id=user.id).order_by(models.NotificacionPromo.created_at.desc()).limit(30).all()
-    alq  = db.query(models.NotificacionAlquiler).filter_by(user_id=user.id).order_by(models.NotificacionAlquiler.created_at.desc()).limit(30).all()
+    svc   = db.query(models.Notificacion).filter_by(user_id=user.id).order_by(models.Notificacion.created_at.desc()).limit(30).all()
+    prom  = db.query(models.NotificacionPromo).filter_by(user_id=user.id).order_by(models.NotificacionPromo.created_at.desc()).limit(30).all()
+    alq   = db.query(models.NotificacionAlquiler).filter_by(user_id=user.id).order_by(models.NotificacionAlquiler.created_at.desc()).limit(30).all()
+    admin = db.query(models.NotificacionAdmin).filter_by(user_id=user.id).order_by(models.NotificacionAdmin.created_at.desc()).limit(30).all()
 
     merged = (
         [_ser(n, "servicio") for n in svc] +
         [_ser(n, "promo")    for n in prom] +
-        [_ser(n, "alquiler") for n in alq]
+        [_ser(n, "alquiler") for n in alq] +
+        [_ser(n, "admin")    for n in admin]
     )
     merged.sort(key=lambda x: x["created_at"], reverse=True)
     return merged[:50]
@@ -46,7 +49,8 @@ def get_count(db: Session = Depends(get_db), user=Depends(get_current_user)):
     total = (
         db.query(models.Notificacion).filter_by(user_id=user.id, leida=False).count() +
         db.query(models.NotificacionPromo).filter_by(user_id=user.id, leida=False).count() +
-        db.query(models.NotificacionAlquiler).filter_by(user_id=user.id, leida=False).count()
+        db.query(models.NotificacionAlquiler).filter_by(user_id=user.id, leida=False).count() +
+        db.query(models.NotificacionAdmin).filter_by(user_id=user.id, leida=False).count()
     )
     return {"total": total}
 
@@ -56,6 +60,7 @@ def mark_all_read(db: Session = Depends(get_db), user=Depends(get_current_user))
     db.query(models.Notificacion).filter_by(user_id=user.id, leida=False).update({"leida": True})
     db.query(models.NotificacionPromo).filter_by(user_id=user.id, leida=False).update({"leida": True})
     db.query(models.NotificacionAlquiler).filter_by(user_id=user.id, leida=False).update({"leida": True})
+    db.query(models.NotificacionAdmin).filter_by(user_id=user.id, leida=False).update({"leida": True})
     db.commit()
 
 
@@ -65,6 +70,7 @@ def mark_one_read(tipo: str, notif_id: int, db: Session = Depends(get_db), user=
         "servicio": models.Notificacion,
         "promo":    models.NotificacionPromo,
         "alquiler": models.NotificacionAlquiler,
+        "admin":    models.NotificacionAdmin,
     }
     model = model_map.get(tipo)
     if not model:

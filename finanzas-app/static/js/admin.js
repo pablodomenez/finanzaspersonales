@@ -253,7 +253,7 @@ async function sendBroadcast() {
       body: JSON.stringify({ title, body, url }),
     });
     resultEl.className = "text-sm text-center py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400";
-    resultEl.textContent = `✅ Enviado: ${res.sent} · Fallidos: ${res.failed}`;
+    resultEl.textContent = `✅ Push: ${res.push_sent} enviados · ${res.push_failed} fallidos · In-app: ${res.inapp_sent} usuarios`;
     resultEl.classList.remove("hidden");
     document.getElementById("push-title").value = "";
     document.getElementById("push-body").value = "";

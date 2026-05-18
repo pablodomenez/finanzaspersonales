@@ -242,4 +242,15 @@ async def broadcast_push(
         db.query(models.PushSubscription).filter(models.PushSubscription.id.in_(dead)).delete()
         db.commit()
 
-    return {"sent": sent, "failed": failed}
+    # Crear notificación in-app para todos los usuarios activos
+    active_users = db.query(models.User).filter(models.User.is_active == True).all()
+    for user in active_users:
+        db.add(models.NotificacionAdmin(
+            user_id=user.id,
+            titulo=data.title,
+            mensaje=data.body,
+            url=data.url,
+        ))
+    db.commit()
+
+    return {"push_sent": sent, "push_failed": failed, "inapp_sent": len(active_users)}

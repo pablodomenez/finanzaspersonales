@@ -49,6 +49,7 @@ class User(Base):
     notificaciones_alquileres = relationship("NotificacionAlquiler", back_populates="user", cascade="all, delete")
     prestamos = relationship("Prestamo", back_populates="user", cascade="all, delete-orphan")
     push_subscriptions = relationship("PushSubscription", back_populates="user", cascade="all, delete-orphan")
+    notificaciones_admin = relationship("NotificacionAdmin", back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -658,3 +659,17 @@ class PushSubscription(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="push_subscriptions")
+
+
+class NotificacionAdmin(Base):
+    __tablename__ = "notificaciones_admin"
+
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    titulo     = Column(String, nullable=False, default="FinanzasApp")
+    mensaje    = Column(String, nullable=False)
+    url        = Column(String, nullable=False, default="/dashboard.html")
+    leida      = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="notificaciones_admin")
