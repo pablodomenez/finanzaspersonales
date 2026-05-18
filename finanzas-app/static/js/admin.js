@@ -235,6 +235,61 @@ async function loadFeedback() {
 
 // ── Push broadcast ────────────────────────────────────────────────────────────
 
+const PUSH_TEMPLATES = [
+  // Recordatorios diarios
+  { group: "Recordatorios", label: "Cargá los movimientos de hoy",       title: "¿Ya registraste tus gastos?",         body: "Tomá 2 minutos para anotar los movimientos del día y mantener tus finanzas al día 💰",                    url: "/transactions.html" },
+  { group: "Recordatorios", label: "Revisá tu presupuesto del mes",       title: "¿Cómo va tu presupuesto?",            body: "Revisá cuánto gastaste este mes y si estás dentro de tus límites 📊",                                    url: "/budgets.html" },
+  { group: "Recordatorios", label: "Actualizá tus inversiones",           title: "Actualizá tu portfolio",              body: "¿Compraste o vendiste activos? Mantené tu portfolio actualizado en FinanzasApp 📈",                      url: "/inversiones.html" },
+  { group: "Recordatorios", label: "Revisá tus servicios próximos a vencer", title: "Servicios por vencer",             body: "Hay servicios próximos a su fecha de vencimiento. Revisalos para no perder ninguno ⚡",                  url: "/servicios.html" },
+  { group: "Recordatorios", label: "Cierre de tarjeta de crédito",        title: "Se acerca el cierre de tu tarjeta",   body: "Revisá los gastos del mes en tu tarjeta antes de que cierren 💳",                                       url: "/cards.html" },
+
+  // Motivacionales
+  { group: "Motivación",    label: "Felicitaciones por el mes",           title: "¡Buen trabajo este mes! 🎉",          body: "Seguiste registrando tus finanzas. Eso es lo que hace la diferencia a fin de año 💪",                      url: "/dashboard.html" },
+  { group: "Motivación",    label: "Ahorrar aunque sea poco",             title: "Cada peso cuenta",                    body: "No importa el monto, lo importante es el hábito. ¿Pudiste ahorrar algo hoy? 🏦",                         url: "/goals.html" },
+  { group: "Motivación",    label: "Revisá tu meta de ahorro",            title: "¿Cómo va tu meta de ahorro?",         body: "Chequeá cuánto te falta para llegar a tu objetivo. ¡Cada contribución suma! 🎯",                         url: "/goals.html" },
+  { group: "Motivación",    label: "Fin de semana de revisión financiera", title: "Buen momento para revisar",           body: "Aprovechá el fin de semana para poner al día tus finanzas y arrancar la semana tranquilo 🗂️",             url: "/dashboard.html" },
+
+  // Fin de mes / cierre
+  { group: "Cierre de mes", label: "Resumen de fin de mes",               title: "¿Cómo cerró el mes?",                 body: "Entrá al dashboard y revisá tu balance mensual. ¿Gastaste de más o te sobró algo? 📅",                    url: "/dashboard.html" },
+  { group: "Cierre de mes", label: "Exportá tu reporte mensual",          title: "Descargá tu reporte del mes",         body: "Podés exportar todos tus movimientos en CSV desde la sección de Reportes 📄",                            url: "/reports.html" },
+  { group: "Cierre de mes", label: "Actualizá los presupuestos del mes",  title: "Nuevo mes, nuevos presupuestos",       body: "¿Ya configuraste tus límites de gasto para este mes? Hacelo en Presupuestos 👛",                        url: "/budgets.html" },
+
+  // Promos y beneficios
+  { group: "Beneficios",    label: "Revisá las promos bancarias",         title: "Hay promos disponibles 🏷️",           body: "Entrá a la sección de Promos y fijate los beneficios que tenés disponibles esta semana",                  url: "/promociones.html" },
+  { group: "Beneficios",    label: "Días con descuento especial",         title: "Día de descuentos",                   body: "Hoy hay promociones bancarias activas. Revisalas antes de salir a comprar 💡",                            url: "/promociones.html" },
+
+  // Novedades de la app
+  { group: "Novedades",     label: "Nueva funcionalidad disponible",      title: "Novedad en FinanzasApp ✨",            body: "Actualizamos la app con mejoras. Explorá las novedades y contanos qué te parece",                          url: "/dashboard.html" },
+  { group: "Novedades",     label: "Dejanos tu feedback",                 title: "Tu opinión nos importa",              body: "¿Cómo estás usando FinanzasApp? Dejanos tu valoración en la sección de Feedback 💬",                      url: "/feedback.html" },
+];
+
+(function initTemplates() {
+  const sel = document.getElementById("push-template");
+  if (!sel) return;
+  let lastGroup = "";
+  PUSH_TEMPLATES.forEach((t, i) => {
+    if (t.group !== lastGroup) {
+      const og = document.createElement("optgroup");
+      og.label = t.group;
+      sel.appendChild(og);
+      lastGroup = t.group;
+    }
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = t.label;
+    sel.appendChild(opt);
+  });
+})();
+
+function applyTemplate(idx) {
+  if (idx === "") return;
+  const t = PUSH_TEMPLATES[parseInt(idx)];
+  if (!t) return;
+  document.getElementById("push-title").value = t.title;
+  document.getElementById("push-body").value  = t.body;
+  document.getElementById("push-url").value   = t.url;
+}
+
 async function sendBroadcast() {
   const title = document.getElementById("push-title").value.trim();
   const body = document.getElementById("push-body").value.trim();

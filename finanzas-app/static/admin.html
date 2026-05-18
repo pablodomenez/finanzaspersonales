@@ -152,6 +152,13 @@
             <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">Enviar notificación a todos los usuarios</h3>
             <div class="space-y-3">
               <div>
+                <label class="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Plantilla rápida</label>
+                <select id="push-template" onchange="applyTemplate(this.value)"
+                  class="form-input text-sm">
+                  <option value="">— Elegir plantilla o escribir manualmente —</option>
+                </select>
+              </div>
+              <div>
                 <label class="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Título</label>
                 <input id="push-title" type="text" placeholder="FinanzasApp" maxlength="60"
                   class="form-input" />
