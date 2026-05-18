@@ -126,10 +126,11 @@ async def lifespan(app: FastAPI):
         task_promo = asyncio.create_task(promociones.check_promo_loop())
         task_alq = asyncio.create_task(alquileres.check_alquileres_loop())
         task_periodicas = asyncio.create_task(promociones.check_periodicas_loop())
+        task_recordatorio = asyncio.create_task(push.check_recordatorio_loop())
     else:
-        task_svc = task_promo = task_alq = task_periodicas = None
+        task_svc = task_promo = task_alq = task_periodicas = task_recordatorio = None
     yield
-    for task in [task_svc, task_promo, task_alq, task_periodicas]:
+    for task in [task_svc, task_promo, task_alq, task_periodicas, task_recordatorio]:
         if task:
             task.cancel()
             try:

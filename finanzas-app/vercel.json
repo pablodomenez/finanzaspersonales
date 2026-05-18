@@ -14,5 +14,11 @@
   ],
   "env": {
     "VERCEL": "1"
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/push/cron-recordatorio",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }

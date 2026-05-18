@@ -1,8 +1,10 @@
 """Web Push Notifications — suscripción y envío de alertas."""
+import asyncio
 import json
 import os
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
@@ -112,6 +114,59 @@ def unsubscribe(
         models.PushSubscription.endpoint == data.endpoint,
     ).delete()
     db.commit()
+    return {"ok": True}
+
+
+def _send_recordatorio_sync():
+    """Envía push recordatorio nocturno a todos los usuarios con suscripción activa."""
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        subs = db.query(models.PushSubscription).all()
+        payload = {
+            "title": "¿Ya cargaste los movimientos de hoy?",
+            "body": "Tomá 2 minutos para registrar tus gastos e ingresos del día 💰",
+            "url": "/transactions.html",
+        }
+        dead = []
+        for sub in subs:
+            info = {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth_key}}
+            ok = _send_push(info, payload)
+            if not ok:
+                dead.append(sub.id)
+        if dead:
+            db.query(models.PushSubscription).filter(models.PushSubscription.id.in_(dead)).delete()
+            db.commit()
+        logger.info("Recordatorio push enviado a %d suscripciones (%d inactivas eliminadas)", len(subs), len(dead))
+    finally:
+        db.close()
+
+
+async def check_recordatorio_loop():
+    """Loop diario: envía recordatorio de carga de movimientos a las 21:00."""
+    now = datetime.now()
+    target = now.replace(hour=21, minute=0, second=0, microsecond=0)
+    if now >= target:
+        target += timedelta(days=1)
+    await asyncio.sleep((target - now).total_seconds())
+
+    while True:
+        try:
+            await asyncio.to_thread(_send_recordatorio_sync)
+        except Exception as e:
+            logger.warning("[RecordatorioScheduler] Error: %s", e)
+        await asyncio.sleep(24 * 3600)
+
+
+CRON_SECRET = os.getenv("CRON_SECRET", "")
+
+
+@router.post("/cron-recordatorio", summary="Endpoint llamado por Vercel Cron a las 21:00 ART")
+def cron_recordatorio(request: Request):
+    auth = request.headers.get("authorization", "")
+    if CRON_SECRET and auth != f"Bearer {CRON_SECRET}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    _send_recordatorio_sync()
     return {"ok": True}
 
 
