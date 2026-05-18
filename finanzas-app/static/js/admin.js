@@ -266,18 +266,19 @@ const PUSH_TEMPLATES = [
 (function initTemplates() {
   const sel = document.getElementById("push-template");
   if (!sel) return;
+  let currentOg = null;
   let lastGroup = "";
   PUSH_TEMPLATES.forEach((t, i) => {
     if (t.group !== lastGroup) {
-      const og = document.createElement("optgroup");
-      og.label = t.group;
-      sel.appendChild(og);
+      currentOg = document.createElement("optgroup");
+      currentOg.label = t.group;
+      sel.appendChild(currentOg);
       lastGroup = t.group;
     }
     const opt = document.createElement("option");
     opt.value = i;
     opt.textContent = t.label;
-    sel.appendChild(opt);
+    currentOg.appendChild(opt);
   });
 })();
 
